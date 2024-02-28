@@ -1,0 +1,9 @@
+version: v1
+managed:
+  enabled: true
+  go_package_prefix:
+    default: github.com/amaury95/graphify/models/domain
+plugins:
+  - plugin: go-tag
+    out: domain
+    opt: paths=source_relative

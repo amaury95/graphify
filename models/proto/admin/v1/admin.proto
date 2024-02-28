@@ -1,0 +1,19 @@
+syntax = "proto3";
+package admin.v1;
+
+message Admin {
+  // key represents the unique identifier of the admin
+  string key = 1 [ json_name = "_key" ];
+  // sub represents the unique identifier of the authenticator
+  string subject = 2 [ json_name = "sub" ];
+  // first name of the admin
+  string first_name = 3;
+  // last name of the admin
+  string last_name = 4;
+  // unique email of the admin
+  string email = 5;
+  // avatar image associated to the avatar
+  optional bytes avatar = 6;
+  // notes associated to the admin
+  optional string notes = 7;
+}

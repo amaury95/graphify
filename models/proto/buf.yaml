@@ -1,0 +1,8 @@
+version: v1
+name: buf.build/amaury/graphify
+breaking:
+  use:
+    - FILE
+lint:
+  use:
+    - DEFAULT
