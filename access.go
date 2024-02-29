@@ -13,7 +13,7 @@ import (
 )
 
 // List ...
-func  List(ctx context.Context, offset, count int, out interface{}, comm *Common) (int, error) {
+func List(ctx context.Context, offset, count int, out interface{}, comm *Common) (int, error) {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return 0, fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -167,8 +167,15 @@ func createDocuments(ctx context.Context, items interface{}, comm *Common) (resu
 		return nil, fmt.Errorf("failed to insert document: %w", err)
 	}
 
-	for _, meta := range meta {
+	itemsVal := reflect.ValueOf(items)
+	for index, meta := range meta {
 		result = append(result, meta.Key)
+
+		item := itemsVal.Index(index).Interface()
+		if bytes, ok := protoEncode(item); ok {
+			go comm.Observer.Emit(&Event[Topic]{
+				Topic: CreatedTopic.With(item), Payload: &observer.CreatedPayload{Key: meta.Key, Element: bytes}})
+		}
 	}
 
 	return result, nil
@@ -186,15 +193,9 @@ func createDocument(ctx context.Context, item interface{}, comm *Common) ([]stri
 		return nil, fmt.Errorf("failed to insert document: %w", err)
 	}
 
-	if elem, ok := protoEncode(item); ok {
+	if bytes, ok := protoEncode(item); ok {
 		go comm.Observer.Emit(&Event[Topic]{
-			Topic: CreatedTopic.With(item),
-			Payload: &observer.CreatedPayload{
-				Key:     meta.Key,
-				Element: elem,
-				// Admin: ,
-			},
-		})
+			Topic: CreatedTopic.With(item), Payload: &observer.CreatedPayload{Key: meta.Key, Element: bytes}})
 	}
 
 	return []string{meta.Key}, nil
@@ -216,14 +217,9 @@ func Update(ctx context.Context, key string, item interface{}, comm *Common) err
 		return fmt.Errorf("failed to update the document")
 	}
 
-	if elem, ok := protoEncode(item); ok {
+	if bytes, ok := protoEncode(item); ok {
 		go comm.Observer.Emit(&Event[Topic]{
-			Topic: UpdatedTopic.With(item),
-			Payload: &observer.UpdatedPayload{
-				Element: elem,
-				// Admin: ,
-			},
-		})
+			Topic: UpdatedTopic.With(item), Payload: &observer.UpdatedPayload{Element: bytes}})
 	}
 	return nil
 }
@@ -255,18 +251,15 @@ func Delete(ctx context.Context, item interface{}, comm *Common) error {
 	}
 
 	go comm.Observer.Emit(&Event[Topic]{
-		Topic: DeletedTopic.With(item),
-		Payload: &observer.DeletedPayload{
-			Key: key,
-			// Admin: ,
-		},
-	})
+		Topic: DeletedTopic.With(item), Payload: &observer.DeletedPayload{Key: key}})
 
 	return nil
 }
 
 func protoEncode(item interface{}) ([]byte, bool) {
-	if elem, ok := item.(protoreflect.ProtoMessage); ok {
+	message := reflect.New(reflect.TypeOf(item))
+	message.Elem().Set(reflect.ValueOf(item))
+	if elem, ok := message.Interface().(protoreflect.ProtoMessage); ok {
 		elemBytes, _ := proto.Marshal(elem)
 		return elemBytes, ok
 	}

@@ -1,0 +1,41 @@
+@host = http://localhost:8080
+
+### 
+GET {{host}}/books
+
+### 
+POST {{host}}/books
+
+{
+    "title": "The Great Gatsby",
+    "author": "F. Scott Fitzgerald",
+    "Type": {
+      "Novel": {
+        "genre": "Fiction",
+        "publicationYear": 1925
+      }
+    },
+    "mainReview": {
+      "message": "Review",
+      "name": "User Name"
+    },
+    "reviews": [
+      {
+        "message": "List",
+        "name": "User List"
+      }
+    ],
+    "tags": [
+      "action",
+      "fiction"
+    ],
+    "bookPrice": {
+      "new": 200,
+      "used": 100
+    },
+    "chapters": {
+      "1": "The Phantom Menace",
+      "2": "Attack of the Clones"
+    },
+    "portrait": "https://picsum.photos/200/300"
+}
