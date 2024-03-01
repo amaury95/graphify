@@ -17,11 +17,13 @@ type IConnection interface {
 	GetCollection(ctx context.Context, elem reflect.Type) (driver.Collection, error)
 }
 
-type connection struct{}
+type connection struct {
+	username, password string
+}
 
 // NewConnection ...
-func NewConnection() *connection {
-	return &connection{}
+func NewConnection(username, password string) *connection {
+	return &connection{username: username, password: password}
 }
 
 func (c *connection) GetDatabase(ctx context.Context) (db driver.Database, err error) {
@@ -39,7 +41,7 @@ func (c *connection) GetDatabase(ctx context.Context) (db driver.Database, err e
 
 	client, err := driver.NewClient(driver.ClientConfig{
 		Connection:     conn,
-		Authentication: driver.BasicAuthentication("username", "password"),
+		Authentication: driver.BasicAuthentication(c.username, c.password),
 	})
 	if err != nil {
 		panic(err)
