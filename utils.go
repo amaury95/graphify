@@ -1,10 +1,11 @@
 package graphify
 
 import (
-	"github.com/go-openapi/inflect"
-	"github.com/stoewer/go-strcase"
 	"reflect"
 	"strings"
+
+	"github.com/go-openapi/inflect"
+	"github.com/stoewer/go-strcase"
 )
 
 /* NODE HELPERS */
@@ -35,12 +36,12 @@ func hasStringField(t reflect.Type, fieldName, jsonTag string) bool {
 
 type Topic string
 
-func (t Topic) With(elem interface{}) Topic {
+func (t Topic) For(elem interface{}) Topic {
 	return Topic(string(t) + "_" + CollectionFor(reflect.TypeOf(elem)))
 }
 
 var (
-	CreatedTopic Topic = "Created"
-	UpdatedTopic Topic = "Updated"
-	DeletedTopic Topic = "Deleted"
+	CreatedTopic Topic = "created"
+	UpdatedTopic Topic = "updated"
+	DeletedTopic Topic = "deleted"
 )

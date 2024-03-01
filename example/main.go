@@ -27,7 +27,7 @@ func main() {
 	graph.Node(admin.Admin{})
 
 	common.Observer.Subscribe(
-		graphify.CreatedTopic.With(library.Book{}), logCreatedBook)
+		graphify.CreatedTopic.For(library.Book{}), logCreatedBook)
 
 	http.ListenAndServe(":8080", graph.RestHandler(ctx))
 }

@@ -174,7 +174,7 @@ func createDocuments(ctx context.Context, items interface{}, comm *Common) (resu
 		item := itemsVal.Index(index).Interface()
 		if bytes, ok := protoEncode(item); ok {
 			go comm.Observer.Emit(&Event[Topic]{
-				Topic: CreatedTopic.With(item), Payload: &observer.CreatedPayload{Key: meta.Key, Element: bytes}})
+				Topic: CreatedTopic.For(item), Payload: &observer.CreatedPayload{Key: meta.Key, Element: bytes}})
 		}
 	}
 
@@ -195,7 +195,7 @@ func createDocument(ctx context.Context, item interface{}, comm *Common) ([]stri
 
 	if bytes, ok := protoEncode(item); ok {
 		go comm.Observer.Emit(&Event[Topic]{
-			Topic: CreatedTopic.With(item), Payload: &observer.CreatedPayload{Key: meta.Key, Element: bytes}})
+			Topic: CreatedTopic.For(item), Payload: &observer.CreatedPayload{Key: meta.Key, Element: bytes}})
 	}
 
 	return []string{meta.Key}, nil
@@ -219,7 +219,7 @@ func Update(ctx context.Context, key string, item interface{}, comm *Common) err
 
 	if bytes, ok := protoEncode(item); ok {
 		go comm.Observer.Emit(&Event[Topic]{
-			Topic: UpdatedTopic.With(item), Payload: &observer.UpdatedPayload{Element: bytes}})
+			Topic: UpdatedTopic.For(item), Payload: &observer.UpdatedPayload{Element: bytes}})
 	}
 	return nil
 }
@@ -251,7 +251,7 @@ func Delete(ctx context.Context, item interface{}, comm *Common) error {
 	}
 
 	go comm.Observer.Emit(&Event[Topic]{
-		Topic: DeletedTopic.With(item), Payload: &observer.DeletedPayload{Key: key}})
+		Topic: DeletedTopic.For(item), Payload: &observer.DeletedPayload{Key: key}})
 
 	return nil
 }

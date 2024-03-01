@@ -7,6 +7,11 @@ enum Category {
   CATEGORY_HORROR = 2;
 }
 
+message Character {
+  string name = 1;
+  string role = 2;
+}
+
 message Book {
   message Novel {
     string genre = 1;
@@ -55,7 +60,9 @@ message Book {
   repeated string tags = 11;
   map<string, int32> book_price = 12;
   map<int32, string> chapters = 13;
-  bytes portrait = 14;
-  repeated bytes gallery = 15;
-  Category category = 16;
+  map<string, Character> characters = 14;
+
+  bytes portrait = 15;
+  repeated bytes gallery = 16;
+  Category category = 17;
 }

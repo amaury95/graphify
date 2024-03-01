@@ -7,6 +7,7 @@
 package adminv1
 
 import (
+	bytes "bytes"
 	utils "github.com/amaury95/protoc-gen-go-tag/utils"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -241,4 +242,47 @@ func (o *Admin) LoadMap(values map[string]interface{}) {
 	if val, ok := values["notes"].(string); ok {
 		o.Notes = &val
 	}
+}
+
+// Specs ...
+func (*Admin) Specs() []byte {
+	var buffer bytes.Buffer
+	buffer.WriteString("{")
+	buffer.WriteString("\"fields\": {")
+	buffer.WriteString("\"_key\": {")
+	buffer.WriteString("\"name\":\"_key\",")
+	buffer.WriteString("\"type\": \"string\"")
+	buffer.WriteString("},")
+	buffer.WriteString("\"sub\": {")
+	buffer.WriteString("\"name\":\"sub\",")
+	buffer.WriteString("\"type\": \"string\"")
+	buffer.WriteString("},")
+	buffer.WriteString("\"firstName\": {")
+	buffer.WriteString("\"name\":\"firstName\",")
+	buffer.WriteString("\"type\": \"string\"")
+	buffer.WriteString("},")
+	buffer.WriteString("\"lastName\": {")
+	buffer.WriteString("\"name\":\"lastName\",")
+	buffer.WriteString("\"type\": \"string\"")
+	buffer.WriteString("},")
+	buffer.WriteString("\"email\": {")
+	buffer.WriteString("\"name\":\"email\",")
+	buffer.WriteString("\"type\": \"string\"")
+	buffer.WriteString("},")
+	buffer.WriteString("\"avatar\": {")
+	buffer.WriteString("\"name\":\"avatar\",")
+	buffer.WriteString("\"optional\": true,")
+	buffer.WriteString("\"type\": \"bytes\"")
+	buffer.WriteString("},")
+	buffer.WriteString("\"notes\": {")
+	buffer.WriteString("\"name\":\"notes\",")
+	buffer.WriteString("\"optional\": true,")
+	buffer.WriteString("\"type\": \"string\"")
+	buffer.WriteString("},")
+	utils.TrimTrailingComma(&buffer)
+	buffer.WriteString("},")
+	buffer.WriteString("\"oneofs\": {")
+	buffer.WriteString("}")
+	buffer.WriteString("}")
+	return buffer.Bytes()
 }

@@ -6,15 +6,12 @@ import "admin/v1/admin.proto";
 message CreatedPayload {
   string key = 1;
   bytes element = 2;
-  optional admin.v1.Admin admin = 3;
 }
 
 message UpdatedPayload {
   bytes element = 1;
-  optional admin.v1.Admin admin = 2;
 }
 
 message DeletedPayload {
   string key = 1;
-  optional admin.v1.Admin admin = 2;
 }

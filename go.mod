@@ -3,7 +3,7 @@ module github.com/amaury95/graphify
 go 1.20
 
 require (
-	github.com/amaury95/protoc-gen-go-tag v0.2.81
+	github.com/amaury95/protoc-gen-go-tag v0.3.32
 	github.com/arangodb/go-driver v1.6.1
 	github.com/go-openapi/inflect v0.19.0
 	github.com/gorilla/mux v1.8.1

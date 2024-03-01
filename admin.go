@@ -1,6 +1,7 @@
 package graphify
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -20,6 +21,8 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 
 	router := mux.NewRouter()
 
+	router.HandleFunc("/models", g.getSpecs).Methods(http.MethodGet)
+	
 	router.HandleFunc("/{resource}", g.createResource).Methods(http.MethodPost)
 	router.HandleFunc("/{resource}", g.getResources).Methods(http.MethodGet)
 	router.HandleFunc("/{resource}/{key}", g.getResource).Methods(http.MethodGet)
@@ -27,7 +30,6 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	router.HandleFunc("/{resource}/{key}", g.deleteResource).Methods(http.MethodDelete)
 	router.HandleFunc("/{resource}/{key}/{relation}", g.getRelations).Methods(http.MethodGet)
 
-	router.HandleFunc("/models", g.getSpecs).Methods(http.MethodGet)
 
 	// Middleware to inject context into each request
 	router.Use(func(next http.Handler) http.Handler {
@@ -186,7 +188,21 @@ func (g *graph) deleteResource(w http.ResponseWriter, r *http.Request) {
 func (g *graph) getRelations(w http.ResponseWriter, r *http.Request) {}
 
 func (g *graph) getSpecs(w http.ResponseWriter, r *http.Request) {
+	var specs bytes.Buffer
+	specs.WriteString("{")
+	for name, nodeType := range g.Nodes {
+		node := reflect.New(nodeType).Interface()
+		if spec, ok := node.(protocgengotag.ISpecs); ok {
+			specs.WriteString("\"" + name + "\":")
+			specs.Write(spec.Specs())
+			specs.WriteString(",")
+		}
+	}
+	protocgengotag.TrimTrailingComma(&specs)
 
+	specs.WriteString("}")
+
+	WriteResponse(w, http.StatusOK, specs.Bytes())
 }
 
 func (g *graph) getElem(name string) (reflect.Type, bool) {
@@ -202,6 +218,12 @@ func (g *graph) getElem(name string) (reflect.Type, bool) {
 }
 
 /* Utils */
+
+func WriteResponse(w http.ResponseWriter, status int, data []byte) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	w.Write(data)
+}
 
 func WriteJSONResponse(w http.ResponseWriter, status int, data interface{}) {
 	dataBytes, err := json.Marshal(data)
