@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 
 	"github.com/amaury95/graphify"
 	library "github.com/amaury95/graphify/example/domain/library/v1"
@@ -23,7 +23,7 @@ func main() {
 
 	// Prompt for password
 	fmt.Print("Enter password: ")
-	password, err := terminal.ReadPassword(int(os.Stdin.Fd()))
+	password, err := term.ReadPassword(int(os.Stdin.Fd()))
 	if err != nil {
 		fmt.Println("Error reading password:", err)
 		return
@@ -45,6 +45,7 @@ func main() {
 	common.Observer.Subscribe(
 		graphify.CreatedTopic.For(library.Book{}), logCreatedBook)
 
+	fmt.Println("Starting server")
 	http.ListenAndServe(":8080", graph.RestHandler(ctx))
 }
 
