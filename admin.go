@@ -21,7 +21,7 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 
 	router := mux.NewRouter()
 
-	router.HandleFunc("/models", g.getSpecs).Methods(http.MethodGet)
+	router.HandleFunc("/specs", g.getSpecs).Methods(http.MethodGet)
 	
 	router.HandleFunc("/{resource}", g.createResource).Methods(http.MethodPost)
 	router.HandleFunc("/{resource}", g.getResources).Methods(http.MethodGet)

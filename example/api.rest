@@ -1,8 +1,8 @@
-# @host = http://localhost:8080
-@host = http://144.217.86.226:8080/
+@host = http://localhost:8080
+# @host = https://graphify.ovh
 
 ### 
-GET {{host}}/models
+GET {{host}}/specs
 
 ### 
 GET {{host}}/books
