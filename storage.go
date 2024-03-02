@@ -34,6 +34,11 @@ func NewFilesystemStorage(basePath string, maxMemory int64) *filesystemStorage {
 }
 
 func (s *filesystemStorage) StoreFile(file multipart.File, handler *multipart.FileHeader) (string, error) {
+	// Create the upload directory if it doesn't exist
+	if _, err := os.Stat(s.basePath); os.IsNotExist(err) {
+		os.Mkdir(s.basePath, os.ModePerm)
+	}
+
 	// Read the file
 	var buffer bytes.Buffer
 	_, err := io.Copy(&buffer, file)
