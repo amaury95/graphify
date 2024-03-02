@@ -22,14 +22,15 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/specs", g.getSpecs).Methods(http.MethodGet)
-	
-	router.HandleFunc("/{resource}", g.createResource).Methods(http.MethodPost)
-	router.HandleFunc("/{resource}", g.getResources).Methods(http.MethodGet)
-	router.HandleFunc("/{resource}/{key}", g.getResource).Methods(http.MethodGet)
-	router.HandleFunc("/{resource}/{key}", g.updateResource).Methods(http.MethodPut)
-	router.HandleFunc("/{resource}/{key}", g.deleteResource).Methods(http.MethodDelete)
-	router.HandleFunc("/{resource}/{key}/{relation}", g.getRelations).Methods(http.MethodGet)
+	router.HandleFunc("/upload", g.uploadHandler).Methods("POST")
+	router.HandleFunc("/download/{hash}", g.downloadHandler).Methods("GET")
 
+	router.HandleFunc("/{resource}", g.createResourceHandler).Methods(http.MethodPost)
+	router.HandleFunc("/{resource}", g.getResourcesHandler).Methods(http.MethodGet)
+	router.HandleFunc("/{resource}/{key}", g.getResourceHandler).Methods(http.MethodGet)
+	router.HandleFunc("/{resource}/{key}", g.updateResourceHandler).Methods(http.MethodPut)
+	router.HandleFunc("/{resource}/{key}", g.deleteResourceHandler).Methods(http.MethodDelete)
+	router.HandleFunc("/{resource}/{key}/{relation}", g.getRelationsHandler).Methods(http.MethodGet)
 
 	// Middleware to inject context into each request
 	router.Use(func(next http.Handler) http.Handler {
@@ -41,7 +42,8 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	return router
 }
 
-func (g *graph) getResources(w http.ResponseWriter, r *http.Request) {
+/* Rest Handlers */
+func (g *graph) getResourcesHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["resource"]
 
@@ -87,7 +89,7 @@ func (g *graph) getResources(w http.ResponseWriter, r *http.Request) {
 	WriteJSONResponse(w, http.StatusOK, elems.Interface())
 }
 
-func (g *graph) getResource(w http.ResponseWriter, r *http.Request) {
+func (g *graph) getResourceHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["resource"]
 	key := vars["key"]
@@ -107,7 +109,7 @@ func (g *graph) getResource(w http.ResponseWriter, r *http.Request) {
 	WriteJSONResponse(w, http.StatusOK, elem.Interface())
 }
 
-func (g *graph) createResource(w http.ResponseWriter, r *http.Request) {
+func (g *graph) createResourceHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["resource"]
 
@@ -135,7 +137,7 @@ func (g *graph) createResource(w http.ResponseWriter, r *http.Request) {
 	WriteSuccessResponse(w, http.StatusCreated)
 }
 
-func (g *graph) updateResource(w http.ResponseWriter, r *http.Request) {
+func (g *graph) updateResourceHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["resource"]
 	key := vars["key"]
@@ -164,7 +166,7 @@ func (g *graph) updateResource(w http.ResponseWriter, r *http.Request) {
 	WriteSuccessResponse(w, http.StatusCreated)
 }
 
-func (g *graph) deleteResource(w http.ResponseWriter, r *http.Request) {
+func (g *graph) deleteResourceHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["resource"]
 	key := vars["key"]
@@ -185,11 +187,13 @@ func (g *graph) deleteResource(w http.ResponseWriter, r *http.Request) {
 	WriteSuccessResponse(w, http.StatusCreated)
 }
 
-func (g *graph) getRelations(w http.ResponseWriter, r *http.Request) {}
+func (g *graph) getRelationsHandler(w http.ResponseWriter, r *http.Request) {}
 
+/* Specs Handlers */
 func (g *graph) getSpecs(w http.ResponseWriter, r *http.Request) {
 	var specs bytes.Buffer
 	specs.WriteString("{")
+
 	for name, nodeType := range g.Nodes {
 		node := reflect.New(nodeType).Interface()
 		if spec, ok := node.(protocgengotag.ISpecs); ok {
@@ -205,20 +209,49 @@ func (g *graph) getSpecs(w http.ResponseWriter, r *http.Request) {
 	WriteResponse(w, http.StatusOK, specs.Bytes())
 }
 
-func (g *graph) getElem(name string) (reflect.Type, bool) {
-	if elem, found := g.Nodes[name]; found {
-		return elem, true
+/* Files Handlers */
+func (g *graph) uploadHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseMultipartForm(g.comm.Storage.MaxMemory())
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, err)
+		return
 	}
 
-	if elem, found := g.Edges[name]; found {
-		return elem, true
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, err)
+		return
+	}
+	defer file.Close()
+
+	hash, err := g.comm.Storage.StoreFile(file, header)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusInternalServerError, err)
+		return
 	}
 
-	return nil, false
+	WriteJSONResponse(w, http.StatusCreated, map[string]string{"hash": hash})
+}
+
+func (g *graph) downloadHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	fileHash := vars["hash"]
+
+	fileContent, err := g.comm.Storage.ReadFile(fileHash)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	// Set the Content-Type header based on the file type or use application/octet-stream
+	fileHeader := make([]byte, 512)
+	copy(fileHeader, fileContent)
+	fileContentType := http.DetectContentType(fileHeader)
+
+	WriteFileResponse(w, fileHash, fileContentType, fileContent)
 }
 
 /* Utils */
-
 func WriteResponse(w http.ResponseWriter, status int, data []byte) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -241,6 +274,29 @@ func WriteSuccessResponse(w http.ResponseWriter, status int) {
 	WriteJSONResponse(w, status, map[string]bool{"success": true})
 }
 
+func WriteFileResponse(w http.ResponseWriter, filename, fileContentType string, fileContent []byte) {
+	// Set the Content-Disposition header to make the browser display the file download dialog
+	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
+	w.Header().Set("Content-Type", fileContentType)
+
+	// Write the file content to the response
+	w.Write(fileContent)
+}
+
 func WriteErrorResponse(w http.ResponseWriter, status int, err error) {
 	http.Error(w, err.Error(), status)
+}
+
+/* General */
+
+func (g *graph) getElem(name string) (reflect.Type, bool) {
+	if elem, found := g.Nodes[name]; found {
+		return elem, true
+	}
+
+	if elem, found := g.Edges[name]; found {
+		return elem, true
+	}
+
+	return nil, false
 }

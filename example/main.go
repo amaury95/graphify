@@ -36,6 +36,7 @@ func main() {
 	common := graphify.Common{
 		Connection: graphify.NewConnection(username, string(password)),
 		Observer:   graphify.NewObserver[graphify.Topic](),
+		Storage:    graphify.NewFilesystemStorage("./uploads", 10<<20), // 10 MB limit
 	}
 
 	graph := graphify.NewGraph(&common)
