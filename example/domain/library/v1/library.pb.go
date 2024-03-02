@@ -345,6 +345,148 @@ func (*Book_Poetry_) isBook_Type() {}
 
 func (*Book_Biography_) isBook_Type() {}
 
+type Client struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Key    string `protobuf:"bytes,1,opt,name=_key,proto3" json:"_key,omitempty"`
+	Name   string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Email  string `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
+	Member bool   `protobuf:"varint,4,opt,name=member,proto3" json:"member,omitempty"`
+}
+
+func (x *Client) Reset() {
+	*x = Client{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_library_v1_library_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Client) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Client) ProtoMessage() {}
+
+func (x *Client) ProtoReflect() protoreflect.Message {
+	mi := &file_library_v1_library_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Client.ProtoReflect.Descriptor instead.
+func (*Client) Descriptor() ([]byte, []int) {
+	return file_library_v1_library_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *Client) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *Client) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Client) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *Client) GetMember() bool {
+	if x != nil {
+		return x.Member
+	}
+	return false
+}
+
+type Borrow struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Key  string `protobuf:"bytes,1,opt,name=_key,proto3" json:"_key,omitempty"`
+	From string `protobuf:"bytes,2,opt,name=_from,proto3" json:"_from,omitempty"`
+	To   string `protobuf:"bytes,3,opt,name=_to,proto3" json:"_to,omitempty"`
+	Date *int64 `protobuf:"varint,4,opt,name=date,proto3,oneof" json:"date,omitempty"`
+}
+
+func (x *Borrow) Reset() {
+	*x = Borrow{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_library_v1_library_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Borrow) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Borrow) ProtoMessage() {}
+
+func (x *Borrow) ProtoReflect() protoreflect.Message {
+	mi := &file_library_v1_library_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Borrow.ProtoReflect.Descriptor instead.
+func (*Borrow) Descriptor() ([]byte, []int) {
+	return file_library_v1_library_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Borrow) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *Borrow) GetFrom() string {
+	if x != nil {
+		return x.From
+	}
+	return ""
+}
+
+func (x *Borrow) GetTo() string {
+	if x != nil {
+		return x.To
+	}
+	return ""
+}
+
+func (x *Borrow) GetDate() int64 {
+	if x != nil && x.Date != nil {
+		return *x.Date
+	}
+	return 0
+}
+
 type Book_Novel struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -357,7 +499,7 @@ type Book_Novel struct {
 func (x *Book_Novel) Reset() {
 	*x = Book_Novel{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_library_v1_library_proto_msgTypes[2]
+		mi := &file_library_v1_library_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -370,7 +512,7 @@ func (x *Book_Novel) String() string {
 func (*Book_Novel) ProtoMessage() {}
 
 func (x *Book_Novel) ProtoReflect() protoreflect.Message {
-	mi := &file_library_v1_library_proto_msgTypes[2]
+	mi := &file_library_v1_library_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -412,7 +554,7 @@ type Book_ShortStory struct {
 func (x *Book_ShortStory) Reset() {
 	*x = Book_ShortStory{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_library_v1_library_proto_msgTypes[3]
+		mi := &file_library_v1_library_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -425,7 +567,7 @@ func (x *Book_ShortStory) String() string {
 func (*Book_ShortStory) ProtoMessage() {}
 
 func (x *Book_ShortStory) ProtoReflect() protoreflect.Message {
-	mi := &file_library_v1_library_proto_msgTypes[3]
+	mi := &file_library_v1_library_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -467,7 +609,7 @@ type Book_Academic struct {
 func (x *Book_Academic) Reset() {
 	*x = Book_Academic{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_library_v1_library_proto_msgTypes[4]
+		mi := &file_library_v1_library_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -480,7 +622,7 @@ func (x *Book_Academic) String() string {
 func (*Book_Academic) ProtoMessage() {}
 
 func (x *Book_Academic) ProtoReflect() protoreflect.Message {
-	mi := &file_library_v1_library_proto_msgTypes[4]
+	mi := &file_library_v1_library_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -522,7 +664,7 @@ type Book_Poetry struct {
 func (x *Book_Poetry) Reset() {
 	*x = Book_Poetry{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_library_v1_library_proto_msgTypes[5]
+		mi := &file_library_v1_library_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -535,7 +677,7 @@ func (x *Book_Poetry) String() string {
 func (*Book_Poetry) ProtoMessage() {}
 
 func (x *Book_Poetry) ProtoReflect() protoreflect.Message {
-	mi := &file_library_v1_library_proto_msgTypes[5]
+	mi := &file_library_v1_library_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -577,7 +719,7 @@ type Book_Biography struct {
 func (x *Book_Biography) Reset() {
 	*x = Book_Biography{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_library_v1_library_proto_msgTypes[6]
+		mi := &file_library_v1_library_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -590,7 +732,7 @@ func (x *Book_Biography) String() string {
 func (*Book_Biography) ProtoMessage() {}
 
 func (x *Book_Biography) ProtoReflect() protoreflect.Message {
-	mi := &file_library_v1_library_proto_msgTypes[6]
+	mi := &file_library_v1_library_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -632,7 +774,7 @@ type Book_Review struct {
 func (x *Book_Review) Reset() {
 	*x = Book_Review{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_library_v1_library_proto_msgTypes[7]
+		mi := &file_library_v1_library_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -645,7 +787,7 @@ func (x *Book_Review) String() string {
 func (*Book_Review) ProtoMessage() {}
 
 func (x *Book_Review) ProtoReflect() protoreflect.Message {
-	mi := &file_library_v1_library_proto_msgTypes[7]
+	mi := &file_library_v1_library_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -774,22 +916,35 @@ var file_library_v1_library_proto_rawDesc = []byte{
 	0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6c, 0x69, 0x62,
 	0x72, 0x61, 0x72, 0x79, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x68, 0x61, 0x72, 0x61, 0x63, 0x74, 0x65,
 	0x72, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x42, 0x06, 0x0a, 0x04,
-	0x74, 0x79, 0x70, 0x65, 0x2a, 0x4d, 0x0a, 0x08, 0x43, 0x61, 0x74, 0x65, 0x67, 0x6f, 0x72, 0x79,
-	0x12, 0x18, 0x0a, 0x14, 0x43, 0x41, 0x54, 0x45, 0x47, 0x4f, 0x52, 0x59, 0x5f, 0x55, 0x4e, 0x53,
-	0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x12, 0x0a, 0x0e, 0x43, 0x41,
-	0x54, 0x45, 0x47, 0x4f, 0x52, 0x59, 0x5f, 0x44, 0x52, 0x41, 0x4d, 0x41, 0x10, 0x01, 0x12, 0x13,
-	0x0a, 0x0f, 0x43, 0x41, 0x54, 0x45, 0x47, 0x4f, 0x52, 0x59, 0x5f, 0x48, 0x4f, 0x52, 0x52, 0x4f,
-	0x52, 0x10, 0x02, 0x42, 0xa2, 0x01, 0x0a, 0x0e, 0x63, 0x6f, 0x6d, 0x2e, 0x6c, 0x69, 0x62, 0x72,
-	0x61, 0x72, 0x79, 0x2e, 0x76, 0x31, 0x42, 0x0c, 0x4c, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x50,
-	0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x39, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
-	0x6f, 0x6d, 0x2f, 0x61, 0x6d, 0x61, 0x75, 0x72, 0x79, 0x39, 0x35, 0x2f, 0x67, 0x72, 0x61, 0x70,
-	0x68, 0x69, 0x66, 0x79, 0x2f, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2f, 0x6c, 0x69, 0x62,
-	0x72, 0x61, 0x72, 0x79, 0x2f, 0x76, 0x31, 0x3b, 0x6c, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x76,
-	0x31, 0xa2, 0x02, 0x03, 0x4c, 0x58, 0x58, 0xaa, 0x02, 0x0a, 0x4c, 0x69, 0x62, 0x72, 0x61, 0x72,
-	0x79, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0a, 0x4c, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x5c, 0x56,
-	0x31, 0xe2, 0x02, 0x16, 0x4c, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x5c, 0x56, 0x31, 0x5c, 0x47,
-	0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x0b, 0x4c, 0x69, 0x62,
-	0x72, 0x61, 0x72, 0x79, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x74, 0x79, 0x70, 0x65, 0x22, 0x5d, 0x0a, 0x06, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x12, 0x11,
+	0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x5f, 0x6b, 0x65,
+	0x79, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x12, 0x16, 0x0a, 0x06, 0x6d,
+	0x65, 0x6d, 0x62, 0x65, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x08, 0x52, 0x06, 0x6d, 0x65, 0x6d,
+	0x62, 0x65, 0x72, 0x22, 0x63, 0x0a, 0x06, 0x42, 0x6f, 0x72, 0x72, 0x6f, 0x77, 0x12, 0x11, 0x0a,
+	0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x5f, 0x6b, 0x65, 0x79,
+	0x12, 0x13, 0x0a, 0x04, 0x66, 0x72, 0x6f, 0x6d, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05,
+	0x5f, 0x66, 0x72, 0x6f, 0x6d, 0x12, 0x0f, 0x0a, 0x02, 0x74, 0x6f, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x03, 0x5f, 0x74, 0x6f, 0x12, 0x17, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x65, 0x18, 0x04,
+	0x20, 0x01, 0x28, 0x03, 0x48, 0x00, 0x52, 0x04, 0x64, 0x61, 0x74, 0x65, 0x88, 0x01, 0x01, 0x42,
+	0x07, 0x0a, 0x05, 0x5f, 0x64, 0x61, 0x74, 0x65, 0x2a, 0x4d, 0x0a, 0x08, 0x43, 0x61, 0x74, 0x65,
+	0x67, 0x6f, 0x72, 0x79, 0x12, 0x18, 0x0a, 0x14, 0x43, 0x41, 0x54, 0x45, 0x47, 0x4f, 0x52, 0x59,
+	0x5f, 0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x12,
+	0x0a, 0x0e, 0x43, 0x41, 0x54, 0x45, 0x47, 0x4f, 0x52, 0x59, 0x5f, 0x44, 0x52, 0x41, 0x4d, 0x41,
+	0x10, 0x01, 0x12, 0x13, 0x0a, 0x0f, 0x43, 0x41, 0x54, 0x45, 0x47, 0x4f, 0x52, 0x59, 0x5f, 0x48,
+	0x4f, 0x52, 0x52, 0x4f, 0x52, 0x10, 0x02, 0x42, 0xa2, 0x01, 0x0a, 0x0e, 0x63, 0x6f, 0x6d, 0x2e,
+	0x6c, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x2e, 0x76, 0x31, 0x42, 0x0c, 0x4c, 0x69, 0x62, 0x72,
+	0x61, 0x72, 0x79, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x39, 0x67, 0x69, 0x74, 0x68,
+	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x6d, 0x61, 0x75, 0x72, 0x79, 0x39, 0x35, 0x2f,
+	0x67, 0x72, 0x61, 0x70, 0x68, 0x69, 0x66, 0x79, 0x2f, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65,
+	0x2f, 0x6c, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x2f, 0x76, 0x31, 0x3b, 0x6c, 0x69, 0x62, 0x72,
+	0x61, 0x72, 0x79, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x4c, 0x58, 0x58, 0xaa, 0x02, 0x0a, 0x4c, 0x69,
+	0x62, 0x72, 0x61, 0x72, 0x79, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0a, 0x4c, 0x69, 0x62, 0x72, 0x61,
+	0x72, 0x79, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x16, 0x4c, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x5c,
+	0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02,
+	0x0b, 0x4c, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -805,32 +960,34 @@ func file_library_v1_library_proto_rawDescGZIP() []byte {
 }
 
 var file_library_v1_library_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_library_v1_library_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_library_v1_library_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_library_v1_library_proto_goTypes = []interface{}{
 	(Category)(0),           // 0: library.v1.Category
 	(*Character)(nil),       // 1: library.v1.Character
 	(*Book)(nil),            // 2: library.v1.Book
-	(*Book_Novel)(nil),      // 3: library.v1.Book.Novel
-	(*Book_ShortStory)(nil), // 4: library.v1.Book.ShortStory
-	(*Book_Academic)(nil),   // 5: library.v1.Book.Academic
-	(*Book_Poetry)(nil),     // 6: library.v1.Book.Poetry
-	(*Book_Biography)(nil),  // 7: library.v1.Book.Biography
-	(*Book_Review)(nil),     // 8: library.v1.Book.Review
-	nil,                     // 9: library.v1.Book.BookPriceEntry
-	nil,                     // 10: library.v1.Book.ChaptersEntry
-	nil,                     // 11: library.v1.Book.CharactersEntry
+	(*Client)(nil),          // 3: library.v1.Client
+	(*Borrow)(nil),          // 4: library.v1.Borrow
+	(*Book_Novel)(nil),      // 5: library.v1.Book.Novel
+	(*Book_ShortStory)(nil), // 6: library.v1.Book.ShortStory
+	(*Book_Academic)(nil),   // 7: library.v1.Book.Academic
+	(*Book_Poetry)(nil),     // 8: library.v1.Book.Poetry
+	(*Book_Biography)(nil),  // 9: library.v1.Book.Biography
+	(*Book_Review)(nil),     // 10: library.v1.Book.Review
+	nil,                     // 11: library.v1.Book.BookPriceEntry
+	nil,                     // 12: library.v1.Book.ChaptersEntry
+	nil,                     // 13: library.v1.Book.CharactersEntry
 }
 var file_library_v1_library_proto_depIdxs = []int32{
-	3,  // 0: library.v1.Book.novel:type_name -> library.v1.Book.Novel
-	4,  // 1: library.v1.Book.short_story:type_name -> library.v1.Book.ShortStory
-	5,  // 2: library.v1.Book.academic:type_name -> library.v1.Book.Academic
-	6,  // 3: library.v1.Book.poetry:type_name -> library.v1.Book.Poetry
-	7,  // 4: library.v1.Book.biography:type_name -> library.v1.Book.Biography
-	8,  // 5: library.v1.Book.main_review:type_name -> library.v1.Book.Review
-	8,  // 6: library.v1.Book.reviews:type_name -> library.v1.Book.Review
-	9,  // 7: library.v1.Book.book_price:type_name -> library.v1.Book.BookPriceEntry
-	10, // 8: library.v1.Book.chapters:type_name -> library.v1.Book.ChaptersEntry
-	11, // 9: library.v1.Book.characters:type_name -> library.v1.Book.CharactersEntry
+	5,  // 0: library.v1.Book.novel:type_name -> library.v1.Book.Novel
+	6,  // 1: library.v1.Book.short_story:type_name -> library.v1.Book.ShortStory
+	7,  // 2: library.v1.Book.academic:type_name -> library.v1.Book.Academic
+	8,  // 3: library.v1.Book.poetry:type_name -> library.v1.Book.Poetry
+	9,  // 4: library.v1.Book.biography:type_name -> library.v1.Book.Biography
+	10, // 5: library.v1.Book.main_review:type_name -> library.v1.Book.Review
+	10, // 6: library.v1.Book.reviews:type_name -> library.v1.Book.Review
+	11, // 7: library.v1.Book.book_price:type_name -> library.v1.Book.BookPriceEntry
+	12, // 8: library.v1.Book.chapters:type_name -> library.v1.Book.ChaptersEntry
+	13, // 9: library.v1.Book.characters:type_name -> library.v1.Book.CharactersEntry
 	0,  // 10: library.v1.Book.category:type_name -> library.v1.Category
 	1,  // 11: library.v1.Book.CharactersEntry.value:type_name -> library.v1.Character
 	12, // [12:12] is the sub-list for method output_type
@@ -871,7 +1028,7 @@ func file_library_v1_library_proto_init() {
 			}
 		}
 		file_library_v1_library_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Book_Novel); i {
+			switch v := v.(*Client); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -883,7 +1040,7 @@ func file_library_v1_library_proto_init() {
 			}
 		}
 		file_library_v1_library_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Book_ShortStory); i {
+			switch v := v.(*Borrow); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -895,7 +1052,7 @@ func file_library_v1_library_proto_init() {
 			}
 		}
 		file_library_v1_library_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Book_Academic); i {
+			switch v := v.(*Book_Novel); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -907,7 +1064,7 @@ func file_library_v1_library_proto_init() {
 			}
 		}
 		file_library_v1_library_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Book_Poetry); i {
+			switch v := v.(*Book_ShortStory); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -919,7 +1076,7 @@ func file_library_v1_library_proto_init() {
 			}
 		}
 		file_library_v1_library_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Book_Biography); i {
+			switch v := v.(*Book_Academic); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -931,6 +1088,30 @@ func file_library_v1_library_proto_init() {
 			}
 		}
 		file_library_v1_library_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Book_Poetry); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_library_v1_library_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Book_Biography); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_library_v1_library_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Book_Review); i {
 			case 0:
 				return &v.state
@@ -950,13 +1131,14 @@ func file_library_v1_library_proto_init() {
 		(*Book_Poetry_)(nil),
 		(*Book_Biography_)(nil),
 	}
+	file_library_v1_library_proto_msgTypes[3].OneofWrappers = []interface{}{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_library_v1_library_proto_rawDesc,
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
@@ -1271,6 +1453,73 @@ func (*Book_Review) Specs() []byte {
 	return buffer.Bytes()
 }
 
+// Specs ...
+func (*Client) Specs() []byte {
+	var buffer bytes.Buffer
+	buffer.WriteString("{")
+	buffer.WriteString("\"fields\": {")
+	buffer.WriteString("\"_key\": {")
+	buffer.WriteString("\"type\": \"string\"")
+	buffer.WriteString(",")
+	buffer.WriteString("\"name\":\"_key\"")
+	buffer.WriteString("},")
+	buffer.WriteString("\"name\": {")
+	buffer.WriteString("\"type\": \"string\"")
+	buffer.WriteString(",")
+	buffer.WriteString("\"name\":\"name\"")
+	buffer.WriteString("},")
+	buffer.WriteString("\"email\": {")
+	buffer.WriteString("\"type\": \"string\"")
+	buffer.WriteString(",")
+	buffer.WriteString("\"name\":\"email\"")
+	buffer.WriteString("},")
+	buffer.WriteString("\"member\": {")
+	buffer.WriteString("\"type\": \"bool\"")
+	buffer.WriteString(",")
+	buffer.WriteString("\"name\":\"member\"")
+	buffer.WriteString("},")
+	utils.TrimTrailingComma(&buffer)
+	buffer.WriteString("},")
+	buffer.WriteString("\"oneofs\": {")
+	buffer.WriteString("}")
+	buffer.WriteString("}")
+	return buffer.Bytes()
+}
+
+// Specs ...
+func (*Borrow) Specs() []byte {
+	var buffer bytes.Buffer
+	buffer.WriteString("{")
+	buffer.WriteString("\"fields\": {")
+	buffer.WriteString("\"_key\": {")
+	buffer.WriteString("\"type\": \"string\"")
+	buffer.WriteString(",")
+	buffer.WriteString("\"name\":\"_key\"")
+	buffer.WriteString("},")
+	buffer.WriteString("\"_from\": {")
+	buffer.WriteString("\"type\": \"string\"")
+	buffer.WriteString(",")
+	buffer.WriteString("\"name\":\"_from\"")
+	buffer.WriteString("},")
+	buffer.WriteString("\"_to\": {")
+	buffer.WriteString("\"type\": \"string\"")
+	buffer.WriteString(",")
+	buffer.WriteString("\"name\":\"_to\"")
+	buffer.WriteString("},")
+	buffer.WriteString("\"date\": {")
+	buffer.WriteString("\"optional\": true,")
+	buffer.WriteString("\"type\": \"int64\"")
+	buffer.WriteString(",")
+	buffer.WriteString("\"name\":\"date\"")
+	buffer.WriteString("},")
+	utils.TrimTrailingComma(&buffer)
+	buffer.WriteString("},")
+	buffer.WriteString("\"oneofs\": {")
+	buffer.WriteString("}")
+	buffer.WriteString("}")
+	return buffer.Bytes()
+}
+
 // LoadMap populates struct fields from a map, handling decoding for special fields.
 func (o *Character) LoadMap(values map[string]interface{}) {
 	if val, ok := values["name"].(string); ok {
@@ -1448,5 +1697,38 @@ func (o *Book_Review) LoadMap(values map[string]interface{}) {
 	}
 	if val, ok := values["name"].(string); ok {
 		o.UserName = val
+	}
+}
+
+// LoadMap populates struct fields from a map, handling decoding for special fields.
+func (o *Client) LoadMap(values map[string]interface{}) {
+	if val, ok := values["_key"].(string); ok {
+		o.Key = val
+	}
+	if val, ok := values["name"].(string); ok {
+		o.Name = val
+	}
+	if val, ok := values["email"].(string); ok {
+		o.Email = val
+	}
+	if val, ok := values["member"].(bool); ok {
+		o.Member = val
+	}
+}
+
+// LoadMap populates struct fields from a map, handling decoding for special fields.
+func (o *Borrow) LoadMap(values map[string]interface{}) {
+	if val, ok := values["_key"].(string); ok {
+		o.Key = val
+	}
+	if val, ok := values["_from"].(string); ok {
+		o.From = val
+	}
+	if val, ok := values["_to"].(string); ok {
+		o.To = val
+	}
+	if val, ok := values["date"].(float64); ok {
+		tmp := int64(val)
+		o.Date = &tmp
 	}
 }

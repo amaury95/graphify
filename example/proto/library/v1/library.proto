@@ -66,3 +66,17 @@ message Book {
   repeated bytes gallery = 16;
   Category category = 17;
 }
+
+message Client {
+  string key = 1 [ json_name = "_key" ];
+  string name = 2;
+  string email = 3;
+  bool member = 4;
+}
+
+message Borrow {
+  string key = 1 [ json_name = "_key" ];
+  string from = 2 [ json_name = "_from" ];
+  string to = 3 [ json_name = "_to" ];
+  optional int64 date = 4;
+}

@@ -194,6 +194,8 @@ func (g *graph) getSpecs(w http.ResponseWriter, r *http.Request) {
 	var specs bytes.Buffer
 	specs.WriteString("{")
 
+	// nodes
+	specs.WriteString("\"nodes\": {")
 	for name, nodeType := range g.Nodes {
 		node := reflect.New(nodeType).Interface()
 		if spec, ok := node.(protocgengotag.ISpecs); ok {
@@ -203,6 +205,32 @@ func (g *graph) getSpecs(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	protocgengotag.TrimTrailingComma(&specs)
+	specs.WriteString("},")
+
+	// edges
+	specs.WriteString("\"edges\": {")
+	for name, edgeType := range g.Edges {
+		edge := reflect.New(edgeType).Interface()
+		if spec, ok := edge.(protocgengotag.ISpecs); ok {
+			specs.WriteString("\"" + name + "\":")
+			specs.Write(spec.Specs())
+			specs.WriteString(",")
+		}
+	}
+	protocgengotag.TrimTrailingComma(&specs)
+	specs.WriteString("},")
+
+	specs.WriteString("\"relations\": {")
+	for from, edges := range g.Relations {
+		specs.WriteString("\"" + from + "\": {")
+		for to, edge := range edges {
+			specs.WriteString("\"" + to + "\":\"" + edge + "\",")
+		}
+		protocgengotag.TrimTrailingComma(&specs)
+		specs.WriteString("},")
+	}
+	protocgengotag.TrimTrailingComma(&specs)
+	specs.WriteString("}")
 
 	specs.WriteString("}")
 

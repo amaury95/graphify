@@ -40,13 +40,16 @@ func main() {
 	}
 
 	graph := graphify.NewGraph(&common)
-	graph.Node(library.Book{})
 	graph.Node(admin.Admin{})
+
+	graph.Node(library.Book{})
+	graph.Node(library.Client{})
+	graph.Edge(library.Client{}, library.Book{}, library.Borrow{})
 
 	common.Observer.Subscribe(
 		graphify.CreatedTopic.For(library.Book{}), logCreatedBook)
 
-	fmt.Println("Starting server")
+	fmt.Println("\nStarting server at port :8080")
 	http.ListenAndServe(":8080", graph.RestHandler(ctx))
 }
 
