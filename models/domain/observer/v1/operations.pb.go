@@ -292,7 +292,7 @@ func file_observer_v1_operations_proto_init() {
 }
 
 // Specs ...
-func (*CreatedPayload) Specs() []byte {
+func (*CreatedPayload) Schema() []byte {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	buffer.WriteString("\"fields\": {")
@@ -315,7 +315,7 @@ func (*CreatedPayload) Specs() []byte {
 }
 
 // Specs ...
-func (*UpdatedPayload) Specs() []byte {
+func (*UpdatedPayload) Schema() []byte {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	buffer.WriteString("\"fields\": {")
@@ -333,7 +333,7 @@ func (*UpdatedPayload) Specs() []byte {
 }
 
 // Specs ...
-func (*DeletedPayload) Specs() []byte {
+func (*DeletedPayload) Schema() []byte {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	buffer.WriteString("\"fields\": {")

@@ -24,7 +24,7 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 
 	router := mux.NewRouter()
 
-	router.HandleFunc("/specs", g.getSpecs).Methods(http.MethodGet)
+	router.HandleFunc("/schema", g.schemaHandler).Methods(http.MethodGet)
 	router.HandleFunc("/upload", g.uploadHandler).Methods("POST")
 	router.HandleFunc("/download/{hash}", g.downloadHandler).Methods("GET")
 
@@ -196,7 +196,7 @@ func (g *graph) deleteResourceHandler(w http.ResponseWriter, r *http.Request) {
 func (g *graph) getRelationsHandler(w http.ResponseWriter, r *http.Request) {}
 
 /* Specs Handlers */
-func (g *graph) getSpecs(w http.ResponseWriter, r *http.Request) {
+func (g *graph) schemaHandler(w http.ResponseWriter, r *http.Request) {
 	var specs bytes.Buffer
 	specs.WriteString("{")
 
@@ -204,9 +204,9 @@ func (g *graph) getSpecs(w http.ResponseWriter, r *http.Request) {
 	specs.WriteString("\"nodes\": {")
 	for name, nodeType := range g.Nodes {
 		node := reflect.New(nodeType).Interface()
-		if spec, ok := node.(protocgengotag.ISpecs); ok {
+		if spec, ok := node.(protocgengotag.ISchema); ok {
 			specs.WriteString("\"" + name + "\":")
-			specs.Write(spec.Specs())
+			specs.Write(spec.Schema())
 			specs.WriteString(",")
 		}
 	}
@@ -217,9 +217,9 @@ func (g *graph) getSpecs(w http.ResponseWriter, r *http.Request) {
 	specs.WriteString("\"edges\": {")
 	for name, edgeType := range g.Edges {
 		edge := reflect.New(edgeType).Interface()
-		if spec, ok := edge.(protocgengotag.ISpecs); ok {
+		if spec, ok := edge.(protocgengotag.ISchema); ok {
 			specs.WriteString("\"" + name + "\":")
-			specs.Write(spec.Specs())
+			specs.Write(spec.Schema())
 			specs.WriteString(",")
 		}
 	}

@@ -337,7 +337,7 @@ func file_admin_v1_admin_proto_init() {
 }
 
 // Specs ...
-func (*Admin) Specs() []byte {
+func (*Admin) Schema() []byte {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	buffer.WriteString("\"fields\": {")
@@ -350,7 +350,7 @@ func (*Admin) Specs() []byte {
 }
 
 // Specs ...
-func (*Admin_Account) Specs() []byte {
+func (*Admin_Account) Schema() []byte {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	buffer.WriteString("\"fields\": {")
@@ -395,7 +395,7 @@ func (*Admin_Account) Specs() []byte {
 }
 
 // Specs ...
-func (*Admin_Password) Specs() []byte {
+func (*Admin_Password) Schema() []byte {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	buffer.WriteString("\"fields\": {")

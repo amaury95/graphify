@@ -2,6 +2,8 @@ github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d h1:CbB/Ef3TyBvSSJx
 github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d/go.mod h1:cfn0Ycx1ASzCkl8+04zI4hrclf9YQ1QfncxzFiNtQLo=
 github.com/amaury95/protoc-gen-go-tag v0.3.45 h1:nFhhKRNysXlCF1x4Pi8JT0/i/G7SOqm2X2q+vQANaBI=
 github.com/amaury95/protoc-gen-go-tag v0.3.45/go.mod h1:ei69jMVlcAz0kB3cTt2iT94wDuVdBQJ1y/RCMrCDtMc=
+github.com/amaury95/protoc-gen-go-tag v0.3.46 h1:j+AnFhjAx1iDNwHTZAdPFY3t4vJztgQ91PVE2lWh06s=
+github.com/amaury95/protoc-gen-go-tag v0.3.46/go.mod h1:ei69jMVlcAz0kB3cTt2iT94wDuVdBQJ1y/RCMrCDtMc=
 github.com/arangodb/go-driver v1.6.1 h1:bnhrpbA4U1NU13JOWs5sWWYMtQwdjKT0+jkl8dSndyY=
 github.com/arangodb/go-driver v1.6.1/go.mod h1:ywucwwi34GBxxXFWw/ym+7/66//L4K9abxk/sFJro2k=
 github.com/arangodb/go-velocypack v0.0.0-20200318135517-5af53c29c67e h1:Xg+hGrY2LcQBbxd0ZFdbGSyRKTYMZCfBbw/pMJFOk1g=

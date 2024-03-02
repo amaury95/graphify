@@ -1154,7 +1154,7 @@ func file_library_v1_library_proto_init() {
 }
 
 // Specs ...
-func (*Character) Specs() []byte {
+func (*Character) Schema() []byte {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	buffer.WriteString("\"fields\": {")
@@ -1177,7 +1177,7 @@ func (*Character) Specs() []byte {
 }
 
 // Specs ...
-func (*Book) Specs() []byte {
+func (*Book) Schema() []byte {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	buffer.WriteString("\"fields\": {")
@@ -1199,9 +1199,9 @@ func (*Book) Specs() []byte {
 	buffer.WriteString("\"mainReview\": {")
 	buffer.WriteString("\"optional\": true,")
 	var _MainReview interface{} = new(Book_Review)
-	if spec, ok := _MainReview.(utils.ISpecs); ok {
+	if spec, ok := _MainReview.(utils.ISchema); ok {
 		buffer.WriteString("\"value\":")
-		buffer.Write(spec.Specs())
+		buffer.Write(spec.Schema())
 	}
 	buffer.WriteString(",")
 	buffer.WriteString("\"type\": \"message\"")
@@ -1211,9 +1211,9 @@ func (*Book) Specs() []byte {
 	buffer.WriteString("\"reviews\": {")
 	buffer.WriteString("\"kind\":\"list\",")
 	var _Reviews interface{} = new(Book_Review)
-	if spec, ok := _Reviews.(utils.ISpecs); ok {
+	if spec, ok := _Reviews.(utils.ISchema); ok {
 		buffer.WriteString("\"value\":")
-		buffer.Write(spec.Specs())
+		buffer.Write(spec.Schema())
 	}
 	buffer.WriteString(",")
 	buffer.WriteString("\"type\": \"message\"")
@@ -1253,9 +1253,9 @@ func (*Book) Specs() []byte {
 	buffer.WriteString("},")
 	buffer.WriteString("\"value\": {")
 	var _Value interface{} = new(Character)
-	if spec, ok := _Value.(utils.ISpecs); ok {
+	if spec, ok := _Value.(utils.ISchema); ok {
 		buffer.WriteString("\"value\":")
-		buffer.Write(spec.Specs())
+		buffer.Write(spec.Schema())
 	}
 	buffer.WriteString(",")
 	buffer.WriteString("\"type\": \"message\"")
@@ -1290,23 +1290,23 @@ func (*Book) Specs() []byte {
 	buffer.WriteString("\"Type\": {")
 	buffer.WriteString("\"novel\": ")
 	_Novel := new(Book_Novel)
-	buffer.Write(_Novel.Specs())
+	buffer.Write(_Novel.Schema())
 	buffer.WriteString(",")
 	buffer.WriteString("\"shortStory\": ")
 	_ShortStory := new(Book_ShortStory)
-	buffer.Write(_ShortStory.Specs())
+	buffer.Write(_ShortStory.Schema())
 	buffer.WriteString(",")
 	buffer.WriteString("\"academic\": ")
 	_Academic := new(Book_Academic)
-	buffer.Write(_Academic.Specs())
+	buffer.Write(_Academic.Schema())
 	buffer.WriteString(",")
 	buffer.WriteString("\"poetry\": ")
 	_Poetry := new(Book_Poetry)
-	buffer.Write(_Poetry.Specs())
+	buffer.Write(_Poetry.Schema())
 	buffer.WriteString(",")
 	buffer.WriteString("\"biography\": ")
 	_Biography := new(Book_Biography)
-	buffer.Write(_Biography.Specs())
+	buffer.Write(_Biography.Schema())
 	buffer.WriteString(",")
 	utils.TrimTrailingComma(&buffer)
 	buffer.WriteString("}")
@@ -1316,7 +1316,7 @@ func (*Book) Specs() []byte {
 }
 
 // Specs ...
-func (*Book_Novel) Specs() []byte {
+func (*Book_Novel) Schema() []byte {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	buffer.WriteString("\"fields\": {")
@@ -1339,7 +1339,7 @@ func (*Book_Novel) Specs() []byte {
 }
 
 // Specs ...
-func (*Book_ShortStory) Specs() []byte {
+func (*Book_ShortStory) Schema() []byte {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	buffer.WriteString("\"fields\": {")
@@ -1362,7 +1362,7 @@ func (*Book_ShortStory) Specs() []byte {
 }
 
 // Specs ...
-func (*Book_Academic) Specs() []byte {
+func (*Book_Academic) Schema() []byte {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	buffer.WriteString("\"fields\": {")
@@ -1385,7 +1385,7 @@ func (*Book_Academic) Specs() []byte {
 }
 
 // Specs ...
-func (*Book_Poetry) Specs() []byte {
+func (*Book_Poetry) Schema() []byte {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	buffer.WriteString("\"fields\": {")
@@ -1408,7 +1408,7 @@ func (*Book_Poetry) Specs() []byte {
 }
 
 // Specs ...
-func (*Book_Biography) Specs() []byte {
+func (*Book_Biography) Schema() []byte {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	buffer.WriteString("\"fields\": {")
@@ -1431,7 +1431,7 @@ func (*Book_Biography) Specs() []byte {
 }
 
 // Specs ...
-func (*Book_Review) Specs() []byte {
+func (*Book_Review) Schema() []byte {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	buffer.WriteString("\"fields\": {")
@@ -1454,7 +1454,7 @@ func (*Book_Review) Specs() []byte {
 }
 
 // Specs ...
-func (*Client) Specs() []byte {
+func (*Client) Schema() []byte {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	buffer.WriteString("\"fields\": {")
@@ -1487,7 +1487,7 @@ func (*Client) Specs() []byte {
 }
 
 // Specs ...
-func (*Borrow) Specs() []byte {
+func (*Borrow) Schema() []byte {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	buffer.WriteString("\"fields\": {")
