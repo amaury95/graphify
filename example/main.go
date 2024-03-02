@@ -40,7 +40,7 @@ func main() {
 	}
 
 	graph := graphify.NewGraph(&common)
-	graph.Node(admin.Admin{})
+	graph.Node(admin.Admin_Account{})
 
 	graph.Node(library.Book{})
 	graph.Node(library.Client{})

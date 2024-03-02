@@ -15,8 +15,11 @@ import (
 	"github.com/sentimensrg/ctx/mergectx"
 )
 
+const configName = "config.json"
+
 func (g *graph) RestHandler(ctx context.Context) http.Handler {
-	g.Node(models.Admin{})
+	g.Node(models.Admin_Account{})
+	g.PrivateNode(models.Admin_Password{})
 	g.AutoMigrate(ctx)
 
 	router := mux.NewRouter()
@@ -24,6 +27,9 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	router.HandleFunc("/specs", g.getSpecs).Methods(http.MethodGet)
 	router.HandleFunc("/upload", g.uploadHandler).Methods("POST")
 	router.HandleFunc("/download/{hash}", g.downloadHandler).Methods("GET")
+
+	router.HandleFunc("/init", g.initHandler).Methods("POST")
+	router.HandleFunc("/config", g.configHandler).Methods("GET")
 
 	router.HandleFunc("/{resource}", g.createResourceHandler).Methods(http.MethodPost)
 	router.HandleFunc("/{resource}", g.getResourcesHandler).Methods(http.MethodGet)
@@ -237,6 +243,40 @@ func (g *graph) getSpecs(w http.ResponseWriter, r *http.Request) {
 	WriteResponse(w, http.StatusOK, specs.Bytes())
 }
 
+/* Config Handlers */
+func (g *graph) initHandler(w http.ResponseWriter, r *http.Request) {
+	if _, err := g.comm.Storage.ReadFile(configName); err == nil {
+		WriteErrorResponse(w, http.StatusNotFound, errors.New("not found"))
+		return
+	}
+
+	var request ApplicationConfigInit
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		WriteErrorResponse(w, http.StatusBadRequest, err)
+		return
+	}
+
+	// TODO: register admin
+
+	cnf, _ := json.Marshal(request.Config)
+	if err := g.comm.Storage.StoreFile(configName, cnf); err != nil {
+		WriteErrorResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	WriteSuccessResponse(w, http.StatusOK)
+}
+
+func (g *graph) configHandler(w http.ResponseWriter, r *http.Request) {
+	conf, err := g.comm.Storage.ReadFile(configName)
+	if err != nil {
+		WriteErrorResponse(w, http.StatusNotFound, err)
+		return
+	}
+
+	WriteResponse(w, http.StatusOK, conf)
+}
+
 /* Files Handlers */
 func (g *graph) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseMultipartForm(g.comm.Storage.MaxMemory())
@@ -245,14 +285,14 @@ func (g *graph) uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, header, err := r.FormFile("file")
+	file, _, err := r.FormFile("file")
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, err)
 		return
 	}
 	defer file.Close()
 
-	hash, err := g.comm.Storage.StoreFile(file, header)
+	hash, err := g.comm.Storage.StoreByHash(file)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusInternalServerError, err)
 		return

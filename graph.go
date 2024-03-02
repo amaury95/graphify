@@ -12,20 +12,25 @@ import (
 type graph struct {
 	comm *Common
 
-	// collection => type
+	// Nodes collection => type
 	Nodes map[string]reflect.Type
+	// Private nodes (not added to endpoints) collection => type
+	privateNodes map[string]reflect.Type
+
 	// collection => type
 	Edges map[string]reflect.Type
+
 	// from => to => collection
 	Relations map[string]map[string]string
 }
 
 func NewGraph(comm *Common) *graph {
 	return &graph{
-		Nodes:     make(map[string]reflect.Type),
-		Edges:     make(map[string]reflect.Type),
-		Relations: make(map[string]map[string]string),
-		comm:      comm,
+		Nodes:        make(map[string]reflect.Type),
+		privateNodes: make(map[string]reflect.Type),
+		Edges:        make(map[string]reflect.Type),
+		Relations:    make(map[string]map[string]string),
+		comm:         comm,
 	}
 }
 
@@ -41,6 +46,20 @@ func (g *graph) Node(node interface{}) {
 	}
 
 	g.Nodes[nodeName] = nodeType
+}
+
+func (g *graph) PrivateNode(node interface{}) {
+	nodeType := reflect.TypeOf(node)
+	if nodeType.Kind() != reflect.Struct || !isNode(nodeType) {
+		panic(errors.New("node must be a struct with valid fields"))
+	}
+
+	nodeName := CollectionFor(nodeType)
+	if _, exists := g.Nodes[nodeName]; exists {
+		panic(errors.New("node has been added as public node"))
+	}
+
+	g.privateNodes[nodeName] = nodeType
 }
 
 func (g *graph) Edge(from, to, edge interface{}) {
@@ -92,30 +111,48 @@ func (g *graph) AutoMigrate(ctx context.Context) error {
 	}
 
 	for collection := range g.Nodes {
-		exists, err := db.CollectionExists(ctx, collection)
-		if err != nil {
-			return fmt.Errorf("failed to check collection existence: %w", err)
+		if err := g.createNodeCollection(ctx, collection, db); err != nil {
+			return fmt.Errorf("failed to create node: %w", err)
 		}
+	}
 
-		if exists {
-			continue
+	for collection := range g.privateNodes {
+		if err := g.createNodeCollection(ctx, collection, db); err != nil {
+			return fmt.Errorf("failed to create node: %w", err)
 		}
+	}
 
+	for collection := range g.Edges {
+		if err := g.createEdgeCollection(ctx, collection, db); err != nil {
+			return fmt.Errorf("failed to create edge: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (g *graph) createNodeCollection(ctx context.Context, collection string, db driver.Database) error {
+	exists, err := db.CollectionExists(ctx, collection)
+	if err != nil {
+		return fmt.Errorf("failed to check collection existence: %w", err)
+	}
+
+	if !exists {
 		if _, err := db.CreateCollection(ctx, collection, nil); err != nil {
 			return fmt.Errorf("failed to create collection: %w", err)
 		}
 	}
 
-	for collection := range g.Edges {
-		exists, err := db.CollectionExists(ctx, collection)
-		if err != nil {
-			return fmt.Errorf("failed to check collection existence: %w", err)
-		}
+	return nil
+}
 
-		if exists {
-			continue
-		}
+func (g *graph) createEdgeCollection(ctx context.Context, collection string, db driver.Database) error {
+	exists, err := db.CollectionExists(ctx, collection)
+	if err != nil {
+		return fmt.Errorf("failed to check collection existence: %w", err)
+	}
 
+	if !exists {
 		if _, err := db.CreateCollection(ctx, collection, &driver.CreateCollectionOptions{
 			Type: driver.CollectionTypeEdge,
 		}); err != nil {

@@ -291,6 +291,65 @@ func file_observer_v1_operations_proto_init() {
 	file_observer_v1_operations_proto_depIdxs = nil
 }
 
+// Specs ...
+func (*CreatedPayload) Specs() []byte {
+	var buffer bytes.Buffer
+	buffer.WriteString("{")
+	buffer.WriteString("\"fields\": {")
+	buffer.WriteString("\"key\": {")
+	buffer.WriteString("\"type\": \"string\"")
+	buffer.WriteString(",")
+	buffer.WriteString("\"name\":\"key\"")
+	buffer.WriteString("},")
+	buffer.WriteString("\"element\": {")
+	buffer.WriteString("\"type\": \"bytes\"")
+	buffer.WriteString(",")
+	buffer.WriteString("\"name\":\"element\"")
+	buffer.WriteString("},")
+	utils.TrimTrailingComma(&buffer)
+	buffer.WriteString("},")
+	buffer.WriteString("\"oneofs\": {")
+	buffer.WriteString("}")
+	buffer.WriteString("}")
+	return buffer.Bytes()
+}
+
+// Specs ...
+func (*UpdatedPayload) Specs() []byte {
+	var buffer bytes.Buffer
+	buffer.WriteString("{")
+	buffer.WriteString("\"fields\": {")
+	buffer.WriteString("\"element\": {")
+	buffer.WriteString("\"type\": \"bytes\"")
+	buffer.WriteString(",")
+	buffer.WriteString("\"name\":\"element\"")
+	buffer.WriteString("},")
+	utils.TrimTrailingComma(&buffer)
+	buffer.WriteString("},")
+	buffer.WriteString("\"oneofs\": {")
+	buffer.WriteString("}")
+	buffer.WriteString("}")
+	return buffer.Bytes()
+}
+
+// Specs ...
+func (*DeletedPayload) Specs() []byte {
+	var buffer bytes.Buffer
+	buffer.WriteString("{")
+	buffer.WriteString("\"fields\": {")
+	buffer.WriteString("\"key\": {")
+	buffer.WriteString("\"type\": \"string\"")
+	buffer.WriteString(",")
+	buffer.WriteString("\"name\":\"key\"")
+	buffer.WriteString("},")
+	utils.TrimTrailingComma(&buffer)
+	buffer.WriteString("},")
+	buffer.WriteString("\"oneofs\": {")
+	buffer.WriteString("}")
+	buffer.WriteString("}")
+	return buffer.Bytes()
+}
+
 // LoadMap populates struct fields from a map, handling decoding for special fields.
 func (o *CreatedPayload) LoadMap(values map[string]interface{}) {
 	if val, ok := values["key"].(string); ok {
@@ -313,59 +372,4 @@ func (o *DeletedPayload) LoadMap(values map[string]interface{}) {
 	if val, ok := values["key"].(string); ok {
 		o.Key = val
 	}
-}
-
-// Specs ...
-func (*CreatedPayload) Specs() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	buffer.WriteString("\"key\": {")
-	buffer.WriteString("\"name\":\"key\",")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"element\": {")
-	buffer.WriteString("\"name\":\"element\",")
-	buffer.WriteString("\"type\": \"bytes\"")
-	buffer.WriteString("},")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
-}
-
-// Specs ...
-func (*UpdatedPayload) Specs() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	buffer.WriteString("\"element\": {")
-	buffer.WriteString("\"name\":\"element\",")
-	buffer.WriteString("\"type\": \"bytes\"")
-	buffer.WriteString("},")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
-}
-
-// Specs ...
-func (*DeletedPayload) Specs() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	buffer.WriteString("\"key\": {")
-	buffer.WriteString("\"name\":\"key\",")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString("},")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
 }

@@ -13,10 +13,13 @@ import (
 // IFileStorage ...
 type IFileStorage interface {
 	// StoreFile ...
-	StoreFile(file multipart.File, header *multipart.FileHeader) (hash string, err error)
+	StoreFile(name string, file []byte) (err error)
+
+	// StoreByHash ...
+	StoreByHash(file multipart.File) (hash string, err error)
 
 	// ReadFile ...
-	ReadFile(hash string) (fileContent []byte, errr error)
+	ReadFile(name string) (fileContent []byte, errr error)
 
 	// MaxMemory ...
 	MaxMemory() int64
@@ -33,16 +36,32 @@ func NewFilesystemStorage(basePath string, maxMemory int64) *filesystemStorage {
 	return &filesystemStorage{basePath: basePath, maxMemory: maxMemory}
 }
 
-func (s *filesystemStorage) StoreFile(file multipart.File, handler *multipart.FileHeader) (string, error) {
+func (s *filesystemStorage) StoreFile(name string, file []byte) (err error) {
 	// Create the upload directory if it doesn't exist
 	if _, err := os.Stat(s.basePath); os.IsNotExist(err) {
 		os.Mkdir(s.basePath, os.ModePerm)
 	}
 
+	// Write file to system
+	filename := filepath.Join(s.basePath, name)
+	out, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Copy file data
+	if err := os.WriteFile(filename, file, 0644); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *filesystemStorage) StoreByHash(file multipart.File) (string, error) {
 	// Read the file
 	var buffer bytes.Buffer
-	_, err := io.Copy(&buffer, file)
-	if err != nil {
+	if _, err := io.Copy(&buffer, file); err != nil {
 		return "", err
 	}
 
@@ -54,24 +73,16 @@ func (s *filesystemStorage) StoreFile(file multipart.File, handler *multipart.Fi
 	hashInBytes := hasher.Sum(nil)
 	hash := hex.EncodeToString(hashInBytes)
 
-	// Write file to system
-	filename := filepath.Join(s.basePath, hash)
-	out, err := os.Create(filename)
-	if err != nil {
-		return "", err
-	}
-	defer out.Close()
-
-	// Copy file data
-	if err := os.WriteFile(filename, buffer.Bytes(), 0644); err != nil {
+	// Store buffer bytes
+	if err := s.StoreFile(hash, buffer.Bytes()); err != nil {
 		return "", err
 	}
 
 	return hash, nil
 }
 
-func (s *filesystemStorage) ReadFile(hash string) ([]byte, error) {
-	filepath := filepath.Join(s.basePath, hash)
+func (s *filesystemStorage) ReadFile(name string) ([]byte, error) {
+	filepath := filepath.Join(s.basePath, name)
 
 	// Check if the file exists
 	if _, err := os.Stat(filepath); os.IsNotExist(err) {
