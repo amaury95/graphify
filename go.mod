@@ -11,6 +11,7 @@ require (
 	github.com/sentimensrg/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/stoewer/go-strcase v1.3.0
 	golang.org/x/crypto v0.20.0
+	golang.org/x/term v0.17.0
 	google.golang.org/protobuf v1.32.0
 )
 
