@@ -154,6 +154,8 @@ func (g *graph) authLoginHandler(c *fiber.Ctx) error {
 		Value:    token,
 		Expires:  expiresAt,
 		HTTPOnly: true,
+		SameSite: "None",
+		Secure:   false,
 	})
 
 	return c.SendStatus(fiber.StatusOK)
