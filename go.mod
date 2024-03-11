@@ -8,6 +8,9 @@ require (
 	github.com/go-openapi/inflect v0.19.0
 	github.com/gofiber/fiber/v2 v2.52.2
 	github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/gorilla/mux v1.8.1
+	github.com/graphql-go/graphql v0.8.1
+	github.com/graphql-go/handler v0.2.3
 	github.com/sentimensrg/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/stoewer/go-strcase v1.3.0
 	golang.org/x/crypto v0.20.0

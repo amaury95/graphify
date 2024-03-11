@@ -27,17 +27,17 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 
 	g.AutoMigrate(ctx)
 
-	app := fiber.New(fiber.Config{
+	router := fiber.New(fiber.Config{
 		BodyLimit: g.comm.Storage.MaxMemory(),
 	})
-	app.Use(cors.New(cors.Config{
+	router.Use(cors.New(cors.Config{
 		AllowOriginsFunc: func(string) bool { return true },
 		AllowCredentials: true,
 	}))
-	app.Use(g.contextMiddleware(ctx))
-	app.Use(g.authMiddleware)
+	router.Use(g.contextMiddleware(ctx))
+	router.Use(g.authMiddleware)
 
-	admin := app.Group("/admin")
+	admin := router.Group("/admin")
 	admin.Get("/schema", g.adminSchemaHandler)
 	admin.Get("/config", g.adminConfigHandler)
 	admin.Post("/config", g.adminConfigInitHandler)
@@ -60,7 +60,7 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	resources.Delete("/:key", g.resourcesDeleteHandler)
 	resources.Delete("/:key/:relation", g.resourcesRelationHandler)
 
-	return adaptor.FiberApp(app)
+	return adaptor.FiberApp(router)
 }
 
 func (g *graph) contextMiddleware(ctx context.Context) fiber.Handler {
