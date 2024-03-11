@@ -1,11 +1,8 @@
 package graphify
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
-	"io"
-	"mime/multipart"
 	"os"
 	"path/filepath"
 )
@@ -16,23 +13,23 @@ type IFileStorage interface {
 	StoreFile(name string, file []byte) (err error)
 
 	// StoreByHash ...
-	StoreByHash(file multipart.File) (hash string, err error)
+	StoreByHash(file []byte) (hash string, err error)
 
 	// ReadFile ...
 	ReadFile(name string) (fileContent []byte, errr error)
 
 	// MaxMemory ...
-	MaxMemory() int64
+	MaxMemory() int
 }
 
 // filesystemStorage ...
 type filesystemStorage struct {
 	basePath  string
-	maxMemory int64
+	maxMemory int
 }
 
 // NewFilesystemStorage ...
-func NewFilesystemStorage(basePath string, maxMemory int64) *filesystemStorage {
+func NewFilesystemStorage(basePath string, maxMemory int) *filesystemStorage {
 	return &filesystemStorage{basePath: basePath, maxMemory: maxMemory}
 }
 
@@ -58,23 +55,17 @@ func (s *filesystemStorage) StoreFile(name string, file []byte) (err error) {
 	return nil
 }
 
-func (s *filesystemStorage) StoreByHash(file multipart.File) (string, error) {
-	// Read the file
-	var buffer bytes.Buffer
-	if _, err := io.Copy(&buffer, file); err != nil {
-		return "", err
-	}
-
+func (s *filesystemStorage) StoreByHash(file []byte) (string, error) {
 	// Calculate file hash
 	hasher := sha256.New()
-	if _, err := hasher.Write(buffer.Bytes()); err != nil {
+	if _, err := hasher.Write(file); err != nil {
 		return "", err
 	}
 	hashInBytes := hasher.Sum(nil)
 	hash := hex.EncodeToString(hashInBytes)
 
 	// Store buffer bytes
-	if err := s.StoreFile(hash, buffer.Bytes()); err != nil {
+	if err := s.StoreFile(hash, file); err != nil {
 		return "", err
 	}
 
@@ -93,6 +84,6 @@ func (s *filesystemStorage) ReadFile(name string) ([]byte, error) {
 	return os.ReadFile(filepath)
 }
 
-func (s *filesystemStorage) MaxMemory() int64 {
+func (s *filesystemStorage) MaxMemory() int {
 	return s.maxMemory
 }

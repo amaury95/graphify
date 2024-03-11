@@ -1,7 +1,7 @@
 package graphify
 
 type Common struct {
-	Observer   IObserver[Topic]
 	Connection IConnection
+	Observer   IObserver[Topic]
 	Storage    IFileStorage
 }

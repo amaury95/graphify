@@ -2,8 +2,8 @@ version: v1
 managed:
   enabled: true
   go_package_prefix:
-    default: github.com/amaury95/graphify/example
+    default: github.com/amaury95/graphify/example/domain
 plugins:
-  - plugin: go-tag
+  - plugin: graphify
     out: domain
     opt: paths=source_relative

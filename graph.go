@@ -48,7 +48,7 @@ func (g *graph) Node(node interface{}) {
 	g.Nodes[nodeName] = nodeType
 }
 
-func (g *graph) PrivateNode(node interface{}) {
+func (g *graph) HiddenNode(node interface{}) {
 	nodeType := reflect.TypeOf(node)
 	if nodeType.Kind() != reflect.Struct || !isNode(nodeType) {
 		panic(errors.New("node must be a struct with valid fields"))

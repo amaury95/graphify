@@ -7,9 +7,8 @@
 package observerv1
 
 import (
-	bytes "bytes"
 	_ "github.com/amaury95/graphify/models/domain/admin/v1"
-	utils "github.com/amaury95/protoc-gen-go-tag/utils"
+	utils "github.com/amaury95/protoc-gen-graphify/utils"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -291,66 +290,58 @@ func file_observer_v1_operations_proto_init() {
 	file_observer_v1_operations_proto_depIdxs = nil
 }
 
-// Specs ...
-func (*CreatedPayload) Schema() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	buffer.WriteString("\"key\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"key\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"element\": {")
-	buffer.WriteString("\"type\": \"bytes\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"element\"")
-	buffer.WriteString("},")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
+/*
+	Graphify schema module
+*/
+
+/* Specs ... */
+func (*CreatedPayload) Schema() map[string]interface{} {
+	return map[string]interface{}{
+		"fields": map[string]interface{}{
+			"key": map[string]interface{}{
+				"name": "key",
+				"type": "string",
+			},
+			"element": map[string]interface{}{
+				"name": "element",
+				"type": "bytes",
+			},
+		},
+		"oneofs": map[string]interface{}{},
+	}
 }
 
-// Specs ...
-func (*UpdatedPayload) Schema() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	buffer.WriteString("\"element\": {")
-	buffer.WriteString("\"type\": \"bytes\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"element\"")
-	buffer.WriteString("},")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
+/* Specs ... */
+func (*UpdatedPayload) Schema() map[string]interface{} {
+	return map[string]interface{}{
+		"fields": map[string]interface{}{
+			"element": map[string]interface{}{
+				"name": "element",
+				"type": "bytes",
+			},
+		},
+		"oneofs": map[string]interface{}{},
+	}
 }
 
-// Specs ...
-func (*DeletedPayload) Schema() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	buffer.WriteString("\"key\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"key\"")
-	buffer.WriteString("},")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
+/* Specs ... */
+func (*DeletedPayload) Schema() map[string]interface{} {
+	return map[string]interface{}{
+		"fields": map[string]interface{}{
+			"key": map[string]interface{}{
+				"name": "key",
+				"type": "string",
+			},
+		},
+		"oneofs": map[string]interface{}{},
+	}
 }
 
-// LoadMap populates struct fields from a map, handling decoding for special fields.
+/*
+	Graphify loader module
+*/
+
+/* LoadMap populates struct fields from a map, handling decoding for special fields. */
 func (o *CreatedPayload) LoadMap(values map[string]interface{}) {
 	if val, ok := values["key"].(string); ok {
 		o.Key = val
@@ -360,14 +351,14 @@ func (o *CreatedPayload) LoadMap(values map[string]interface{}) {
 	}
 }
 
-// LoadMap populates struct fields from a map, handling decoding for special fields.
+/* LoadMap populates struct fields from a map, handling decoding for special fields. */
 func (o *UpdatedPayload) LoadMap(values map[string]interface{}) {
 	if val, ok := values["element"].(string); ok {
 		o.Element = utils.DecodeBytes(val)
 	}
 }
 
-// LoadMap populates struct fields from a map, handling decoding for special fields.
+/* LoadMap populates struct fields from a map, handling decoding for special fields. */
 func (o *DeletedPayload) LoadMap(values map[string]interface{}) {
 	if val, ok := values["key"].(string); ok {
 		o.Key = val

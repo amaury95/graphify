@@ -4,16 +4,17 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 
 	observer "github.com/amaury95/graphify/models/domain/observer/v1"
-	protocgengotag "github.com/amaury95/protoc-gen-go-tag/utils"
+	protocgengotag "github.com/amaury95/protoc-gen-graphify/utils"
 	"github.com/arangodb/go-driver"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 // List ...
-func List(ctx context.Context, offset, count int, out interface{}, comm *Common) (int, error) {
+func List(ctx context.Context, out interface{}, bindVars map[string]interface{}, comm *Common) (int, error) {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return 0, fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -29,12 +30,7 @@ func List(ctx context.Context, offset, count int, out interface{}, comm *Common)
 		return 0, fmt.Errorf("failed to establish connection: %w", err)
 	}
 
-	query := fmt.Sprintf(`FOR doc IN %s LIMIT  @offset, @count RETURN doc`, CollectionFor(elemType))
-
-	bindVars := map[string]interface{}{
-		"count":  count,
-		"offset": offset,
-	}
+	query := fmt.Sprintf(`FOR doc IN %s %s %s RETURN doc`, CollectionFor(elemType), getFilters(bindVars), getLimit(bindVars))
 
 	cursor, err := db.Query(ctx, query, bindVars)
 	if err != nil {
@@ -264,4 +260,30 @@ func protoEncode(item interface{}) ([]byte, bool) {
 		return elemBytes, ok
 	}
 	return nil, false
+}
+
+func getLimit(bindVars map[string]interface{}) string {
+	_, hasOffset := bindVars["offset"]
+	_, hasCount := bindVars["count"]
+	if hasOffset && hasCount {
+		return "LIMIT @offset, @count"
+	}
+	if hasCount {
+		return "LIMIT @count"
+	}
+	return ""
+}
+
+func getFilters(bindVars map[string]interface{}) string {
+	var filters []string
+	for key := range bindVars {
+		if key == "count" || key == "offset" {
+			continue
+		}
+		filters = append(filters, "doc."+key+" == @"+key)
+	}
+	if len(filters) > 0 {
+		return "FILTER " + strings.Join(filters, " && ")
+	}
+	return ""
 }

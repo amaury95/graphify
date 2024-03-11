@@ -7,8 +7,7 @@
 package libraryv1
 
 import (
-	bytes "bytes"
-	utils "github.com/amaury95/protoc-gen-go-tag/utils"
+	utils "github.com/amaury95/protoc-gen-graphify/utils"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -933,18 +932,18 @@ var file_library_v1_library_proto_rawDesc = []byte{
 	0x5f, 0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x12,
 	0x0a, 0x0e, 0x43, 0x41, 0x54, 0x45, 0x47, 0x4f, 0x52, 0x59, 0x5f, 0x44, 0x52, 0x41, 0x4d, 0x41,
 	0x10, 0x01, 0x12, 0x13, 0x0a, 0x0f, 0x43, 0x41, 0x54, 0x45, 0x47, 0x4f, 0x52, 0x59, 0x5f, 0x48,
-	0x4f, 0x52, 0x52, 0x4f, 0x52, 0x10, 0x02, 0x42, 0xa2, 0x01, 0x0a, 0x0e, 0x63, 0x6f, 0x6d, 0x2e,
+	0x4f, 0x52, 0x52, 0x4f, 0x52, 0x10, 0x02, 0x42, 0xa9, 0x01, 0x0a, 0x0e, 0x63, 0x6f, 0x6d, 0x2e,
 	0x6c, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x2e, 0x76, 0x31, 0x42, 0x0c, 0x4c, 0x69, 0x62, 0x72,
-	0x61, 0x72, 0x79, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x39, 0x67, 0x69, 0x74, 0x68,
+	0x61, 0x72, 0x79, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x40, 0x67, 0x69, 0x74, 0x68,
 	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x6d, 0x61, 0x75, 0x72, 0x79, 0x39, 0x35, 0x2f,
 	0x67, 0x72, 0x61, 0x70, 0x68, 0x69, 0x66, 0x79, 0x2f, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65,
-	0x2f, 0x6c, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x2f, 0x76, 0x31, 0x3b, 0x6c, 0x69, 0x62, 0x72,
-	0x61, 0x72, 0x79, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x4c, 0x58, 0x58, 0xaa, 0x02, 0x0a, 0x4c, 0x69,
-	0x62, 0x72, 0x61, 0x72, 0x79, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0a, 0x4c, 0x69, 0x62, 0x72, 0x61,
-	0x72, 0x79, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x16, 0x4c, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x5c,
-	0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02,
-	0x0b, 0x4c, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x2f, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x2f, 0x6c, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x2f,
+	0x76, 0x31, 0x3b, 0x6c, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x4c,
+	0x58, 0x58, 0xaa, 0x02, 0x0a, 0x4c, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x2e, 0x56, 0x31, 0xca,
+	0x02, 0x0a, 0x4c, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x16, 0x4c,
+	0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74,
+	0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x0b, 0x4c, 0x69, 0x62, 0x72, 0x61, 0x72, 0x79, 0x3a,
+	0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1153,374 +1152,280 @@ func file_library_v1_library_proto_init() {
 	file_library_v1_library_proto_depIdxs = nil
 }
 
-// Specs ...
-func (*Character) Schema() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	buffer.WriteString("\"name\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"name\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"role\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"role\"")
-	buffer.WriteString("},")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
-}
+/*
+	Graphify schema module
+*/
 
-// Specs ...
-func (*Book) Schema() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	buffer.WriteString("\"_key\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"_key\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"title\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"title\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"author\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"author\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"mainReview\": {")
-	buffer.WriteString("\"optional\": true,")
-	var _MainReview interface{} = new(Book_Review)
-	if spec, ok := _MainReview.(utils.ISchema); ok {
-		buffer.WriteString("\"value\":")
-		buffer.Write(spec.Schema())
+/* Specs ... */
+func (*Character) Schema() map[string]interface{} {
+	return map[string]interface{}{
+		"fields": map[string]interface{}{
+			"name": map[string]interface{}{
+				"name": "name",
+				"type": "string",
+			},
+			"role": map[string]interface{}{
+				"name": "role",
+				"type": "string",
+			},
+		},
+		"oneofs": map[string]interface{}{},
 	}
-	buffer.WriteString(",")
-	buffer.WriteString("\"type\": \"message\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"mainReview\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"reviews\": {")
-	buffer.WriteString("\"kind\":\"list\",")
-	var _Reviews interface{} = new(Book_Review)
-	if spec, ok := _Reviews.(utils.ISchema); ok {
-		buffer.WriteString("\"value\":")
-		buffer.Write(spec.Schema())
+}
+
+/* Specs ... */
+func (*Book) Schema() map[string]interface{} {
+	return map[string]interface{}{
+		"fields": map[string]interface{}{
+			"_key": map[string]interface{}{
+				"name": "_key",
+				"type": "string",
+			},
+			"title": map[string]interface{}{
+				"name": "title",
+				"type": "string",
+			},
+			"author": map[string]interface{}{
+				"name": "author",
+				"type": "string",
+			},
+			"mainReview": map[string]interface{}{
+				"name":     "mainReview",
+				"optional": true,
+				"type":     "message",
+				"schema":   new(Book_Review).Schema(),
+			},
+			"reviews": map[string]interface{}{
+				"name":   "reviews",
+				"kind":   "list",
+				"type":   "message",
+				"schema": new(Book_Review).Schema(),
+			},
+			"tags": map[string]interface{}{
+				"name": "tags",
+				"kind": "list",
+				"type": "string",
+			},
+			"bookPrice": map[string]interface{}{
+				"name": "bookPrice",
+				"kind": "map",
+				"key": map[string]interface{}{
+					"type": "string",
+				},
+				"value": map[string]interface{}{
+					"type": "int32",
+				},
+			},
+			"chapters": map[string]interface{}{
+				"name": "chapters",
+				"kind": "map",
+				"key": map[string]interface{}{
+					"type": "int32",
+				},
+				"value": map[string]interface{}{
+					"type": "string",
+				},
+			},
+			"characters": map[string]interface{}{
+				"name": "characters",
+				"kind": "map",
+				"key": map[string]interface{}{
+					"type": "string",
+				},
+				"value": map[string]interface{}{
+					"type":   "message",
+					"schema": new(Character).Schema(),
+				},
+			},
+			"portrait": map[string]interface{}{
+				"name": "portrait",
+				"type": "bytes",
+			},
+			"gallery": map[string]interface{}{
+				"name": "gallery",
+				"kind": "list",
+				"type": "bytes",
+			},
+			"category": map[string]interface{}{
+				"name": "category",
+				"type": "enum",
+				"options": map[string]interface{}{
+					"0": "CATEGORY_UNSPECIFIED",
+					"1": "CATEGORY_DRAMA",
+					"2": "CATEGORY_HORROR",
+				},
+			},
+		},
+		"oneofs": map[string]interface{}{
+			"Type": map[string]interface{}{
+				"Novel":      new(Book_Novel).Schema(),
+				"ShortStory": new(Book_ShortStory).Schema(),
+				"Academic":   new(Book_Academic).Schema(),
+				"Poetry":     new(Book_Poetry).Schema(),
+				"Biography":  new(Book_Biography).Schema(),
+			},
+		},
 	}
-	buffer.WriteString(",")
-	buffer.WriteString("\"type\": \"message\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"reviews\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"tags\": {")
-	buffer.WriteString("\"kind\":\"list\",")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"tags\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"bookPrice\": {")
-	buffer.WriteString("\"kind\":\"map\",")
-	buffer.WriteString("\"key\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"value\": {")
-	buffer.WriteString("\"type\": \"int32\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"name\":\"bookPrice\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"chapters\": {")
-	buffer.WriteString("\"kind\":\"map\",")
-	buffer.WriteString("\"key\": {")
-	buffer.WriteString("\"type\": \"int32\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"value\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"name\":\"chapters\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"characters\": {")
-	buffer.WriteString("\"kind\":\"map\",")
-	buffer.WriteString("\"key\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"value\": {")
-	var _Value interface{} = new(Character)
-	if spec, ok := _Value.(utils.ISchema); ok {
-		buffer.WriteString("\"value\":")
-		buffer.Write(spec.Schema())
+}
+
+/* Specs ... */
+func (*Book_Novel) Schema() map[string]interface{} {
+	return map[string]interface{}{
+		"fields": map[string]interface{}{
+			"genre": map[string]interface{}{
+				"name": "genre",
+				"type": "string",
+			},
+			"publicationYear": map[string]interface{}{
+				"name": "publicationYear",
+				"type": "int32",
+			},
+		},
+		"oneofs": map[string]interface{}{},
 	}
-	buffer.WriteString(",")
-	buffer.WriteString("\"type\": \"message\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"name\":\"characters\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"portrait\": {")
-	buffer.WriteString("\"type\": \"bytes\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"portrait\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"gallery\": {")
-	buffer.WriteString("\"kind\":\"list\",")
-	buffer.WriteString("\"type\": \"bytes\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"gallery\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"category\": {")
-	buffer.WriteString("\"options\": {")
-	buffer.WriteString("\"0\":\"CATEGORY_UNSPECIFIED\",")
-	buffer.WriteString("\"1\":\"CATEGORY_DRAMA\",")
-	buffer.WriteString("\"2\":\"CATEGORY_HORROR\",")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"type\": \"enum\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"category\"")
-	buffer.WriteString("},")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("\"Type\": {")
-	buffer.WriteString("\"novel\": ")
-	_Novel := new(Book_Novel)
-	buffer.Write(_Novel.Schema())
-	buffer.WriteString(",")
-	buffer.WriteString("\"shortStory\": ")
-	_ShortStory := new(Book_ShortStory)
-	buffer.Write(_ShortStory.Schema())
-	buffer.WriteString(",")
-	buffer.WriteString("\"academic\": ")
-	_Academic := new(Book_Academic)
-	buffer.Write(_Academic.Schema())
-	buffer.WriteString(",")
-	buffer.WriteString("\"poetry\": ")
-	_Poetry := new(Book_Poetry)
-	buffer.Write(_Poetry.Schema())
-	buffer.WriteString(",")
-	buffer.WriteString("\"biography\": ")
-	_Biography := new(Book_Biography)
-	buffer.Write(_Biography.Schema())
-	buffer.WriteString(",")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
 }
 
-// Specs ...
-func (*Book_Novel) Schema() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	buffer.WriteString("\"genre\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"genre\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"publicationYear\": {")
-	buffer.WriteString("\"type\": \"int32\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"publicationYear\"")
-	buffer.WriteString("},")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
+/* Specs ... */
+func (*Book_ShortStory) Schema() map[string]interface{} {
+	return map[string]interface{}{
+		"fields": map[string]interface{}{
+			"lengthPages": map[string]interface{}{
+				"name": "lengthPages",
+				"type": "int32",
+			},
+			"isCollection": map[string]interface{}{
+				"name": "isCollection",
+				"type": "bool",
+			},
+		},
+		"oneofs": map[string]interface{}{},
+	}
 }
 
-// Specs ...
-func (*Book_ShortStory) Schema() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	buffer.WriteString("\"lengthPages\": {")
-	buffer.WriteString("\"type\": \"int32\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"lengthPages\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"isCollection\": {")
-	buffer.WriteString("\"type\": \"bool\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"isCollection\"")
-	buffer.WriteString("},")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
+/* Specs ... */
+func (*Book_Academic) Schema() map[string]interface{} {
+	return map[string]interface{}{
+		"fields": map[string]interface{}{
+			"subject": map[string]interface{}{
+				"name": "subject",
+				"type": "string",
+			},
+			"edition": map[string]interface{}{
+				"name": "edition",
+				"type": "int32",
+			},
+		},
+		"oneofs": map[string]interface{}{},
+	}
 }
 
-// Specs ...
-func (*Book_Academic) Schema() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	buffer.WriteString("\"subject\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"subject\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"edition\": {")
-	buffer.WriteString("\"type\": \"int32\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"edition\"")
-	buffer.WriteString("},")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
+/* Specs ... */
+func (*Book_Poetry) Schema() map[string]interface{} {
+	return map[string]interface{}{
+		"fields": map[string]interface{}{
+			"style": map[string]interface{}{
+				"name": "style",
+				"type": "string",
+			},
+			"isAnthology": map[string]interface{}{
+				"name": "isAnthology",
+				"type": "bool",
+			},
+		},
+		"oneofs": map[string]interface{}{},
+	}
 }
 
-// Specs ...
-func (*Book_Poetry) Schema() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	buffer.WriteString("\"style\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"style\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"isAnthology\": {")
-	buffer.WriteString("\"type\": \"bool\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"isAnthology\"")
-	buffer.WriteString("},")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
+/* Specs ... */
+func (*Book_Biography) Schema() map[string]interface{} {
+	return map[string]interface{}{
+		"fields": map[string]interface{}{
+			"subjectPerson": map[string]interface{}{
+				"name": "subjectPerson",
+				"type": "string",
+			},
+			"notableAchievements": map[string]interface{}{
+				"name": "notableAchievements",
+				"type": "string",
+			},
+		},
+		"oneofs": map[string]interface{}{},
+	}
 }
 
-// Specs ...
-func (*Book_Biography) Schema() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	buffer.WriteString("\"subjectPerson\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"subjectPerson\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"notableAchievements\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"notableAchievements\"")
-	buffer.WriteString("},")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
+/* Specs ... */
+func (*Book_Review) Schema() map[string]interface{} {
+	return map[string]interface{}{
+		"fields": map[string]interface{}{
+			"message": map[string]interface{}{
+				"name": "message",
+				"type": "string",
+			},
+			"name": map[string]interface{}{
+				"name": "name",
+				"type": "string",
+			},
+		},
+		"oneofs": map[string]interface{}{},
+	}
 }
 
-// Specs ...
-func (*Book_Review) Schema() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	buffer.WriteString("\"message\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"message\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"name\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"name\"")
-	buffer.WriteString("},")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
+/* Specs ... */
+func (*Client) Schema() map[string]interface{} {
+	return map[string]interface{}{
+		"fields": map[string]interface{}{
+			"_key": map[string]interface{}{
+				"name": "_key",
+				"type": "string",
+			},
+			"name": map[string]interface{}{
+				"name": "name",
+				"type": "string",
+			},
+			"email": map[string]interface{}{
+				"name": "email",
+				"type": "string",
+			},
+			"member": map[string]interface{}{
+				"name": "member",
+				"type": "bool",
+			},
+		},
+		"oneofs": map[string]interface{}{},
+	}
 }
 
-// Specs ...
-func (*Client) Schema() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	buffer.WriteString("\"_key\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"_key\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"name\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"name\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"email\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"email\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"member\": {")
-	buffer.WriteString("\"type\": \"bool\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"member\"")
-	buffer.WriteString("},")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
+/* Specs ... */
+func (*Borrow) Schema() map[string]interface{} {
+	return map[string]interface{}{
+		"fields": map[string]interface{}{
+			"_key": map[string]interface{}{
+				"name": "_key",
+				"type": "string",
+			},
+			"_from": map[string]interface{}{
+				"name": "_from",
+				"type": "string",
+			},
+			"_to": map[string]interface{}{
+				"name": "_to",
+				"type": "string",
+			},
+			"date": map[string]interface{}{
+				"name":     "date",
+				"optional": true,
+				"type":     "int64",
+			},
+		},
+		"oneofs": map[string]interface{}{},
+	}
 }
 
-// Specs ...
-func (*Borrow) Schema() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	buffer.WriteString("\"_key\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"_key\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"_from\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"_from\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"_to\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"_to\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"date\": {")
-	buffer.WriteString("\"optional\": true,")
-	buffer.WriteString("\"type\": \"int64\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"date\"")
-	buffer.WriteString("},")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
-}
+/*
+	Graphify loader module
+*/
 
-// LoadMap populates struct fields from a map, handling decoding for special fields.
+/* LoadMap populates struct fields from a map, handling decoding for special fields. */
 func (o *Character) LoadMap(values map[string]interface{}) {
 	if val, ok := values["name"].(string); ok {
 		o.Name = val
@@ -1530,7 +1435,7 @@ func (o *Character) LoadMap(values map[string]interface{}) {
 	}
 }
 
-// LoadMap populates struct fields from a map, handling decoding for special fields.
+/* LoadMap populates struct fields from a map, handling decoding for special fields. */
 func (o *Book) LoadMap(values map[string]interface{}) {
 	if val, ok := values["_key"].(string); ok {
 		o.Key = val
@@ -1640,7 +1545,7 @@ func (o *Book) LoadMap(values map[string]interface{}) {
 	}
 }
 
-// LoadMap populates struct fields from a map, handling decoding for special fields.
+/* LoadMap populates struct fields from a map, handling decoding for special fields. */
 func (o *Book_Novel) LoadMap(values map[string]interface{}) {
 	if val, ok := values["genre"].(string); ok {
 		o.Genre = val
@@ -1650,7 +1555,7 @@ func (o *Book_Novel) LoadMap(values map[string]interface{}) {
 	}
 }
 
-// LoadMap populates struct fields from a map, handling decoding for special fields.
+/* LoadMap populates struct fields from a map, handling decoding for special fields. */
 func (o *Book_ShortStory) LoadMap(values map[string]interface{}) {
 	if val, ok := values["lengthPages"].(float64); ok {
 		o.LengthPages = int32(val)
@@ -1660,7 +1565,7 @@ func (o *Book_ShortStory) LoadMap(values map[string]interface{}) {
 	}
 }
 
-// LoadMap populates struct fields from a map, handling decoding for special fields.
+/* LoadMap populates struct fields from a map, handling decoding for special fields. */
 func (o *Book_Academic) LoadMap(values map[string]interface{}) {
 	if val, ok := values["subject"].(string); ok {
 		o.Subject = val
@@ -1670,7 +1575,7 @@ func (o *Book_Academic) LoadMap(values map[string]interface{}) {
 	}
 }
 
-// LoadMap populates struct fields from a map, handling decoding for special fields.
+/* LoadMap populates struct fields from a map, handling decoding for special fields. */
 func (o *Book_Poetry) LoadMap(values map[string]interface{}) {
 	if val, ok := values["style"].(string); ok {
 		o.Style = val
@@ -1680,7 +1585,7 @@ func (o *Book_Poetry) LoadMap(values map[string]interface{}) {
 	}
 }
 
-// LoadMap populates struct fields from a map, handling decoding for special fields.
+/* LoadMap populates struct fields from a map, handling decoding for special fields. */
 func (o *Book_Biography) LoadMap(values map[string]interface{}) {
 	if val, ok := values["subjectPerson"].(string); ok {
 		o.SubjectPerson = val
@@ -1690,7 +1595,7 @@ func (o *Book_Biography) LoadMap(values map[string]interface{}) {
 	}
 }
 
-// LoadMap populates struct fields from a map, handling decoding for special fields.
+/* LoadMap populates struct fields from a map, handling decoding for special fields. */
 func (o *Book_Review) LoadMap(values map[string]interface{}) {
 	if val, ok := values["message"].(string); ok {
 		o.Message = val
@@ -1700,7 +1605,7 @@ func (o *Book_Review) LoadMap(values map[string]interface{}) {
 	}
 }
 
-// LoadMap populates struct fields from a map, handling decoding for special fields.
+/* LoadMap populates struct fields from a map, handling decoding for special fields. */
 func (o *Client) LoadMap(values map[string]interface{}) {
 	if val, ok := values["_key"].(string); ok {
 		o.Key = val
@@ -1716,7 +1621,7 @@ func (o *Client) LoadMap(values map[string]interface{}) {
 	}
 }
 
-// LoadMap populates struct fields from a map, handling decoding for special fields.
+/* LoadMap populates struct fields from a map, handling decoding for special fields. */
 func (o *Borrow) LoadMap(values map[string]interface{}) {
 	if val, ok := values["_key"].(string); ok {
 		o.Key = val

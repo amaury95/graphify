@@ -1,29 +1,26 @@
 syntax = "proto3";
 package admin.v1;
 
+// Account ...
 message Admin {
+  // key represents the unique identifier of the admin
+  string key = 1 [ json_name = "_key" ];
+  // first name of the admin
+  string first_name = 2;
+  // last name of the admin
+  string last_name = 3;
+  // unique email of the admin
+  string email = 4;
+  // avatar image associated to the avatar
+  optional bytes avatar = 5;
+  // notes associated to the admin
+  optional string notes = 6;
+}
 
-  // Account ...
-  message Account {
-    // key represents the unique identifier of the admin
-    string key = 1 [ json_name = "_key" ];
-    // first name of the admin
-    string first_name = 2;
-    // last name of the admin
-    string last_name = 3;
-    // unique email of the admin
-    string email = 4;
-    // avatar image associated to the avatar
-    optional bytes avatar = 5;
-    // notes associated to the admin
-    optional string notes = 6;
-  }
-
-  // Password ...
-  message Password {
-    // key represents the unique identifier of the admin
-    string key = 1 [ json_name = "_key" ];
-    // password_hash is the hashed password of the admin
-    string password_hash = 2;
-  }
+// Password ...
+message AdminPassword {
+  // key represents the unique identifier of the admin
+  string key = 1 [ json_name = "_key" ];
+  // password_hash is the hashed password of the admin
+  bytes password_hash = 2;
 }

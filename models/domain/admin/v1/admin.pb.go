@@ -7,8 +7,7 @@
 package adminv1
 
 import (
-	bytes "bytes"
-	utils "github.com/amaury95/protoc-gen-go-tag/utils"
+	utils "github.com/amaury95/protoc-gen-graphify/utils"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -22,10 +21,24 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Account ...
 type Admin struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
+
+	// key represents the unique identifier of the admin
+	Key string `protobuf:"bytes,1,opt,name=_key,proto3" json:"_key,omitempty"`
+	// first name of the admin
+	FirstName string `protobuf:"bytes,2,opt,name=firstName,proto3" json:"firstName,omitempty"`
+	// last name of the admin
+	LastName string `protobuf:"bytes,3,opt,name=lastName,proto3" json:"lastName,omitempty"`
+	// unique email of the admin
+	Email string `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
+	// avatar image associated to the avatar
+	Avatar []byte `protobuf:"bytes,5,opt,name=avatar,proto3,oneof" json:"avatar,omitempty"`
+	// notes associated to the admin
+	Notes *string `protobuf:"bytes,6,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
 }
 
 func (x *Admin) Reset() {
@@ -60,28 +73,62 @@ func (*Admin) Descriptor() ([]byte, []int) {
 	return file_admin_v1_admin_proto_rawDescGZIP(), []int{0}
 }
 
-// Account ...
-type Admin_Account struct {
+func (x *Admin) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *Admin) GetFirstName() string {
+	if x != nil {
+		return x.FirstName
+	}
+	return ""
+}
+
+func (x *Admin) GetLastName() string {
+	if x != nil {
+		return x.LastName
+	}
+	return ""
+}
+
+func (x *Admin) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *Admin) GetAvatar() []byte {
+	if x != nil {
+		return x.Avatar
+	}
+	return nil
+}
+
+func (x *Admin) GetNotes() string {
+	if x != nil && x.Notes != nil {
+		return *x.Notes
+	}
+	return ""
+}
+
+// Password ...
+type AdminPassword struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
 	// key represents the unique identifier of the admin
 	Key string `protobuf:"bytes,1,opt,name=_key,proto3" json:"_key,omitempty"`
-	// first name of the admin
-	FirstName string `protobuf:"bytes,2,opt,name=firstName,proto3" json:"firstName,omitempty"`
-	// last name of the admin
-	LastName string `protobuf:"bytes,3,opt,name=lastName,proto3" json:"lastName,omitempty"`
-	// unique email of the admin
-	Email string `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
-	// avatar image associated to the avatar
-	Avatar []byte `protobuf:"bytes,5,opt,name=avatar,proto3,oneof" json:"avatar,omitempty"`
-	// notes associated to the admin
-	Notes *string `protobuf:"bytes,6,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
+	// password_hash is the hashed password of the admin
+	PasswordHash []byte `protobuf:"bytes,2,opt,name=passwordHash,proto3" json:"passwordHash,omitempty"`
 }
 
-func (x *Admin_Account) Reset() {
-	*x = Admin_Account{}
+func (x *AdminPassword) Reset() {
+	*x = AdminPassword{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_admin_v1_admin_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -89,13 +136,13 @@ func (x *Admin_Account) Reset() {
 	}
 }
 
-func (x *Admin_Account) String() string {
+func (x *AdminPassword) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Admin_Account) ProtoMessage() {}
+func (*AdminPassword) ProtoMessage() {}
 
-func (x *Admin_Account) ProtoReflect() protoreflect.Message {
+func (x *AdminPassword) ProtoReflect() protoreflect.Message {
 	mi := &file_admin_v1_admin_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -107,109 +154,23 @@ func (x *Admin_Account) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Admin_Account.ProtoReflect.Descriptor instead.
-func (*Admin_Account) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{0, 0}
+// Deprecated: Use AdminPassword.ProtoReflect.Descriptor instead.
+func (*AdminPassword) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *Admin_Account) GetKey() string {
+func (x *AdminPassword) GetKey() string {
 	if x != nil {
 		return x.Key
 	}
 	return ""
 }
 
-func (x *Admin_Account) GetFirstName() string {
-	if x != nil {
-		return x.FirstName
-	}
-	return ""
-}
-
-func (x *Admin_Account) GetLastName() string {
-	if x != nil {
-		return x.LastName
-	}
-	return ""
-}
-
-func (x *Admin_Account) GetEmail() string {
-	if x != nil {
-		return x.Email
-	}
-	return ""
-}
-
-func (x *Admin_Account) GetAvatar() []byte {
-	if x != nil {
-		return x.Avatar
-	}
-	return nil
-}
-
-func (x *Admin_Account) GetNotes() string {
-	if x != nil && x.Notes != nil {
-		return *x.Notes
-	}
-	return ""
-}
-
-// Password ...
-type Admin_Password struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// key represents the unique identifier of the admin
-	Key string `protobuf:"bytes,1,opt,name=_key,proto3" json:"_key,omitempty"`
-	// password_hash is the hashed password of the admin
-	PasswordHash string `protobuf:"bytes,2,opt,name=passwordHash,proto3" json:"passwordHash,omitempty"`
-}
-
-func (x *Admin_Password) Reset() {
-	*x = Admin_Password{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_admin_v1_admin_proto_msgTypes[2]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *Admin_Password) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Admin_Password) ProtoMessage() {}
-
-func (x *Admin_Password) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[2]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Admin_Password.ProtoReflect.Descriptor instead.
-func (*Admin_Password) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{0, 1}
-}
-
-func (x *Admin_Password) GetKey() string {
-	if x != nil {
-		return x.Key
-	}
-	return ""
-}
-
-func (x *Admin_Password) GetPasswordHash() string {
+func (x *AdminPassword) GetPasswordHash() []byte {
 	if x != nil {
 		return x.PasswordHash
 	}
-	return ""
+	return nil
 }
 
 var File_admin_v1_admin_proto protoreflect.FileDescriptor
@@ -217,33 +178,33 @@ var File_admin_v1_admin_proto protoreflect.FileDescriptor
 var file_admin_v1_admin_proto_rawDesc = []byte{
 	0x0a, 0x14, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2f, 0x76, 0x31, 0x2f, 0x61, 0x64, 0x6d, 0x69, 0x6e,
 	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x08, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31,
-	0x22, 0x89, 0x02, 0x0a, 0x05, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x1a, 0xbb, 0x01, 0x0a, 0x07, 0x41,
-	0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x11, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x04, 0x5f, 0x6b, 0x65, 0x79, 0x12, 0x1d, 0x0a, 0x0a, 0x66, 0x69, 0x72,
-	0x73, 0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x66,
-	0x69, 0x72, 0x73, 0x74, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x1b, 0x0a, 0x09, 0x6c, 0x61, 0x73, 0x74,
-	0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x6c, 0x61, 0x73,
-	0x74, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x18, 0x04,
-	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x12, 0x1b, 0x0a, 0x06, 0x61,
-	0x76, 0x61, 0x74, 0x61, 0x72, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0c, 0x48, 0x00, 0x52, 0x06, 0x61,
-	0x76, 0x61, 0x74, 0x61, 0x72, 0x88, 0x01, 0x01, 0x12, 0x19, 0x0a, 0x05, 0x6e, 0x6f, 0x74, 0x65,
-	0x73, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x48, 0x01, 0x52, 0x05, 0x6e, 0x6f, 0x74, 0x65, 0x73,
-	0x88, 0x01, 0x01, 0x42, 0x09, 0x0a, 0x07, 0x5f, 0x61, 0x76, 0x61, 0x74, 0x61, 0x72, 0x42, 0x08,
-	0x0a, 0x06, 0x5f, 0x6e, 0x6f, 0x74, 0x65, 0x73, 0x1a, 0x42, 0x0a, 0x08, 0x50, 0x61, 0x73, 0x73,
-	0x77, 0x6f, 0x72, 0x64, 0x12, 0x11, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x04, 0x5f, 0x6b, 0x65, 0x79, 0x12, 0x23, 0x0a, 0x0d, 0x70, 0x61, 0x73, 0x73, 0x77,
-	0x6f, 0x72, 0x64, 0x5f, 0x68, 0x61, 0x73, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c,
-	0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x48, 0x61, 0x73, 0x68, 0x42, 0x98, 0x01, 0x0a,
-	0x0c, 0x63, 0x6f, 0x6d, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x41,
-	0x64, 0x6d, 0x69, 0x6e, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x3b, 0x67, 0x69, 0x74,
-	0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x6d, 0x61, 0x75, 0x72, 0x79, 0x39, 0x35,
-	0x2f, 0x67, 0x72, 0x61, 0x70, 0x68, 0x69, 0x66, 0x79, 0x2f, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x73,
-	0x2f, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x2f, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2f, 0x76, 0x31,
-	0x3b, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x41, 0x58, 0x58, 0xaa, 0x02,
-	0x08, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x08, 0x41, 0x64, 0x6d, 0x69,
-	0x6e, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x14, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x5c, 0x56, 0x31, 0x5c,
-	0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x09, 0x41, 0x64,
-	0x6d, 0x69, 0x6e, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x22, 0xb9, 0x01, 0x0a, 0x05, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x12, 0x11, 0x0a, 0x03, 0x6b, 0x65,
+	0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x5f, 0x6b, 0x65, 0x79, 0x12, 0x1d, 0x0a,
+	0x0a, 0x66, 0x69, 0x72, 0x73, 0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x09, 0x66, 0x69, 0x72, 0x73, 0x74, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x1b, 0x0a, 0x09,
+	0x6c, 0x61, 0x73, 0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x08, 0x6c, 0x61, 0x73, 0x74, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x6d, 0x61,
+	0x69, 0x6c, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x12,
+	0x1b, 0x0a, 0x06, 0x61, 0x76, 0x61, 0x74, 0x61, 0x72, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0c, 0x48,
+	0x00, 0x52, 0x06, 0x61, 0x76, 0x61, 0x74, 0x61, 0x72, 0x88, 0x01, 0x01, 0x12, 0x19, 0x0a, 0x05,
+	0x6e, 0x6f, 0x74, 0x65, 0x73, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x48, 0x01, 0x52, 0x05, 0x6e,
+	0x6f, 0x74, 0x65, 0x73, 0x88, 0x01, 0x01, 0x42, 0x09, 0x0a, 0x07, 0x5f, 0x61, 0x76, 0x61, 0x74,
+	0x61, 0x72, 0x42, 0x08, 0x0a, 0x06, 0x5f, 0x6e, 0x6f, 0x74, 0x65, 0x73, 0x22, 0x47, 0x0a, 0x0d,
+	0x41, 0x64, 0x6d, 0x69, 0x6e, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x12, 0x11, 0x0a,
+	0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x5f, 0x6b, 0x65, 0x79,
+	0x12, 0x23, 0x0a, 0x0d, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x5f, 0x68, 0x61, 0x73,
+	0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x0c, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72,
+	0x64, 0x48, 0x61, 0x73, 0x68, 0x42, 0x98, 0x01, 0x0a, 0x0c, 0x63, 0x6f, 0x6d, 0x2e, 0x61, 0x64,
+	0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x50, 0x72, 0x6f,
+	0x74, 0x6f, 0x50, 0x01, 0x5a, 0x3b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
+	0x2f, 0x61, 0x6d, 0x61, 0x75, 0x72, 0x79, 0x39, 0x35, 0x2f, 0x67, 0x72, 0x61, 0x70, 0x68, 0x69,
+	0x66, 0x79, 0x2f, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x73, 0x2f, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e,
+	0x2f, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2f, 0x76, 0x31, 0x3b, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x76,
+	0x31, 0xa2, 0x02, 0x03, 0x41, 0x58, 0x58, 0xaa, 0x02, 0x08, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x2e,
+	0x56, 0x31, 0xca, 0x02, 0x08, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x14,
+	0x41, 0x64, 0x6d, 0x69, 0x6e, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61,
+	0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x09, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x3a, 0x3a, 0x56, 0x31,
+	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -258,11 +219,10 @@ func file_admin_v1_admin_proto_rawDescGZIP() []byte {
 	return file_admin_v1_admin_proto_rawDescData
 }
 
-var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_admin_v1_admin_proto_goTypes = []interface{}{
-	(*Admin)(nil),          // 0: admin.v1.Admin
-	(*Admin_Account)(nil),  // 1: admin.v1.Admin.Account
-	(*Admin_Password)(nil), // 2: admin.v1.Admin.Password
+	(*Admin)(nil),         // 0: admin.v1.Admin
+	(*AdminPassword)(nil), // 1: admin.v1.AdminPassword
 }
 var file_admin_v1_admin_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -291,19 +251,7 @@ func file_admin_v1_admin_proto_init() {
 			}
 		}
 		file_admin_v1_admin_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Admin_Account); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_admin_v1_admin_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Admin_Password); i {
+			switch v := v.(*AdminPassword); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -315,14 +263,14 @@ func file_admin_v1_admin_proto_init() {
 			}
 		}
 	}
-	file_admin_v1_admin_proto_msgTypes[1].OneofWrappers = []interface{}{}
+	file_admin_v1_admin_proto_msgTypes[0].OneofWrappers = []interface{}{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_admin_v1_admin_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
@@ -336,93 +284,68 @@ func file_admin_v1_admin_proto_init() {
 	file_admin_v1_admin_proto_depIdxs = nil
 }
 
-// Specs ...
-func (*Admin) Schema() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
+/*
+	Graphify schema module
+*/
+
+/* Specs ... */
+func (*Admin) Schema() map[string]interface{} {
+	return map[string]interface{}{
+		"fields": map[string]interface{}{
+			"_key": map[string]interface{}{
+				"name": "_key",
+				"type": "string",
+			},
+			"firstName": map[string]interface{}{
+				"name": "firstName",
+				"type": "string",
+			},
+			"lastName": map[string]interface{}{
+				"name": "lastName",
+				"type": "string",
+			},
+			"email": map[string]interface{}{
+				"name": "email",
+				"type": "string",
+			},
+			"avatar": map[string]interface{}{
+				"name":     "avatar",
+				"optional": true,
+				"type":     "bytes",
+			},
+			"notes": map[string]interface{}{
+				"name":     "notes",
+				"optional": true,
+				"type":     "string",
+			},
+		},
+		"oneofs": map[string]interface{}{},
+	}
 }
 
-// Specs ...
-func (*Admin_Account) Schema() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	buffer.WriteString("\"_key\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"_key\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"firstName\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"firstName\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"lastName\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"lastName\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"email\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"email\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"avatar\": {")
-	buffer.WriteString("\"optional\": true,")
-	buffer.WriteString("\"type\": \"bytes\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"avatar\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"notes\": {")
-	buffer.WriteString("\"optional\": true,")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"notes\"")
-	buffer.WriteString("},")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
+/* Specs ... */
+func (*AdminPassword) Schema() map[string]interface{} {
+	return map[string]interface{}{
+		"fields": map[string]interface{}{
+			"_key": map[string]interface{}{
+				"name": "_key",
+				"type": "string",
+			},
+			"passwordHash": map[string]interface{}{
+				"name": "passwordHash",
+				"type": "bytes",
+			},
+		},
+		"oneofs": map[string]interface{}{},
+	}
 }
 
-// Specs ...
-func (*Admin_Password) Schema() []byte {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	buffer.WriteString("\"fields\": {")
-	buffer.WriteString("\"_key\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"_key\"")
-	buffer.WriteString("},")
-	buffer.WriteString("\"passwordHash\": {")
-	buffer.WriteString("\"type\": \"string\"")
-	buffer.WriteString(",")
-	buffer.WriteString("\"name\":\"passwordHash\"")
-	buffer.WriteString("},")
-	utils.TrimTrailingComma(&buffer)
-	buffer.WriteString("},")
-	buffer.WriteString("\"oneofs\": {")
-	buffer.WriteString("}")
-	buffer.WriteString("}")
-	return buffer.Bytes()
-}
+/*
+	Graphify loader module
+*/
 
-// LoadMap populates struct fields from a map, handling decoding for special fields.
+/* LoadMap populates struct fields from a map, handling decoding for special fields. */
 func (o *Admin) LoadMap(values map[string]interface{}) {
-}
-
-// LoadMap populates struct fields from a map, handling decoding for special fields.
-func (o *Admin_Account) LoadMap(values map[string]interface{}) {
 	if val, ok := values["_key"].(string); ok {
 		o.Key = val
 	}
@@ -443,12 +366,12 @@ func (o *Admin_Account) LoadMap(values map[string]interface{}) {
 	}
 }
 
-// LoadMap populates struct fields from a map, handling decoding for special fields.
-func (o *Admin_Password) LoadMap(values map[string]interface{}) {
+/* LoadMap populates struct fields from a map, handling decoding for special fields. */
+func (o *AdminPassword) LoadMap(values map[string]interface{}) {
 	if val, ok := values["_key"].(string); ok {
 		o.Key = val
 	}
 	if val, ok := values["passwordHash"].(string); ok {
-		o.PasswordHash = val
+		o.PasswordHash = utils.DecodeBytes(val)
 	}
 }

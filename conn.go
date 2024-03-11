@@ -27,9 +27,9 @@ func NewConnection(username, password string) *connection {
 }
 
 func (c *connection) GetDatabase(ctx context.Context) (db driver.Database, err error) {
-	config, err := DatabaseConfigFromContext(ctx)
-	if err != nil {
-		return nil, err
+	config, found := DatabaseConfigFromContext(ctx)
+	if !found {
+		return nil, fmt.Errorf("database config not found")
 	}
 
 	conn, err := http.NewConnection(http.ConnectionConfig{

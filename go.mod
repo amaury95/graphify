@@ -3,19 +3,30 @@ module github.com/amaury95/graphify
 go 1.20
 
 require (
-	github.com/amaury95/protoc-gen-go-tag v0.3.46
+	github.com/amaury95/protoc-gen-graphify v0.3.64
 	github.com/arangodb/go-driver v1.6.1
 	github.com/go-openapi/inflect v0.19.0
-	github.com/gorilla/mux v1.8.1
+	github.com/gofiber/fiber/v2 v2.52.2
+	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/sentimensrg/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/stoewer/go-strcase v1.3.0
-	golang.org/x/term v0.17.0
+	golang.org/x/crypto v0.20.0
 	google.golang.org/protobuf v1.32.0
 )
 
 require (
 	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d // indirect
+	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/arangodb/go-velocypack v0.0.0-20200318135517-5af53c29c67e // indirect
+	github.com/google/uuid v1.5.0 // indirect
+	github.com/klauspost/compress v1.17.0 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/valyala/fasthttp v1.51.0 // indirect
+	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 )

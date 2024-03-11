@@ -4,6 +4,6 @@ managed:
   go_package_prefix:
     default: github.com/amaury95/graphify/models/domain
 plugins:
-  - plugin: go-tag
+  - plugin: graphify
     out: domain
     opt: paths=source_relative
