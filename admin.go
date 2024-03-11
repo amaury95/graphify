@@ -154,8 +154,8 @@ func (g *graph) authLoginHandler(c *fiber.Ctx) error {
 		Value:    token,
 		Expires:  expiresAt,
 		HTTPOnly: true,
-		SameSite: "None",
-		Secure:   false,
+		SameSite: "None", // TODO: Remove on production
+		Secure:   false,  // TODO: Remove on production
 	})
 
 	return c.SendStatus(fiber.StatusOK)
@@ -167,6 +167,8 @@ func (g *graph) authLogoutHandler(c *fiber.Ctx) error {
 		Value:    "",
 		Expires:  time.Now().Add(-time.Hour),
 		HTTPOnly: true,
+		SameSite: "None", // TODO: Remove on production
+		Secure:   false,  // TODO: Remove on production
 	})
 	return c.SendStatus(fiber.StatusOK)
 }
