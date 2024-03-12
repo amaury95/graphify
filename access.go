@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strings"
 
-	observer "github.com/amaury95/graphify/models/domain/observer/v1"
+	observerv1 "github.com/amaury95/graphify/models/domain/observer/v1"
 	protocgengotag "github.com/amaury95/protoc-gen-graphify/utils"
 	"github.com/arangodb/go-driver"
 	"google.golang.org/protobuf/proto"
@@ -14,7 +14,7 @@ import (
 )
 
 // List ...
-func List(ctx context.Context, out interface{}, bindVars map[string]interface{}, comm *Common) (int, error) {
+func List(ctx context.Context, out interface{}, bindVars map[string]interface{}, conn IConnection, observer IObserver[Topic]) (int, error) {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return 0, fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -25,7 +25,7 @@ func List(ctx context.Context, out interface{}, bindVars map[string]interface{},
 		return 0, fmt.Errorf("out elements must be struct")
 	}
 
-	db, err := comm.Connection.GetDatabase(ctx)
+	db, err := conn.GetDatabase(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("failed to establish connection: %w", err)
 	}
@@ -60,7 +60,7 @@ func List(ctx context.Context, out interface{}, bindVars map[string]interface{},
 }
 
 // ListKeys ...
-func ListKeys(ctx context.Context, keys []string, out interface{}, comm *Common) error {
+func ListKeys(ctx context.Context, keys []string, out interface{}, conn IConnection, observer IObserver[Topic]) error {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -71,7 +71,7 @@ func ListKeys(ctx context.Context, keys []string, out interface{}, comm *Common)
 		return fmt.Errorf("out elements must be struct")
 	}
 
-	col, err := comm.Connection.GetCollection(ctx, elemType)
+	col, err := conn.GetCollection(ctx, elemType)
 	if err != nil {
 		return fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -100,7 +100,7 @@ func ListKeys(ctx context.Context, keys []string, out interface{}, comm *Common)
 }
 
 // Read ...
-func Read(ctx context.Context, key string, out interface{}, comm *Common) error {
+func Read(ctx context.Context, key string, out interface{}, conn IConnection, observer IObserver[Topic]) error {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer {
 		return fmt.Errorf("out must be a pointer to return the element")
@@ -111,7 +111,7 @@ func Read(ctx context.Context, key string, out interface{}, comm *Common) error 
 		return fmt.Errorf("out element must be struct")
 	}
 
-	col, err := comm.Connection.GetCollection(ctx, elemType)
+	col, err := conn.GetCollection(ctx, elemType)
 	if err != nil {
 		return fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -133,23 +133,23 @@ func Read(ctx context.Context, key string, out interface{}, comm *Common) error 
 }
 
 // Create ...
-func Create(ctx context.Context, val interface{}, comm *Common) ([]string, error) {
+func Create(ctx context.Context, val interface{}, conn IConnection, observer IObserver[Topic]) ([]string, error) {
 	valType := reflect.TypeOf(val)
 
 	if valType.Kind() == reflect.Slice && valType.Elem().Kind() == reflect.Struct {
-		return createDocuments(ctx, val, comm)
+		return createDocuments(ctx, val, conn, observer)
 	}
 
 	if valType.Kind() == reflect.Struct {
-		return createDocument(ctx, val, comm)
+		return createDocument(ctx, val, conn, observer)
 	}
 
 	return nil, fmt.Errorf("val must be struct or list of struct")
 }
-func createDocuments(ctx context.Context, items interface{}, comm *Common) (result []string, err error) {
+func createDocuments(ctx context.Context, items interface{}, conn IConnection, observer IObserver[Topic]) (result []string, err error) {
 	itemType := reflect.TypeOf(items).Elem()
 
-	col, err := comm.Connection.GetCollection(ctx, itemType)
+	col, err := conn.GetCollection(ctx, itemType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -167,19 +167,21 @@ func createDocuments(ctx context.Context, items interface{}, comm *Common) (resu
 	for index, meta := range meta {
 		result = append(result, meta.Key)
 
-		item := itemsVal.Index(index).Interface()
-		if bytes, ok := protoEncode(item); ok {
-			go comm.Observer.Emit(&Event[Topic]{
-				Topic: CreatedTopic.For(item), Payload: &observer.CreatedPayload{Key: meta.Key, Element: bytes}})
+		if observer != nil {
+			item := itemsVal.Index(index).Interface()
+			if bytes, ok := protoEncode(item); ok {
+				go observer.Emit(&Event[Topic]{
+					Topic: CreatedTopic.For(item), Payload: &observerv1.CreatedPayload{Key: meta.Key, Element: bytes}})
+			}
 		}
 	}
 
 	return result, nil
 }
-func createDocument(ctx context.Context, item interface{}, comm *Common) ([]string, error) {
+func createDocument(ctx context.Context, item interface{}, conn IConnection, observer IObserver[Topic]) ([]string, error) {
 	itemType := reflect.TypeOf(item)
 
-	col, err := comm.Connection.GetCollection(ctx, itemType)
+	col, err := conn.GetCollection(ctx, itemType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -189,22 +191,24 @@ func createDocument(ctx context.Context, item interface{}, comm *Common) ([]stri
 		return nil, fmt.Errorf("failed to insert document: %w", err)
 	}
 
-	if bytes, ok := protoEncode(item); ok {
-		go comm.Observer.Emit(&Event[Topic]{
-			Topic: CreatedTopic.For(item), Payload: &observer.CreatedPayload{Key: meta.Key, Element: bytes}})
+	if observer != nil {
+		if bytes, ok := protoEncode(item); ok {
+			go observer.Emit(&Event[Topic]{
+				Topic: CreatedTopic.For(item), Payload: &observerv1.CreatedPayload{Key: meta.Key, Element: bytes}})
+		}
 	}
 
 	return []string{meta.Key}, nil
 }
 
 // Update ...
-func Update(ctx context.Context, key string, item interface{}, comm *Common) error {
+func Update(ctx context.Context, key string, item interface{}, conn IConnection, observer IObserver[Topic]) error {
 	itemVal := reflect.ValueOf(item)
 	if itemVal.Kind() != reflect.Struct {
 		return fmt.Errorf("item should be a struct")
 	}
 
-	col, err := comm.Connection.GetCollection(ctx, reflect.TypeOf(item))
+	col, err := conn.GetCollection(ctx, reflect.TypeOf(item))
 	if err != nil {
 		return fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -213,15 +217,18 @@ func Update(ctx context.Context, key string, item interface{}, comm *Common) err
 		return fmt.Errorf("failed to update the document")
 	}
 
-	if bytes, ok := protoEncode(item); ok {
-		go comm.Observer.Emit(&Event[Topic]{
-			Topic: UpdatedTopic.For(item), Payload: &observer.UpdatedPayload{Element: bytes}})
+	if observer != nil {
+		if bytes, ok := protoEncode(item); ok {
+			go observer.Emit(&Event[Topic]{
+				Topic: UpdatedTopic.For(item), Payload: &observerv1.UpdatedPayload{Element: bytes}})
+		}
 	}
+
 	return nil
 }
 
 // Delete ...
-func Delete(ctx context.Context, item interface{}, comm *Common) error {
+func Delete(ctx context.Context, item interface{}, conn IConnection, observer IObserver[Topic]) error {
 	itemVal := reflect.ValueOf(item)
 	if itemVal.Kind() != reflect.Struct {
 		return fmt.Errorf("item should be a struct")
@@ -237,7 +244,7 @@ func Delete(ctx context.Context, item interface{}, comm *Common) error {
 		return fmt.Errorf("item field Key should be string")
 	}
 
-	col, err := comm.Connection.GetCollection(ctx, reflect.TypeOf(item))
+	col, err := conn.GetCollection(ctx, reflect.TypeOf(item))
 	if err != nil {
 		return fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -246,8 +253,10 @@ func Delete(ctx context.Context, item interface{}, comm *Common) error {
 		return fmt.Errorf("failed to remove the document")
 	}
 
-	go comm.Observer.Emit(&Event[Topic]{
-		Topic: DeletedTopic.For(item), Payload: &observer.DeletedPayload{Key: key}})
+	if observer != nil {
+		go observer.Emit(&Event[Topic]{
+			Topic: DeletedTopic.For(item), Payload: &observerv1.DeletedPayload{Key: key}})
+	}
 
 	return nil
 }

@@ -13,7 +13,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/sentimensrg/ctx/mergectx"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -65,7 +64,7 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 
 func (g *graph) contextMiddleware(ctx context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		c.SetUserContext(mergectx.Link(ctx, c.Context()))
+		c.SetUserContext(ctx)
 		return c.Next()
 	}
 }
@@ -90,7 +89,7 @@ func (g *graph) authMiddleware(c *fiber.Ctx) error {
 	}
 
 	var admin adminv1.Admin
-	if err := Read(c.UserContext(), claims.Subject, &admin, g.comm); err != nil {
+	if err := Read(c.UserContext(), claims.Subject, &admin, g.comm.Connection, g.comm.Observer); err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
 
@@ -119,7 +118,7 @@ func (g *graph) authLoginHandler(c *fiber.Ctx) error {
 	}
 
 	var admins []adminv1.Admin
-	if _, err := List(c.UserContext(), &admins, map[string]interface{}{"email": request.Email}, g.comm); err != nil {
+	if _, err := List(c.UserContext(), &admins, map[string]interface{}{"email": request.Email}, g.comm.Connection, g.comm.Observer); err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
 
@@ -129,7 +128,7 @@ func (g *graph) authLoginHandler(c *fiber.Ctx) error {
 	}
 
 	var password adminv1.AdminPassword
-	if err := Read(c.UserContext(), admins[0].Key, &password, g.comm); err != nil {
+	if err := Read(c.UserContext(), admins[0].Key, &password, g.comm.Connection, g.comm.Observer); err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
 
@@ -188,12 +187,12 @@ func (g *graph) authRegisterHandler(c *fiber.Ctx) error {
 
 	password, _ := bcrypt.GenerateFromPassword([]byte(request.Password), 14)
 
-	keys, err := Create(c.UserContext(), request.Admin, g.comm)
+	keys, err := Create(c.UserContext(), request.Admin, g.comm.Connection, g.comm.Observer)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	if _, err := Create(c.UserContext(), adminv1.AdminPassword{Key: keys[0], PasswordHash: password}, g.comm); err != nil {
+	if _, err := Create(c.UserContext(), adminv1.AdminPassword{Key: keys[0], PasswordHash: password}, g.comm.Connection, g.comm.Observer); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
@@ -212,14 +211,14 @@ func (g *graph) resourcesListHandler(c *fiber.Ctx) error {
 	elems := reflect.New(reflect.SliceOf(elemType))
 
 	if len(keys) > 0 {
-		if err := ListKeys(c.UserContext(), keys, elems.Interface(), g.comm); err != nil {
+		if err := ListKeys(c.UserContext(), keys, elems.Interface(), g.comm.Connection, g.comm.Observer); err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		} else {
 			return c.JSON(elems.Interface())
 		}
 	}
 
-	if _, err := List(c.UserContext(), elems.Interface(), nil, g.comm); err != nil {
+	if _, err := List(c.UserContext(), elems.Interface(), nil, g.comm.Connection, g.comm.Observer); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
@@ -236,7 +235,7 @@ func (g *graph) resourcesGetHandler(c *fiber.Ctx) error {
 	}
 
 	elem := reflect.New(elemType)
-	if err := Read(c.UserContext(), key, elem.Interface(), g.comm); err != nil {
+	if err := Read(c.UserContext(), key, elem.Interface(), g.comm.Connection, g.comm.Observer); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
@@ -260,7 +259,7 @@ func (g *graph) resourcesCreateHandler(c *fiber.Ctx) error {
 	if loader, ok := elem.Interface().(graphify.IMapLoader); ok {
 		loader.LoadMap(data)
 	}
-	keys, err := Create(c.UserContext(), elem.Elem().Interface(), g.comm)
+	keys, err := Create(c.UserContext(), elem.Elem().Interface(), g.comm.Connection, g.comm.Observer)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
@@ -287,7 +286,7 @@ func (g *graph) resourcesUpdateHandler(c *fiber.Ctx) error {
 	if loader, ok := elem.Interface().(graphify.IMapLoader); ok {
 		loader.LoadMap(data)
 	}
-	if err := Update(c.UserContext(), key, elem.Elem().Interface(), g.comm); err != nil {
+	if err := Update(c.UserContext(), key, elem.Elem().Interface(), g.comm.Connection, g.comm.Observer); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
@@ -305,7 +304,7 @@ func (g *graph) resourcesDeleteHandler(c *fiber.Ctx) error {
 
 	elem := reflect.New(elemType).Elem()
 	elem.FieldByName("Key").Set(reflect.ValueOf(key))
-	if err := Delete(c.UserContext(), elem.Interface(), g.comm); err != nil {
+	if err := Delete(c.UserContext(), elem.Interface(), g.comm.Connection, g.comm.Observer); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 

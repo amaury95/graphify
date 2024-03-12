@@ -11,7 +11,6 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/graphql-go/graphql v0.8.1
 	github.com/graphql-go/handler v0.2.3
-	github.com/sentimensrg/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/stoewer/go-strcase v1.3.0
 	golang.org/x/crypto v0.20.0
 	golang.org/x/term v0.17.0
@@ -19,7 +18,6 @@ require (
 )
 
 require (
-	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/arangodb/go-velocypack v0.0.0-20200318135517-5af53c29c67e // indirect
 	github.com/google/uuid v1.5.0 // indirect

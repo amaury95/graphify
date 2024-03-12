@@ -1,5 +1,3 @@
-github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d h1:CbB/Ef3TyBvSSJx2HDSUiw49ONTpaX6BGiI0jJEX6b8=
-github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d/go.mod h1:cfn0Ycx1ASzCkl8+04zI4hrclf9YQ1QfncxzFiNtQLo=
 github.com/amaury95/protoc-gen-graphify v0.3.64 h1:L1Y0tB2y7hsqIhU1f8FphIxTv6GCbphWTRCicrEXuCE=
 github.com/amaury95/protoc-gen-graphify v0.3.64/go.mod h1:5XuhyrjD14emQfsEbfHkgbcbJ8C2OZazkuMObl4njXw=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
@@ -41,8 +39,6 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/rivo/uniseg v0.2.0 h1:S1pD9weZBuJdFmowNwbpi7BJ8TNftyUImj/0WQi72jY=
 github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
-github.com/sentimensrg/ctx v0.0.0-20180729130232-0bfd988c655d h1:/PITncxK1NEfHy1k0ze4VklDt62iWz1Se9yc0iTEsew=
-github.com/sentimensrg/ctx v0.0.0-20180729130232-0bfd988c655d/go.mod h1:sW4sRRfi2aJxwxA65DUjh8GMXSSJgyLQX+Bpdjv52PU=
 github.com/stoewer/go-strcase v1.3.0 h1:g0eASXYtp+yvN9fK8sH94oCIk0fau9uV1/ZdJ0AVEzs=
 github.com/stoewer/go-strcase v1.3.0/go.mod h1:fAH5hQ5pehh+j3nZfvwdk2RgEgQjAoM8wodgtPmh1xo=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
