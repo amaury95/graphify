@@ -17,12 +17,12 @@ import (
 func List(ctx context.Context, out interface{}, bindVars map[string]interface{}) (int, error) {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
-		return 0, fmt.Errorf("out must be a pointer to a slice to return the elements")
+		return -1, fmt.Errorf("out must be a pointer to a slice to return the elements")
 	}
 
 	elemType := outType.Elem().Elem()
 	if elemType.Kind() != reflect.Struct {
-		return 0, fmt.Errorf("out elements must be struct")
+		return -1, fmt.Errorf("out elements must be struct")
 	}
 
 	conn, found := ConnectionFromContext(ctx)
@@ -32,14 +32,14 @@ func List(ctx context.Context, out interface{}, bindVars map[string]interface{})
 
 	db, err := conn.GetDatabase(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("failed to establish connection: %w", err)
+		return -1, fmt.Errorf("failed to establish connection: %w", err)
 	}
 
 	query := fmt.Sprintf(`FOR doc IN %s %s %s RETURN doc`, CollectionFor(elemType), getFilters(bindVars), getLimit(bindVars))
 
 	cursor, err := db.Query(ctx, query, bindVars)
 	if err != nil {
-		return 0, fmt.Errorf("failed to execute query: %w", err)
+		return -1, fmt.Errorf("failed to execute query: %w", err)
 	}
 	defer cursor.Close()
 
@@ -50,7 +50,7 @@ func List(ctx context.Context, out interface{}, bindVars map[string]interface{})
 		if driver.IsNoMoreDocuments(err) {
 			break
 		} else if err != nil {
-			return 0, err
+			return -1, err
 		}
 		elem := reflect.New(elemType)
 		if loader, ok := elem.Interface().(protocgengotag.IMapLoader); ok {
@@ -61,7 +61,7 @@ func List(ctx context.Context, out interface{}, bindVars map[string]interface{})
 
 	outValue := reflect.ValueOf(out).Elem()
 	outValue.Set(result)
-	return 0, nil
+	return 0, nil // TODO: finish return total count
 }
 
 // ListKeys ...
@@ -296,8 +296,83 @@ func Delete(ctx context.Context, item interface{}) error {
 	return nil
 }
 
-func Relations(ctx context.Context, node, edge, out interface{}, bindVars map[string]interface{}) error {
-	return nil
+func Relations(ctx context.Context, id string, out interface{}, bindVars map[string]interface{}) (int, error) {
+	outType := reflect.TypeOf(out)
+	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
+		return -1, fmt.Errorf("out must be a pointer to a slice to return the elements")
+	}
+
+	elemType := outType.Elem().Elem()
+	if elemType.Kind() != reflect.Struct {
+		return -1, fmt.Errorf("out elements must be struct")
+	}
+
+	if elemType.NumField() != 2 {
+		return -1, fmt.Errorf("out must have exactly two fields")
+	}
+
+	nodeField, foundNode := elemType.FieldByName("Node")
+	if !foundNode || !isNode(nodeField.Type) {
+		return -1, fmt.Errorf("node not present in result or is invalid")
+	}
+
+	edgeField, foundEdge := elemType.FieldByName("Edge")
+	if !foundEdge || !isEdge(edgeField.Type) {
+		return -1, fmt.Errorf("edge not present in result or is invalid")
+	}
+
+	conn, found := ConnectionFromContext(ctx)
+	if !found {
+		return -1, fmt.Errorf("connection not found in context")
+	}
+
+	db, err := conn.GetDatabase(ctx)
+	if err != nil {
+		return -1, fmt.Errorf("failed to establish connection: %w", err)
+	}
+
+	query := fmt.Sprintf(`FOR v, e IN 1..1 OUTBOUND '%s' %s %s %s RETURN {v, e}`,
+		id, CollectionFor(edgeField.Type), getFilters(bindVars), getLimit(bindVars))
+
+	cursor, err := db.Query(ctx, query, bindVars)
+	if err != nil {
+		return -1, fmt.Errorf("failed to execute query: %w", err)
+	}
+	defer cursor.Close()
+
+	result := reflect.MakeSlice(outType.Elem(), 0, 0)
+	for {
+		var doc struct {
+			Node map[string]interface{} `json:"v"`
+			Edge map[string]interface{} `json:"e"`
+		}
+		_, err := cursor.ReadDocument(ctx, &doc)
+		if driver.IsNoMoreDocuments(err) {
+			break
+		} else if err != nil {
+			return -1, err
+		}
+
+		node := reflect.New(nodeField.Type)
+		if loader, ok := node.Interface().(protocgengotag.IMapLoader); ok {
+			loader.LoadMap(doc.Node)
+		}
+
+		edge := reflect.New(edgeField.Type)
+		if loader, ok := edge.Interface().(protocgengotag.IMapLoader); ok {
+			loader.LoadMap(doc.Edge)
+		}
+
+		value := reflect.New(elemType)
+		value.Elem().FieldByName("Node").Set(node.Elem())
+		value.Elem().FieldByName("Edge").Set(edge.Elem())
+
+		result = reflect.Append(result, value.Elem())
+	}
+
+	outValue := reflect.ValueOf(out).Elem()
+	outValue.Set(result)
+	return 0, nil // TODO: finish return total count
 }
 
 func protoEncode(item interface{}) ([]byte, bool) {

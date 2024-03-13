@@ -54,7 +54,7 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	resources.Get("/:key", g.resourcesGetHandler)
 	resources.Put("/:key", g.resourcesUpdateHandler)
 	resources.Delete("/:key", g.resourcesDeleteHandler)
-	resources.Delete("/:key/:relation", g.resourcesRelationHandler)
+	resources.Get("/:key/:relation", g.resourcesRelationHandler)
 
 	if _, found := StorageFromContext(ctx); found {
 		files := admin.Group("/files")
@@ -315,12 +315,31 @@ func (g *graph) resourcesDeleteHandler(c *fiber.Ctx) error {
 }
 
 func (g *graph) resourcesRelationHandler(c *fiber.Ctx) error {
-	// resource := c.Params("resource")
-	// key := c.Params("key")
-	// relation := c.Params("relation")
+	resource := c.Params("resource")
+	key := c.Params("key")
+	collection := c.Params("relation")
 
+	relation, ok := g.Relations[collection]
+	if !ok {
+		return fiber.NewError(fiber.StatusNotFound, "Not Found")
+	}
 
-	return c.SendStatus(fiber.StatusOK)
+	edge, from, to := g.Edges[collection], g.Nodes[relation._from], g.Nodes[relation._to]
+	if CollectionFor(from) != resource {
+		return fiber.NewError(fiber.StatusNotFound, "Not Found")
+	}
+
+	resultType := reflect.StructOf([]reflect.StructField{
+		{Name: "Node", Type: to, Tag: reflect.StructTag("json:\"node\"")},
+		{Name: "Edge", Type: edge, Tag: reflect.StructTag("json:\"edge\"")},
+	})
+
+	elems := reflect.New(reflect.SliceOf(resultType))
+	if _, err := Relations(c.UserContext(), getId(resource, key), elems.Interface(), map[string]interface{}{}); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(elems.Interface())
 }
 
 /* Specs Handlers */
@@ -461,4 +480,8 @@ func (g *graph) getElem(name string) (reflect.Type, bool) {
 	}
 
 	return nil, false
+}
+
+func getId(resource, key string) string {
+	return resource + "/" + key
 }
