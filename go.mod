@@ -13,6 +13,7 @@ require (
 	github.com/graphql-go/handler v0.2.3
 	github.com/stoewer/go-strcase v1.3.0
 	golang.org/x/crypto v0.20.0
+	golang.org/x/term v0.17.0
 	google.golang.org/protobuf v1.32.0
 )
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 
 	// "os"
 	// "golang.org/x/term"
@@ -14,6 +15,7 @@ import (
 	admin "github.com/amaury95/graphify/models/domain/admin/v1"
 	observer "github.com/amaury95/graphify/models/domain/observer/v1"
 	"github.com/gorilla/mux"
+	"golang.org/x/term"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -23,17 +25,17 @@ func main() {
 		password []byte
 		err      error
 	)
-	// // Prompt for username
-	// fmt.Print("Enter ArangoDB username: ")
-	// fmt.Scanln(&username)
+	// Prompt for username
+	fmt.Print("Enter ArangoDB username: ")
+	fmt.Scanln(&username)
 
-	// // Prompt for password
-	// fmt.Print("Enter password: ")
-	// password, err = term.ReadPassword(int(os.Stdin.Fd()))
-	// if err != nil {
-	// 	fmt.Println("Error reading password:", err)
-	// 	return
-	// }
+	// Prompt for password
+	fmt.Print("Enter password: ")
+	password, err = term.ReadPassword(int(os.Stdin.Fd()))
+	if err != nil {
+		fmt.Println("Error reading password:", err)
+		return
+	}
 
 	// define app context
 	ctx := context.Background()
