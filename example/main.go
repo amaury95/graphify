@@ -35,20 +35,22 @@ func main() {
 		return
 	}
 
-	// Add configurations to context
-	ctx := graphify.ContextWithDatabaseConfig(context.Background(), &graphify.DatabaseConfig{
-		Name: "library",
-	})
+	// define app context
+	ctx := context.Background()
 
-	// Create common struct
-	common := graphify.Common{
-		Connection: graphify.NewConnection(username, string(password)),
-		Observer:   graphify.NewObserver[graphify.Topic](),
-		Storage:    graphify.NewFilesystemStorage("./uploads", 10<<20), // 10 MB limit
-	}
+	// Add config to context
+	ctx = graphify.ContextWithConnection(ctx,
+		graphify.NewConnection(
+			graphify.DatabaseConfig{DBName: "library", UserName: username, Password: string(password)}))
+
+	ctx = graphify.ContextWithObserver(ctx,
+		graphify.NewObserver[graphify.Topic]())
+
+	ctx = graphify.ContextWithStorage(ctx,
+		graphify.NewFilesystemStorage("./uploads", 10<<20)) // 10 MB limit
 
 	// Create graph
-	graph := graphify.NewGraph(&common)
+	graph := graphify.NewGraph()
 
 	// Add graph definitions
 	graph.Node(admin.Admin{})
@@ -56,8 +58,10 @@ func main() {
 	graph.Node(library.Client{})
 	graph.Edge(library.Client{}, library.Book{}, library.Borrow{})
 
-	common.Observer.Subscribe(
-		graphify.CreatedTopic.For(library.Book{}), logCreatedBook)
+	if observer, found := graphify.ObserverFromContext(ctx); found {
+		observer.Subscribe(
+			graphify.CreatedTopic.For(library.Book{}), logCreatedBook)
+	}
 
 	// Create a new router
 	router := mux.NewRouter()

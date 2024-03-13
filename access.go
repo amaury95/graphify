@@ -14,7 +14,7 @@ import (
 )
 
 // List ...
-func List(ctx context.Context, out interface{}, bindVars map[string]interface{}, conn IConnection, observer IObserver[Topic]) (int, error) {
+func List(ctx context.Context, out interface{}, bindVars map[string]interface{}) (int, error) {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return 0, fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -23,6 +23,11 @@ func List(ctx context.Context, out interface{}, bindVars map[string]interface{},
 	elemType := outType.Elem().Elem()
 	if elemType.Kind() != reflect.Struct {
 		return 0, fmt.Errorf("out elements must be struct")
+	}
+
+	conn, found := ConnectionFromContext(ctx)
+	if !found {
+		return -1, fmt.Errorf("connection not found in context")
 	}
 
 	db, err := conn.GetDatabase(ctx)
@@ -60,7 +65,7 @@ func List(ctx context.Context, out interface{}, bindVars map[string]interface{},
 }
 
 // ListKeys ...
-func ListKeys(ctx context.Context, keys []string, out interface{}, conn IConnection, observer IObserver[Topic]) error {
+func ListKeys(ctx context.Context, keys []string, out interface{}) error {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -69,6 +74,11 @@ func ListKeys(ctx context.Context, keys []string, out interface{}, conn IConnect
 	elemType := outType.Elem().Elem()
 	if elemType.Kind() != reflect.Struct {
 		return fmt.Errorf("out elements must be struct")
+	}
+
+	conn, found := ConnectionFromContext(ctx)
+	if !found {
+		return fmt.Errorf("connection not found in context")
 	}
 
 	col, err := conn.GetCollection(ctx, elemType)
@@ -100,7 +110,7 @@ func ListKeys(ctx context.Context, keys []string, out interface{}, conn IConnect
 }
 
 // Read ...
-func Read(ctx context.Context, key string, out interface{}, conn IConnection, observer IObserver[Topic]) error {
+func Read(ctx context.Context, key string, out interface{}) error {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer {
 		return fmt.Errorf("out must be a pointer to return the element")
@@ -109,6 +119,11 @@ func Read(ctx context.Context, key string, out interface{}, conn IConnection, ob
 	elemType := outType.Elem()
 	if elemType.Kind() != reflect.Struct {
 		return fmt.Errorf("out element must be struct")
+	}
+
+	conn, found := ConnectionFromContext(ctx)
+	if !found {
+		return fmt.Errorf("connection not found in context")
 	}
 
 	col, err := conn.GetCollection(ctx, elemType)
@@ -133,21 +148,26 @@ func Read(ctx context.Context, key string, out interface{}, conn IConnection, ob
 }
 
 // Create ...
-func Create(ctx context.Context, val interface{}, conn IConnection, observer IObserver[Topic]) ([]string, error) {
+func Create(ctx context.Context, val interface{}) ([]string, error) {
 	valType := reflect.TypeOf(val)
 
 	if valType.Kind() == reflect.Slice && valType.Elem().Kind() == reflect.Struct {
-		return createDocuments(ctx, val, conn, observer)
+		return createDocuments(ctx, val)
 	}
 
 	if valType.Kind() == reflect.Struct {
-		return createDocument(ctx, val, conn, observer)
+		return createDocument(ctx, val)
 	}
 
 	return nil, fmt.Errorf("val must be struct or list of struct")
 }
-func createDocuments(ctx context.Context, items interface{}, conn IConnection, observer IObserver[Topic]) (result []string, err error) {
+func createDocuments(ctx context.Context, items interface{}) (result []string, err error) {
 	itemType := reflect.TypeOf(items).Elem()
+
+	conn, found := ConnectionFromContext(ctx)
+	if !found {
+		return nil, fmt.Errorf("connection not found in context")
+	}
 
 	col, err := conn.GetCollection(ctx, itemType)
 	if err != nil {
@@ -167,7 +187,7 @@ func createDocuments(ctx context.Context, items interface{}, conn IConnection, o
 	for index, meta := range meta {
 		result = append(result, meta.Key)
 
-		if observer != nil {
+		if observer, found := ObserverFromContext(ctx); found {
 			item := itemsVal.Index(index).Interface()
 			if bytes, ok := protoEncode(item); ok {
 				go observer.Emit(&Event[Topic]{
@@ -178,8 +198,13 @@ func createDocuments(ctx context.Context, items interface{}, conn IConnection, o
 
 	return result, nil
 }
-func createDocument(ctx context.Context, item interface{}, conn IConnection, observer IObserver[Topic]) ([]string, error) {
+func createDocument(ctx context.Context, item interface{}) ([]string, error) {
 	itemType := reflect.TypeOf(item)
+
+	conn, found := ConnectionFromContext(ctx)
+	if !found {
+		return nil, fmt.Errorf("connection not found in context")
+	}
 
 	col, err := conn.GetCollection(ctx, itemType)
 	if err != nil {
@@ -191,7 +216,7 @@ func createDocument(ctx context.Context, item interface{}, conn IConnection, obs
 		return nil, fmt.Errorf("failed to insert document: %w", err)
 	}
 
-	if observer != nil {
+	if observer, found := ObserverFromContext(ctx); found {
 		if bytes, ok := protoEncode(item); ok {
 			go observer.Emit(&Event[Topic]{
 				Topic: CreatedTopic.For(item), Payload: &observerv1.CreatedPayload{Key: meta.Key, Element: bytes}})
@@ -202,10 +227,15 @@ func createDocument(ctx context.Context, item interface{}, conn IConnection, obs
 }
 
 // Update ...
-func Update(ctx context.Context, key string, item interface{}, conn IConnection, observer IObserver[Topic]) error {
+func Update(ctx context.Context, key string, item interface{}) error {
 	itemVal := reflect.ValueOf(item)
 	if itemVal.Kind() != reflect.Struct {
 		return fmt.Errorf("item should be a struct")
+	}
+
+	conn, found := ConnectionFromContext(ctx)
+	if !found {
+		return fmt.Errorf("connection not found in context")
 	}
 
 	col, err := conn.GetCollection(ctx, reflect.TypeOf(item))
@@ -217,7 +247,7 @@ func Update(ctx context.Context, key string, item interface{}, conn IConnection,
 		return fmt.Errorf("failed to update the document")
 	}
 
-	if observer != nil {
+	if observer, found := ObserverFromContext(ctx); found {
 		if bytes, ok := protoEncode(item); ok {
 			go observer.Emit(&Event[Topic]{
 				Topic: UpdatedTopic.For(item), Payload: &observerv1.UpdatedPayload{Element: bytes}})
@@ -228,7 +258,7 @@ func Update(ctx context.Context, key string, item interface{}, conn IConnection,
 }
 
 // Delete ...
-func Delete(ctx context.Context, item interface{}, conn IConnection, observer IObserver[Topic]) error {
+func Delete(ctx context.Context, item interface{}) error {
 	itemVal := reflect.ValueOf(item)
 	if itemVal.Kind() != reflect.Struct {
 		return fmt.Errorf("item should be a struct")
@@ -244,6 +274,11 @@ func Delete(ctx context.Context, item interface{}, conn IConnection, observer IO
 		return fmt.Errorf("item field Key should be string")
 	}
 
+	conn, found := ConnectionFromContext(ctx)
+	if !found {
+		return fmt.Errorf("connection not found in context")
+	}
+
 	col, err := conn.GetCollection(ctx, reflect.TypeOf(item))
 	if err != nil {
 		return fmt.Errorf("failed to load collection: %w", err)
@@ -253,11 +288,15 @@ func Delete(ctx context.Context, item interface{}, conn IConnection, observer IO
 		return fmt.Errorf("failed to remove the document")
 	}
 
-	if observer != nil {
+	if observer, found := ObserverFromContext(ctx); found {
 		go observer.Emit(&Event[Topic]{
 			Topic: DeletedTopic.For(item), Payload: &observerv1.DeletedPayload{Key: key}})
 	}
 
+	return nil
+}
+
+func Relations(ctx context.Context, node, edge, out interface{}, bindVars map[string]interface{}) error {
 	return nil
 }
 

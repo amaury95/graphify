@@ -18,20 +18,15 @@ type IConnection interface {
 }
 
 type connection struct {
-	username, password string
+	conf DatabaseConfig
 }
 
 // NewConnection ...
-func NewConnection(username, password string) *connection {
-	return &connection{username: username, password: password}
+func NewConnection(conf DatabaseConfig) *connection {
+	return &connection{conf}
 }
 
 func (c *connection) GetDatabase(ctx context.Context) (db driver.Database, err error) {
-	config, found := DatabaseConfigFromContext(ctx)
-	if !found {
-		return nil, fmt.Errorf("database config not found")
-	}
-
 	conn, err := http.NewConnection(http.ConnectionConfig{
 		Endpoints: []string{"http://localhost:8529"},
 	})
@@ -41,23 +36,23 @@ func (c *connection) GetDatabase(ctx context.Context) (db driver.Database, err e
 
 	client, err := driver.NewClient(driver.ClientConfig{
 		Connection:     conn,
-		Authentication: driver.BasicAuthentication(c.username, c.password),
+		Authentication: driver.BasicAuthentication(c.conf.UserName, c.conf.Password),
 	})
 	if err != nil {
 		panic(err)
 	}
 
-	exists, err := client.DatabaseExists(ctx, config.Name)
+	exists, err := client.DatabaseExists(ctx, c.conf.DBName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check database existence: %w", err)
 	}
 	if exists {
-		db, err = client.Database(ctx, config.Name)
+		db, err = client.Database(ctx, c.conf.DBName)
 		if err != nil {
 			return nil, fmt.Errorf("failed to connect to database: %w", err)
 		}
 	} else {
-		db, err = client.CreateDatabase(ctx, config.Name, nil)
+		db, err = client.CreateDatabase(ctx, c.conf.DBName, nil)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create database: %w", err)
 		}

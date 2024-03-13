@@ -3,6 +3,7 @@ package graphify
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"reflect"
 	"time"
@@ -27,7 +28,7 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	g.AutoMigrate(ctx)
 
 	router := fiber.New(fiber.Config{
-		BodyLimit: g.comm.Storage.MaxMemory(),
+		BodyLimit: 10 << 20,
 	})
 	router.Use(cors.New(cors.Config{
 		AllowOriginsFunc: func(string) bool { return true },
@@ -47,10 +48,6 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	auth.Post("/register", g.authRegisterHandler)
 	auth.Post("/logout", g.authLogoutHandler)
 
-	files := admin.Group("/files")
-	files.Post("/upload", g.filesUploadHandler)
-	files.Get("/download/:name", g.filesDownloadHandler)
-
 	resources := admin.Group("/:resource")
 	resources.Get("", g.resourcesListHandler)
 	resources.Post("", g.resourcesCreateHandler)
@@ -58,6 +55,12 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	resources.Put("/:key", g.resourcesUpdateHandler)
 	resources.Delete("/:key", g.resourcesDeleteHandler)
 	resources.Delete("/:key/:relation", g.resourcesRelationHandler)
+
+	if _, found := StorageFromContext(ctx); found {
+		files := admin.Group("/files")
+		files.Post("/upload", g.filesUploadHandler)
+		files.Get("/download/:name", g.filesDownloadHandler)
+	}
 
 	return adaptor.FiberApp(router)
 }
@@ -89,7 +92,7 @@ func (g *graph) authMiddleware(c *fiber.Ctx) error {
 	}
 
 	var admin adminv1.Admin
-	if err := Read(c.UserContext(), claims.Subject, &admin, g.comm.Connection, g.comm.Observer); err != nil {
+	if err := Read(c.UserContext(), claims.Subject, &admin); err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
 
@@ -118,7 +121,7 @@ func (g *graph) authLoginHandler(c *fiber.Ctx) error {
 	}
 
 	var admins []adminv1.Admin
-	if _, err := List(c.UserContext(), &admins, map[string]interface{}{"email": request.Email}, g.comm.Connection, g.comm.Observer); err != nil {
+	if _, err := List(c.UserContext(), &admins, map[string]interface{}{"email": request.Email}); err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
 
@@ -128,7 +131,7 @@ func (g *graph) authLoginHandler(c *fiber.Ctx) error {
 	}
 
 	var password adminv1.AdminPassword
-	if err := Read(c.UserContext(), admins[0].Key, &password, g.comm.Connection, g.comm.Observer); err != nil {
+	if err := Read(c.UserContext(), admins[0].Key, &password); err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
 
@@ -187,12 +190,12 @@ func (g *graph) authRegisterHandler(c *fiber.Ctx) error {
 
 	password, _ := bcrypt.GenerateFromPassword([]byte(request.Password), 14)
 
-	keys, err := Create(c.UserContext(), request.Admin, g.comm.Connection, g.comm.Observer)
+	keys, err := Create(c.UserContext(), request.Admin)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	if _, err := Create(c.UserContext(), adminv1.AdminPassword{Key: keys[0], PasswordHash: password}, g.comm.Connection, g.comm.Observer); err != nil {
+	if _, err := Create(c.UserContext(), adminv1.AdminPassword{Key: keys[0], PasswordHash: password}); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
@@ -211,14 +214,14 @@ func (g *graph) resourcesListHandler(c *fiber.Ctx) error {
 	elems := reflect.New(reflect.SliceOf(elemType))
 
 	if len(keys) > 0 {
-		if err := ListKeys(c.UserContext(), keys, elems.Interface(), g.comm.Connection, g.comm.Observer); err != nil {
+		if err := ListKeys(c.UserContext(), keys, elems.Interface()); err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		} else {
 			return c.JSON(elems.Interface())
 		}
 	}
 
-	if _, err := List(c.UserContext(), elems.Interface(), nil, g.comm.Connection, g.comm.Observer); err != nil {
+	if _, err := List(c.UserContext(), elems.Interface(), nil); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
@@ -235,7 +238,7 @@ func (g *graph) resourcesGetHandler(c *fiber.Ctx) error {
 	}
 
 	elem := reflect.New(elemType)
-	if err := Read(c.UserContext(), key, elem.Interface(), g.comm.Connection, g.comm.Observer); err != nil {
+	if err := Read(c.UserContext(), key, elem.Interface()); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
@@ -259,7 +262,7 @@ func (g *graph) resourcesCreateHandler(c *fiber.Ctx) error {
 	if loader, ok := elem.Interface().(graphify.IMapLoader); ok {
 		loader.LoadMap(data)
 	}
-	keys, err := Create(c.UserContext(), elem.Elem().Interface(), g.comm.Connection, g.comm.Observer)
+	keys, err := Create(c.UserContext(), elem.Elem().Interface())
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
@@ -286,7 +289,7 @@ func (g *graph) resourcesUpdateHandler(c *fiber.Ctx) error {
 	if loader, ok := elem.Interface().(graphify.IMapLoader); ok {
 		loader.LoadMap(data)
 	}
-	if err := Update(c.UserContext(), key, elem.Elem().Interface(), g.comm.Connection, g.comm.Observer); err != nil {
+	if err := Update(c.UserContext(), key, elem.Elem().Interface()); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
@@ -304,7 +307,7 @@ func (g *graph) resourcesDeleteHandler(c *fiber.Ctx) error {
 
 	elem := reflect.New(elemType).Elem()
 	elem.FieldByName("Key").Set(reflect.ValueOf(key))
-	if err := Delete(c.UserContext(), elem.Interface(), g.comm.Connection, g.comm.Observer); err != nil {
+	if err := Delete(c.UserContext(), elem.Interface()); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
@@ -347,7 +350,12 @@ func (g *graph) adminSchemaHandler(c *fiber.Ctx) error {
 
 /* Config Handlers */
 func (g *graph) adminConfigInitHandler(c *fiber.Ctx) error {
-	if _, err := g.comm.Storage.ReadFile(configName); err == nil {
+	storage, found := StorageFromContext(c.UserContext())
+	if !found {
+		return fmt.Errorf("storage not found in context")
+	}
+
+	if _, err := storage.ReadFile(configName); err == nil {
 		return fiber.NewError(fiber.StatusNotFound, "not found")
 	}
 
@@ -357,7 +365,7 @@ func (g *graph) adminConfigInitHandler(c *fiber.Ctx) error {
 	}
 
 	cnf, _ := json.Marshal(request)
-	if err := g.comm.Storage.StoreFile(configName, cnf); err != nil {
+	if err := storage.StoreFile(configName, cnf); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
@@ -365,7 +373,12 @@ func (g *graph) adminConfigInitHandler(c *fiber.Ctx) error {
 }
 
 func (g *graph) adminConfigHandler(c *fiber.Ctx) error {
-	conf, err := g.comm.Storage.ReadFile(configName)
+	storage, found := StorageFromContext(c.UserContext())
+	if !found {
+		return fmt.Errorf("storage not found in context")
+	}
+
+	conf, err := storage.ReadFile(configName)
 	if err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
@@ -376,6 +389,11 @@ func (g *graph) adminConfigHandler(c *fiber.Ctx) error {
 
 /* Files Handlers */
 func (g *graph) filesUploadHandler(c *fiber.Ctx) error {
+	storage, found := StorageFromContext(c.UserContext())
+	if !found {
+		return fmt.Errorf("storage not found in context")
+	}
+
 	form, err := c.MultipartForm()
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
@@ -388,7 +406,7 @@ func (g *graph) filesUploadHandler(c *fiber.Ctx) error {
 
 	hashes := []string{}
 	for _, file := range files {
-		hash, err := g.comm.Storage.StoreByHash([]byte(file))
+		hash, err := storage.StoreByHash([]byte(file))
 		if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
@@ -399,9 +417,14 @@ func (g *graph) filesUploadHandler(c *fiber.Ctx) error {
 }
 
 func (g *graph) filesDownloadHandler(c *fiber.Ctx) error {
+	storage, found := StorageFromContext(c.UserContext())
+	if !found {
+		return fmt.Errorf("storage not found in context")
+	}
+
 	name := c.Params("name")
 
-	fileContent, err := g.comm.Storage.ReadFile(name)
+	fileContent, err := storage.ReadFile(name)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}

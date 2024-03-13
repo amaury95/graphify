@@ -10,8 +10,6 @@ import (
 )
 
 type graph struct {
-	comm *Common
-
 	// Nodes collection => type
 	Nodes map[string]reflect.Type
 	// Private nodes (not added to endpoints) collection => type
@@ -24,13 +22,12 @@ type graph struct {
 	Relations map[string]map[string]string
 }
 
-func NewGraph(comm *Common) *graph {
+func NewGraph() *graph {
 	return &graph{
 		Nodes:        make(map[string]reflect.Type),
 		privateNodes: make(map[string]reflect.Type),
 		Edges:        make(map[string]reflect.Type),
 		Relations:    make(map[string]map[string]string),
-		comm:         comm,
 	}
 }
 
@@ -105,7 +102,12 @@ func (g *graph) Edge(from, to, edge interface{}) {
 }
 
 func (g *graph) AutoMigrate(ctx context.Context) error {
-	db, err := g.comm.Connection.GetDatabase(ctx)
+	conn, found := ConnectionFromContext(ctx)
+	if !found {
+		return fmt.Errorf("connection not provided in context")
+	}
+
+	db, err := conn.GetDatabase(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to establish connection: %w", err)
 	}
