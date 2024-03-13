@@ -254,7 +254,7 @@ func (g *graph) resourcesCreateHandler(c *fiber.Ctx) error {
 	}
 
 	var data map[string]interface{}
-	if err := c.BodyParser(&data); err != nil {
+	if err := json.Unmarshal(c.Body(), &data); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
@@ -281,7 +281,7 @@ func (g *graph) resourcesUpdateHandler(c *fiber.Ctx) error {
 	}
 
 	var data map[string]interface{}
-	if err := c.BodyParser(&data); err != nil {
+	if err := json.Unmarshal(c.Body(), &data); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
@@ -315,6 +315,11 @@ func (g *graph) resourcesDeleteHandler(c *fiber.Ctx) error {
 }
 
 func (g *graph) resourcesRelationHandler(c *fiber.Ctx) error {
+	// resource := c.Params("resource")
+	// key := c.Params("key")
+	// relation := c.Params("relation")
+
+
 	return c.SendStatus(fiber.StatusOK)
 }
 

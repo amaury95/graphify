@@ -9,6 +9,9 @@ import (
 	"github.com/arangodb/go-driver"
 )
 
+type relation struct {
+	_from, _to string
+}
 type graph struct {
 	// Nodes collection => type
 	Nodes map[string]reflect.Type
@@ -19,7 +22,7 @@ type graph struct {
 	Edges map[string]reflect.Type
 
 	// from => to => collection
-	Relations map[string]map[string]string
+	Relations map[string]relation
 }
 
 func NewGraph() *graph {
@@ -27,7 +30,7 @@ func NewGraph() *graph {
 		Nodes:        make(map[string]reflect.Type),
 		privateNodes: make(map[string]reflect.Type),
 		Edges:        make(map[string]reflect.Type),
-		Relations:    make(map[string]map[string]string),
+		Relations:    make(map[string]relation),
 	}
 }
 
@@ -88,16 +91,7 @@ func (g *graph) Edge(from, to, edge interface{}) {
 		panic(errors.New("edge type already exists"))
 	}
 
-	// Check if the relationship between from and to does not exist
-	if _, exists := g.Relations[fromName]; exists {
-		if _, exists := g.Relations[fromName][toName]; exists {
-			panic(errors.New("relationship between from and to already exists"))
-		}
-	} else {
-		g.Relations[fromName] = make(map[string]string)
-	}
-
-	g.Relations[fromName][toName] = edgeName
+	g.Relations[edgeName] = relation{_from: fromName, _to: toName}
 	g.Edges[edgeName] = edgeType
 }
 
