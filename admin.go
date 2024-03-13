@@ -188,7 +188,10 @@ func (g *graph) authRegisterHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	password, _ := bcrypt.GenerateFromPassword([]byte(request.Password), 14)
+	password, err := bcrypt.GenerateFromPassword([]byte(request.Password), 14)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 
 	keys, err := Create(c.UserContext(), request.Admin)
 	if err != nil {
@@ -324,7 +327,7 @@ func (g *graph) resourcesRelationHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound, "Not Found")
 	}
 
-	edge, from, to := g.Edges[collection], g.Nodes[relation._from], g.Nodes[relation._to]
+	edge, from, to := g.Edges[collection], g.Nodes[relation.From], g.Nodes[relation.To]
 	if CollectionFor(from) != resource {
 		return fiber.NewError(fiber.StatusNotFound, "Not Found")
 	}

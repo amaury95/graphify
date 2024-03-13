@@ -10,8 +10,10 @@ import (
 )
 
 type relation struct {
-	_from, _to string
+	From string `json:"_from"`
+	To   string `json:"_to"`
 }
+
 type graph struct {
 	// Nodes collection => type
 	Nodes map[string]reflect.Type
@@ -91,7 +93,7 @@ func (g *graph) Edge(from, to, edge interface{}) {
 		panic(errors.New("edge type already exists"))
 	}
 
-	g.Relations[edgeName] = relation{_from: fromName, _to: toName}
+	g.Relations[edgeName] = relation{From: fromName, To: toName}
 	g.Edges[edgeName] = edgeType
 }
 
