@@ -126,7 +126,7 @@ func (g *graph) authLoginHandler(c *fiber.Ctx) error {
 	}
 
 	if len(admins) == 0 {
-		return fiber.NewError(fiber.StatusNotFound, "not found")
+		return fiber.NewError(fiber.StatusNotFound)
 
 	}
 
@@ -177,7 +177,7 @@ func (g *graph) authLogoutHandler(c *fiber.Ctx) error {
 
 func (g *graph) authRegisterHandler(c *fiber.Ctx) error {
 	if _, found := AdminFromContext(c.Context()); !found {
-		// do something...
+		return fiber.NewError(fiber.StatusUnauthorized)
 	}
 
 	var request struct {
@@ -211,7 +211,7 @@ func (g *graph) resourcesListHandler(c *fiber.Ctx) error {
 
 	elemType, found := g.getElem(resource)
 	if !found {
-		return fiber.NewError(fiber.StatusNotFound, "resource not found")
+		return fiber.NewError(fiber.StatusNotFound)
 	}
 
 	elems := reflect.New(reflect.SliceOf(elemType))
@@ -237,7 +237,7 @@ func (g *graph) resourcesGetHandler(c *fiber.Ctx) error {
 
 	elemType, found := g.getElem(resource)
 	if !found {
-		return fiber.NewError(fiber.StatusNotFound, "Not Found")
+		return fiber.NewError(fiber.StatusNotFound)
 	}
 
 	elem := reflect.New(elemType)
@@ -253,7 +253,7 @@ func (g *graph) resourcesCreateHandler(c *fiber.Ctx) error {
 
 	elemType, found := g.getElem(resource)
 	if !found {
-		return fiber.NewError(fiber.StatusNotFound, "Not Found")
+		return fiber.NewError(fiber.StatusNotFound)
 	}
 
 	var data map[string]interface{}
@@ -280,7 +280,7 @@ func (g *graph) resourcesUpdateHandler(c *fiber.Ctx) error {
 
 	elemType, found := g.getElem(resource)
 	if !found {
-		return fiber.NewError(fiber.StatusNotFound, "Not Found")
+		return fiber.NewError(fiber.StatusNotFound)
 	}
 
 	var data map[string]interface{}
@@ -305,7 +305,7 @@ func (g *graph) resourcesDeleteHandler(c *fiber.Ctx) error {
 
 	elemType, found := g.getElem(resource)
 	if !found {
-		return fiber.NewError(fiber.StatusNotFound, "Not Found")
+		return fiber.NewError(fiber.StatusNotFound)
 	}
 
 	elem := reflect.New(elemType).Elem()
@@ -324,12 +324,12 @@ func (g *graph) resourcesRelationHandler(c *fiber.Ctx) error {
 
 	relation, ok := g.Relations[collection]
 	if !ok {
-		return fiber.NewError(fiber.StatusNotFound, "Not Found")
+		return fiber.NewError(fiber.StatusNotFound)
 	}
 
 	edge, from, to := g.Edges[collection], g.Nodes[relation.From], g.Nodes[relation.To]
 	if CollectionFor(from) != resource {
-		return fiber.NewError(fiber.StatusNotFound, "Not Found")
+		return fiber.NewError(fiber.StatusNotFound)
 	}
 
 	resultType := reflect.StructOf([]reflect.StructField{
@@ -383,7 +383,7 @@ func (g *graph) adminConfigInitHandler(c *fiber.Ctx) error {
 	}
 
 	if _, err := storage.ReadFile(configName); err == nil {
-		return fiber.NewError(fiber.StatusNotFound, "not found")
+		return fiber.NewError(fiber.StatusNotFound)
 	}
 
 	var request ApplicationConfig
