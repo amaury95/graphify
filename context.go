@@ -71,3 +71,19 @@ func StorageFromContext(ctx context.Context) (storage IFileStorage, found bool) 
 	}
 	return nil, false
 }
+
+// Development Environment (Set if env is in development, otherwise assumes production)
+
+type developmentKey struct{}
+
+func DevelopmentContext(parent context.Context) context.Context {
+	return context.WithValue(parent, developmentKey{}, true)
+}
+
+func IsDevelopmentContext(ctx context.Context) bool {
+	val := ctx.Value(developmentKey{})
+	if result, ok := val.(bool); ok {
+		return result
+	}
+	return false
+}

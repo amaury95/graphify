@@ -38,7 +38,7 @@ func main() {
 	}
 
 	// define app context
-	ctx := context.Background()
+	ctx := graphify.DevelopmentContext(context.Background())
 
 	// Add config to context
 	ctx = graphify.ContextWithConnection(ctx,

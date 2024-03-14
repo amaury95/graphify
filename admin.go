@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/amaury95/graphify/models/domain/admin/v1"
+	adminv1 "github.com/amaury95/graphify/models/domain/admin/v1"
 	graphify "github.com/amaury95/protoc-gen-graphify/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
@@ -30,10 +30,12 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	router := fiber.New(fiber.Config{
 		BodyLimit: 10 << 20,
 	})
-	router.Use(cors.New(cors.Config{
-		AllowOriginsFunc: func(string) bool { return true },
-		AllowCredentials: true,
-	}))
+	if IsDevelopmentContext(ctx) {
+		router.Use(cors.New(cors.Config{
+			AllowOriginsFunc: func(string) bool { return true },
+			AllowCredentials: true,
+		}))
+	}
 	router.Use(g.contextMiddleware(ctx))
 	router.Use(g.authMiddleware)
 
@@ -151,27 +153,33 @@ func (g *graph) authLoginHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
 
-	c.Cookie(&fiber.Cookie{
+	cookie := fiber.Cookie{
 		Name:     "jwt",
 		Value:    token,
 		Expires:  expiresAt,
 		HTTPOnly: true,
-		SameSite: "None", // TODO: Remove on production
-		Secure:   false,  // TODO: Remove on production
-	})
+	}
+	if IsDevelopmentContext(c.UserContext()) {
+		cookie.SameSite = "None"
+		cookie.Secure = false
+	}
+	c.Cookie(&cookie)
 
 	return c.SendStatus(fiber.StatusOK)
 }
 
 func (g *graph) authLogoutHandler(c *fiber.Ctx) error {
-	c.Cookie(&fiber.Cookie{
+	cookie := fiber.Cookie{
 		Name:     "jwt",
 		Value:    "",
 		Expires:  time.Now().Add(-time.Hour),
 		HTTPOnly: true,
-		SameSite: "None", // TODO: Remove on production
-		Secure:   false,  // TODO: Remove on production
-	})
+	}
+	if IsDevelopmentContext(c.UserContext()) {
+		cookie.SameSite = "None"
+		cookie.Secure = false
+	}
+	c.Cookie(&cookie)
 	return c.SendStatus(fiber.StatusOK)
 }
 
