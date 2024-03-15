@@ -5,17 +5,15 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
 
-	// "os"
-	// "golang.org/x/term"
+	"os"
+	"golang.org/x/term"
 
 	"github.com/amaury95/graphify"
 	library "github.com/amaury95/graphify/example/domain/library/v1"
 	admin "github.com/amaury95/graphify/models/domain/admin/v1"
 	observer "github.com/amaury95/graphify/models/domain/observer/v1"
 	"github.com/gorilla/mux"
-	"golang.org/x/term"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -37,10 +35,10 @@ func main() {
 		return
 	}
 
-	// define app context
+	// Define app context
 	ctx := graphify.DevelopmentContext(context.Background())
 
-	// Add config to context
+	// Configure app context
 	ctx = graphify.ContextWithConnection(ctx,
 		graphify.NewConnection(
 			graphify.DatabaseConfig{DBName: "library", UserName: username, Password: string(password)}))
@@ -51,21 +49,21 @@ func main() {
 	ctx = graphify.ContextWithStorage(ctx,
 		graphify.NewFilesystemStorage("./uploads", 10<<20)) // 10 MB limit
 
-	// Create graph
+	// Create and define graph
 	graph := graphify.NewGraph()
 
-	// Add graph definitions
 	graph.Node(admin.Admin{})
 	graph.Node(library.Book{})
 	graph.Node(library.Client{})
 	graph.Edge(library.Client{}, library.Book{}, library.Borrow{})
 
+	// Add observer events
 	if observer, found := graphify.ObserverFromContext(ctx); found {
 		observer.Subscribe(
 			graphify.CreatedTopic.For(library.Book{}), logCreatedBook)
 	}
 
-	// Create a new router
+	// Create and define routes
 	router := mux.NewRouter()
 
 	// Define routes using PathPrefix to match URL prefixes
@@ -79,7 +77,7 @@ func main() {
 	server := &http.Server{
 		Addr:        ":8080",
 		Handler:     router,
-		BaseContext: func(net.Listener) context.Context { return ctx }, // inject context with config
+		BaseContext: func(net.Listener) context.Context { return ctx }, // Inject app context to requests
 	}
 
 	// Serve handlers
