@@ -336,21 +336,39 @@ func (g *graph) resourcesRelationHandler(c *fiber.Ctx) error {
 	}
 
 	edge, from, to := g.Edges[collection], g.Nodes[relation.From], g.Nodes[relation.To]
-	if CollectionFor(from) != resource {
+	if resource != CollectionFor(from) && resource != CollectionFor(to) {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
-	resultType := reflect.StructOf([]reflect.StructField{
-		{Name: "Node", Type: to, Tag: reflect.StructTag("json:\"node\"")},
-		{Name: "Edge", Type: edge, Tag: reflect.StructTag("json:\"edge\"")},
-	})
+	// check if the relation is inbound or outbound
+	var (
+		resultType reflect.Type
+		direction  Direction
+	)
+	
+	if resource == CollectionFor(from) {
+		resultType = reflect.StructOf([]reflect.StructField{
+			{Name: "Node", Type: to, Tag: reflect.StructTag("json:\"node\"")},
+			{Name: "Edge", Type: edge, Tag: reflect.StructTag("json:\"edge\"")},
+		})
+		direction = DirectionOutbound
+	}
+
+	if resource == CollectionFor(to) {
+		resultType = reflect.StructOf([]reflect.StructField{
+			{Name: "Node", Type: from, Tag: reflect.StructTag("json:\"node\"")},
+			{Name: "Edge", Type: edge, Tag: reflect.StructTag("json:\"edge\"")},
+		})
+		direction = DirectionInbound
+	}
 
 	elems := reflect.New(reflect.SliceOf(resultType))
-	if _, err := Relations(c.UserContext(), getId(resource, key), elems.Interface(), map[string]interface{}{}); err != nil {
+	if _, err := Relations(c.UserContext(), getId(resource, key), elems.Interface(), map[string]interface{}{}, direction); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(elems.Interface())
+
 }
 
 /* Specs Handlers */

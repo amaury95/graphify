@@ -296,7 +296,16 @@ func Delete(ctx context.Context, item interface{}) error {
 	return nil
 }
 
-func Relations(ctx context.Context, id string, out interface{}, bindVars map[string]interface{}) (int, error) {
+type Direction string
+
+const (
+	DirectionInbound  Direction = "INBOUND"
+	DirectionOutbound Direction = "OUTBOUND"
+	DirectionAny      Direction = "ANY"
+)
+
+// Relations ...
+func Relations(ctx context.Context, id string, out interface{}, bindVars map[string]interface{}, direction Direction) (int, error) {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return -1, fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -331,8 +340,8 @@ func Relations(ctx context.Context, id string, out interface{}, bindVars map[str
 		return -1, fmt.Errorf("failed to establish connection: %w", err)
 	}
 
-	query := fmt.Sprintf(`FOR v, e IN 1..1 OUTBOUND '%s' %s %s %s RETURN {v, e}`,
-		id, CollectionFor(edgeField.Type), getFilters(bindVars), getLimit(bindVars))
+	query := fmt.Sprintf(`FOR v, e IN 1..1 %s '%s' %s %s %s RETURN {v, e}`,
+		string(direction), id, CollectionFor(edgeField.Type), getFilters(bindVars), getLimit(bindVars))
 
 	cursor, err := db.Query(ctx, query, bindVars)
 	if err != nil {
