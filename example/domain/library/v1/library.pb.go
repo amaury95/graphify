@@ -1311,7 +1311,7 @@ func file_library_v1_library_proto_init() {
 	Graphify schema module
 */
 
-/* Specs ... */
+/* Schema ... */
 func (*Character) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"fields": map[string]interface{}{
@@ -1328,7 +1328,7 @@ func (*Character) Schema() map[string]interface{} {
 	}
 }
 
-/* Specs ... */
+/* Schema ... */
 func (*Book) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"fields": map[string]interface{}{
@@ -1423,7 +1423,7 @@ func (*Book) Schema() map[string]interface{} {
 	}
 }
 
-/* Specs ... */
+/* Schema ... */
 func (*Book_Novel) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"fields": map[string]interface{}{
@@ -1440,7 +1440,7 @@ func (*Book_Novel) Schema() map[string]interface{} {
 	}
 }
 
-/* Specs ... */
+/* Schema ... */
 func (*Book_ShortStory) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"fields": map[string]interface{}{
@@ -1457,7 +1457,7 @@ func (*Book_ShortStory) Schema() map[string]interface{} {
 	}
 }
 
-/* Specs ... */
+/* Schema ... */
 func (*Book_Academic) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"fields": map[string]interface{}{
@@ -1474,7 +1474,7 @@ func (*Book_Academic) Schema() map[string]interface{} {
 	}
 }
 
-/* Specs ... */
+/* Schema ... */
 func (*Book_Poetry) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"fields": map[string]interface{}{
@@ -1491,7 +1491,7 @@ func (*Book_Poetry) Schema() map[string]interface{} {
 	}
 }
 
-/* Specs ... */
+/* Schema ... */
 func (*Book_Biography) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"fields": map[string]interface{}{
@@ -1508,7 +1508,7 @@ func (*Book_Biography) Schema() map[string]interface{} {
 	}
 }
 
-/* Specs ... */
+/* Schema ... */
 func (*Book_Review) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"fields": map[string]interface{}{
@@ -1525,7 +1525,7 @@ func (*Book_Review) Schema() map[string]interface{} {
 	}
 }
 
-/* Specs ... */
+/* Schema ... */
 func (*Client) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"fields": map[string]interface{}{
@@ -1550,7 +1550,7 @@ func (*Client) Schema() map[string]interface{} {
 	}
 }
 
-/* Specs ... */
+/* Schema ... */
 func (*Borrow) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"fields": map[string]interface{}{
@@ -1576,7 +1576,7 @@ func (*Borrow) Schema() map[string]interface{} {
 	}
 }
 
-/* Specs ... */
+/* Schema ... */
 func (*Library) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"fields": map[string]interface{}{
@@ -1599,7 +1599,7 @@ func (*Library) Schema() map[string]interface{} {
 	}
 }
 
-/* Specs ... */
+/* Schema ... */
 func (*Library_Location) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"fields": map[string]interface{}{
@@ -1617,11 +1617,21 @@ func (*Library_Location) Schema() map[string]interface{} {
 }
 
 /*
-	Graphify loader module
+	Graphify unmarshaler
 */
 
-/* LoadMap populates struct fields from a map, handling decoding for special fields. */
-func (o *Character) LoadMap(values map[string]interface{}) {
+/* UnmarshalJSON ...*/
+func (o *Character) UnmarshalJSON(b []byte) error {
+	if values, err := utils.MapFromBytes(b); err != nil {
+		return err
+	} else {
+		o.UnmarshalMap(values)
+	}
+	return nil
+}
+
+/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
+func (o *Character) UnmarshalMap(values map[string]interface{}) {
 	if val, ok := values["name"].(string); ok {
 		o.Name = val
 	}
@@ -1630,8 +1640,18 @@ func (o *Character) LoadMap(values map[string]interface{}) {
 	}
 }
 
-/* LoadMap populates struct fields from a map, handling decoding for special fields. */
-func (o *Book) LoadMap(values map[string]interface{}) {
+/* UnmarshalJSON ...*/
+func (o *Book) UnmarshalJSON(b []byte) error {
+	if values, err := utils.MapFromBytes(b); err != nil {
+		return err
+	} else {
+		o.UnmarshalMap(values)
+	}
+	return nil
+}
+
+/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
+func (o *Book) UnmarshalMap(values map[string]interface{}) {
 	if val, ok := values["_key"].(string); ok {
 		o.Key = val
 	}
@@ -1643,7 +1663,7 @@ func (o *Book) LoadMap(values map[string]interface{}) {
 	}
 	if val, ok := values["mainReview"].(map[string]interface{}); ok {
 		field := new(Book_Review)
-		field.LoadMap(val)
+		field.UnmarshalMap(val)
 		o.MainReview = field
 	}
 	if list, ok := values["reviews"].([]interface{}); ok {
@@ -1651,7 +1671,7 @@ func (o *Book) LoadMap(values map[string]interface{}) {
 		for index, item := range list {
 			if val, ok := item.(map[string]interface{}); ok {
 				field := new(Book_Review)
-				field.LoadMap(val)
+				field.UnmarshalMap(val)
 				o.Reviews[index] = field
 			}
 		}
@@ -1690,7 +1710,7 @@ func (o *Book) LoadMap(values map[string]interface{}) {
 		for key, value := range values {
 			if val, ok := value.(map[string]interface{}); ok {
 				field := new(Character)
-				field.LoadMap(val)
+				field.UnmarshalMap(val)
 				o.Characters[key] = field
 			}
 		}
@@ -1714,34 +1734,44 @@ func (o *Book) LoadMap(values map[string]interface{}) {
 	if _opt, ok := values["Type"].(map[string]interface{}); ok {
 		if val, ok := _opt["Novel"].(map[string]interface{}); ok {
 			field := new(Book_Novel)
-			field.LoadMap(val)
+			field.UnmarshalMap(val)
 			o.Type = &Book_Novel_{Novel: field}
 		}
 		if val, ok := _opt["ShortStory"].(map[string]interface{}); ok {
 			field := new(Book_ShortStory)
-			field.LoadMap(val)
+			field.UnmarshalMap(val)
 			o.Type = &Book_ShortStory_{ShortStory: field}
 		}
 		if val, ok := _opt["Academic"].(map[string]interface{}); ok {
 			field := new(Book_Academic)
-			field.LoadMap(val)
+			field.UnmarshalMap(val)
 			o.Type = &Book_Academic_{Academic: field}
 		}
 		if val, ok := _opt["Poetry"].(map[string]interface{}); ok {
 			field := new(Book_Poetry)
-			field.LoadMap(val)
+			field.UnmarshalMap(val)
 			o.Type = &Book_Poetry_{Poetry: field}
 		}
 		if val, ok := _opt["Biography"].(map[string]interface{}); ok {
 			field := new(Book_Biography)
-			field.LoadMap(val)
+			field.UnmarshalMap(val)
 			o.Type = &Book_Biography_{Biography: field}
 		}
 	}
 }
 
-/* LoadMap populates struct fields from a map, handling decoding for special fields. */
-func (o *Book_Novel) LoadMap(values map[string]interface{}) {
+/* UnmarshalJSON ...*/
+func (o *Book_Novel) UnmarshalJSON(b []byte) error {
+	if values, err := utils.MapFromBytes(b); err != nil {
+		return err
+	} else {
+		o.UnmarshalMap(values)
+	}
+	return nil
+}
+
+/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
+func (o *Book_Novel) UnmarshalMap(values map[string]interface{}) {
 	if val, ok := values["genre"].(string); ok {
 		o.Genre = val
 	}
@@ -1750,8 +1780,18 @@ func (o *Book_Novel) LoadMap(values map[string]interface{}) {
 	}
 }
 
-/* LoadMap populates struct fields from a map, handling decoding for special fields. */
-func (o *Book_ShortStory) LoadMap(values map[string]interface{}) {
+/* UnmarshalJSON ...*/
+func (o *Book_ShortStory) UnmarshalJSON(b []byte) error {
+	if values, err := utils.MapFromBytes(b); err != nil {
+		return err
+	} else {
+		o.UnmarshalMap(values)
+	}
+	return nil
+}
+
+/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
+func (o *Book_ShortStory) UnmarshalMap(values map[string]interface{}) {
 	if val, ok := values["lengthPages"].(float64); ok {
 		o.LengthPages = int32(val)
 	}
@@ -1760,8 +1800,18 @@ func (o *Book_ShortStory) LoadMap(values map[string]interface{}) {
 	}
 }
 
-/* LoadMap populates struct fields from a map, handling decoding for special fields. */
-func (o *Book_Academic) LoadMap(values map[string]interface{}) {
+/* UnmarshalJSON ...*/
+func (o *Book_Academic) UnmarshalJSON(b []byte) error {
+	if values, err := utils.MapFromBytes(b); err != nil {
+		return err
+	} else {
+		o.UnmarshalMap(values)
+	}
+	return nil
+}
+
+/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
+func (o *Book_Academic) UnmarshalMap(values map[string]interface{}) {
 	if val, ok := values["subject"].(string); ok {
 		o.Subject = val
 	}
@@ -1770,8 +1820,18 @@ func (o *Book_Academic) LoadMap(values map[string]interface{}) {
 	}
 }
 
-/* LoadMap populates struct fields from a map, handling decoding for special fields. */
-func (o *Book_Poetry) LoadMap(values map[string]interface{}) {
+/* UnmarshalJSON ...*/
+func (o *Book_Poetry) UnmarshalJSON(b []byte) error {
+	if values, err := utils.MapFromBytes(b); err != nil {
+		return err
+	} else {
+		o.UnmarshalMap(values)
+	}
+	return nil
+}
+
+/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
+func (o *Book_Poetry) UnmarshalMap(values map[string]interface{}) {
 	if val, ok := values["style"].(string); ok {
 		o.Style = val
 	}
@@ -1780,8 +1840,18 @@ func (o *Book_Poetry) LoadMap(values map[string]interface{}) {
 	}
 }
 
-/* LoadMap populates struct fields from a map, handling decoding for special fields. */
-func (o *Book_Biography) LoadMap(values map[string]interface{}) {
+/* UnmarshalJSON ...*/
+func (o *Book_Biography) UnmarshalJSON(b []byte) error {
+	if values, err := utils.MapFromBytes(b); err != nil {
+		return err
+	} else {
+		o.UnmarshalMap(values)
+	}
+	return nil
+}
+
+/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
+func (o *Book_Biography) UnmarshalMap(values map[string]interface{}) {
 	if val, ok := values["subjectPerson"].(string); ok {
 		o.SubjectPerson = val
 	}
@@ -1790,8 +1860,18 @@ func (o *Book_Biography) LoadMap(values map[string]interface{}) {
 	}
 }
 
-/* LoadMap populates struct fields from a map, handling decoding for special fields. */
-func (o *Book_Review) LoadMap(values map[string]interface{}) {
+/* UnmarshalJSON ...*/
+func (o *Book_Review) UnmarshalJSON(b []byte) error {
+	if values, err := utils.MapFromBytes(b); err != nil {
+		return err
+	} else {
+		o.UnmarshalMap(values)
+	}
+	return nil
+}
+
+/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
+func (o *Book_Review) UnmarshalMap(values map[string]interface{}) {
 	if val, ok := values["message"].(string); ok {
 		o.Message = val
 	}
@@ -1800,8 +1880,18 @@ func (o *Book_Review) LoadMap(values map[string]interface{}) {
 	}
 }
 
-/* LoadMap populates struct fields from a map, handling decoding for special fields. */
-func (o *Client) LoadMap(values map[string]interface{}) {
+/* UnmarshalJSON ...*/
+func (o *Client) UnmarshalJSON(b []byte) error {
+	if values, err := utils.MapFromBytes(b); err != nil {
+		return err
+	} else {
+		o.UnmarshalMap(values)
+	}
+	return nil
+}
+
+/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
+func (o *Client) UnmarshalMap(values map[string]interface{}) {
 	if val, ok := values["_key"].(string); ok {
 		o.Key = val
 	}
@@ -1816,8 +1906,18 @@ func (o *Client) LoadMap(values map[string]interface{}) {
 	}
 }
 
-/* LoadMap populates struct fields from a map, handling decoding for special fields. */
-func (o *Borrow) LoadMap(values map[string]interface{}) {
+/* UnmarshalJSON ...*/
+func (o *Borrow) UnmarshalJSON(b []byte) error {
+	if values, err := utils.MapFromBytes(b); err != nil {
+		return err
+	} else {
+		o.UnmarshalMap(values)
+	}
+	return nil
+}
+
+/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
+func (o *Borrow) UnmarshalMap(values map[string]interface{}) {
 	if val, ok := values["_key"].(string); ok {
 		o.Key = val
 	}
@@ -1833,8 +1933,18 @@ func (o *Borrow) LoadMap(values map[string]interface{}) {
 	}
 }
 
-/* LoadMap populates struct fields from a map, handling decoding for special fields. */
-func (o *Library) LoadMap(values map[string]interface{}) {
+/* UnmarshalJSON ...*/
+func (o *Library) UnmarshalJSON(b []byte) error {
+	if values, err := utils.MapFromBytes(b); err != nil {
+		return err
+	} else {
+		o.UnmarshalMap(values)
+	}
+	return nil
+}
+
+/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
+func (o *Library) UnmarshalMap(values map[string]interface{}) {
 	if val, ok := values["_key"].(string); ok {
 		o.Key = val
 	}
@@ -1843,13 +1953,23 @@ func (o *Library) LoadMap(values map[string]interface{}) {
 	}
 	if val, ok := values["location"].(map[string]interface{}); ok {
 		field := new(Library_Location)
-		field.LoadMap(val)
+		field.UnmarshalMap(val)
 		o.Location = field
 	}
 }
 
-/* LoadMap populates struct fields from a map, handling decoding for special fields. */
-func (o *Library_Location) LoadMap(values map[string]interface{}) {
+/* UnmarshalJSON ...*/
+func (o *Library_Location) UnmarshalJSON(b []byte) error {
+	if values, err := utils.MapFromBytes(b); err != nil {
+		return err
+	} else {
+		o.UnmarshalMap(values)
+	}
+	return nil
+}
+
+/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
+func (o *Library_Location) UnmarshalMap(values map[string]interface{}) {
 	if val, ok := values["lat"].(float64); ok {
 		o.Lat = float32(val)
 	}

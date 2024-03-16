@@ -53,8 +53,8 @@ func List(ctx context.Context, out interface{}, bindVars map[string]interface{})
 			return -1, err
 		}
 		elem := reflect.New(elemType)
-		if loader, ok := elem.Interface().(protocgengotag.IMapLoader); ok {
-			loader.LoadMap(doc)
+		if loader, ok := elem.Interface().(protocgengotag.Unmarshaler); ok {
+			loader.UnmarshalMap(doc)
 		}
 		result = reflect.Append(result, elem.Elem())
 	}
@@ -98,8 +98,8 @@ func ListKeys(ctx context.Context, keys []string, out interface{}) error {
 	result := reflect.MakeSlice(reflect.SliceOf(elemType), 0, len(keys))
 	for _, doc := range docs {
 		elem := reflect.New(elemType)
-		if loader, ok := elem.Interface().(protocgengotag.IMapLoader); ok {
-			loader.LoadMap(doc)
+		if loader, ok := elem.Interface().(protocgengotag.Unmarshaler); ok {
+			loader.UnmarshalMap(doc)
 		}
 		result = reflect.Append(result, elem.Elem())
 	}
@@ -137,8 +137,8 @@ func Read(ctx context.Context, key string, out interface{}) error {
 	}
 
 	elem := reflect.New(elemType)
-	if loader, ok := elem.Interface().(protocgengotag.IMapLoader); ok {
-		loader.LoadMap(doc)
+	if loader, ok := elem.Interface().(protocgengotag.Unmarshaler); ok {
+		loader.UnmarshalMap(doc)
 	}
 
 	outValue := reflect.ValueOf(out).Elem()
@@ -363,13 +363,13 @@ func Relations(ctx context.Context, id string, out interface{}, bindVars map[str
 		}
 
 		node := reflect.New(nodeField.Type)
-		if loader, ok := node.Interface().(protocgengotag.IMapLoader); ok {
-			loader.LoadMap(doc.Node)
+		if loader, ok := node.Interface().(protocgengotag.Unmarshaler); ok {
+			loader.UnmarshalMap(doc.Node)
 		}
 
 		edge := reflect.New(edgeField.Type)
-		if loader, ok := edge.Interface().(protocgengotag.IMapLoader); ok {
-			loader.LoadMap(doc.Edge)
+		if loader, ok := edge.Interface().(protocgengotag.Unmarshaler); ok {
+			loader.UnmarshalMap(doc.Edge)
 		}
 
 		value := reflect.New(elemType)

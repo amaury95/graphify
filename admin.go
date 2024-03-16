@@ -270,8 +270,8 @@ func (g *graph) resourcesCreateHandler(c *fiber.Ctx) error {
 	}
 
 	elem := reflect.New(elemType)
-	if loader, ok := elem.Interface().(graphify.IMapLoader); ok {
-		loader.LoadMap(data)
+	if loader, ok := elem.Interface().(graphify.Unmarshaler); ok {
+		loader.UnmarshalMap(data)
 	}
 	keys, err := Create(c.UserContext(), elem.Elem().Interface())
 	if err != nil {
@@ -297,8 +297,8 @@ func (g *graph) resourcesUpdateHandler(c *fiber.Ctx) error {
 	}
 
 	elem := reflect.New(elemType)
-	if loader, ok := elem.Interface().(graphify.IMapLoader); ok {
-		loader.LoadMap(data)
+	if loader, ok := elem.Interface().(graphify.Unmarshaler); ok {
+		loader.UnmarshalMap(data)
 	}
 	if err := Update(c.UserContext(), key, elem.Elem().Interface()); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
@@ -377,7 +377,7 @@ func (g *graph) adminSchemaHandler(c *fiber.Ctx) error {
 	nodes := map[string]interface{}{}
 	for name, nodeType := range g.Nodes {
 		node := reflect.New(nodeType).Interface()
-		if spec, ok := node.(graphify.ISchema); ok {
+		if spec, ok := node.(graphify.Message); ok {
 			nodes[name] = spec.Schema()
 		}
 	}
@@ -386,7 +386,7 @@ func (g *graph) adminSchemaHandler(c *fiber.Ctx) error {
 	edges := map[string]interface{}{}
 	for name, edgeType := range g.Edges {
 		edge := reflect.New(edgeType).Interface()
-		if spec, ok := edge.(graphify.ISchema); ok {
+		if spec, ok := edge.(graphify.Message); ok {
 			edges[name] = spec.Schema()
 		}
 	}

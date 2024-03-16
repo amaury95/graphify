@@ -1,5 +1,13 @@
 github.com/amaury95/protoc-gen-graphify v0.3.64 h1:L1Y0tB2y7hsqIhU1f8FphIxTv6GCbphWTRCicrEXuCE=
 github.com/amaury95/protoc-gen-graphify v0.3.64/go.mod h1:5XuhyrjD14emQfsEbfHkgbcbJ8C2OZazkuMObl4njXw=
+github.com/amaury95/protoc-gen-graphify v0.3.68 h1:5Xg44A4v4zWXqQgYD1sq+1KXZXxsXXcXJrrgMQ19E8Q=
+github.com/amaury95/protoc-gen-graphify v0.3.68/go.mod h1:5XuhyrjD14emQfsEbfHkgbcbJ8C2OZazkuMObl4njXw=
+github.com/amaury95/protoc-gen-graphify v0.3.69 h1:ih/50XkIQkRVwu6l6oOj9yep/EXUeblyM3J2tZHNrqA=
+github.com/amaury95/protoc-gen-graphify v0.3.69/go.mod h1:5XuhyrjD14emQfsEbfHkgbcbJ8C2OZazkuMObl4njXw=
+github.com/amaury95/protoc-gen-graphify v0.3.70 h1:AITFtb5iUaIa+nYpykaqlH8MD3rXJMWPX8SZ3XXbyLM=
+github.com/amaury95/protoc-gen-graphify v0.3.70/go.mod h1:5XuhyrjD14emQfsEbfHkgbcbJ8C2OZazkuMObl4njXw=
+github.com/amaury95/protoc-gen-graphify v0.3.71 h1:lESkNmqUJgEoZbXnknvmUmVXluW4DdpTh1EgdinWR1U=
+github.com/amaury95/protoc-gen-graphify v0.3.71/go.mod h1:5XuhyrjD14emQfsEbfHkgbcbJ8C2OZazkuMObl4njXw=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
 github.com/andybalholm/brotli v1.0.5/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/arangodb/go-driver v1.6.1 h1:bnhrpbA4U1NU13JOWs5sWWYMtQwdjKT0+jkl8dSndyY=
