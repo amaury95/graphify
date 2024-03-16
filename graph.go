@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/arangodb/go-driver"
 )
@@ -108,20 +109,20 @@ func (g *graph) AutoMigrate(ctx context.Context) error {
 		return fmt.Errorf("failed to establish connection: %w", err)
 	}
 
-	for collection := range g.Nodes {
-		if err := g.createNodeCollection(ctx, collection, db); err != nil {
+	for col, elem := range g.Nodes {
+		if err := g.createNodeCollection(ctx, col, elem, db); err != nil {
 			return fmt.Errorf("failed to create node: %w", err)
 		}
 	}
 
-	for collection := range g.privateNodes {
-		if err := g.createNodeCollection(ctx, collection, db); err != nil {
+	for col, elem := range g.privateNodes {
+		if err := g.createNodeCollection(ctx, col, elem, db); err != nil {
 			return fmt.Errorf("failed to create node: %w", err)
 		}
 	}
 
-	for collection := range g.Edges {
-		if err := g.createEdgeCollection(ctx, collection, db); err != nil {
+	for col, elem := range g.Edges {
+		if err := g.createEdgeCollection(ctx, col, elem, db); err != nil {
 			return fmt.Errorf("failed to create edge: %w", err)
 		}
 	}
@@ -129,34 +130,92 @@ func (g *graph) AutoMigrate(ctx context.Context) error {
 	return nil
 }
 
-func (g *graph) createNodeCollection(ctx context.Context, collection string, db driver.Database) error {
-	exists, err := db.CollectionExists(ctx, collection)
+func (g *graph) createNodeCollection(ctx context.Context, name string, elem reflect.Type, db driver.Database) error {
+	exists, err := db.CollectionExists(ctx, name)
 	if err != nil {
 		return fmt.Errorf("failed to check collection existence: %w", err)
 	}
 
 	if !exists {
-		if _, err := db.CreateCollection(ctx, collection, nil); err != nil {
+		col, err := db.CreateCollection(ctx, name, nil)
+		if err != nil {
 			return fmt.Errorf("failed to create collection: %w", err)
+		}
+
+		if field := g.LocationField(elem); field != nil {
+			g.indexGeoLocation(ctx, col, *field)
 		}
 	}
 
 	return nil
 }
 
-func (g *graph) createEdgeCollection(ctx context.Context, collection string, db driver.Database) error {
-	exists, err := db.CollectionExists(ctx, collection)
+func (g *graph) createEdgeCollection(ctx context.Context, name string, elem reflect.Type, db driver.Database) error {
+	exists, err := db.CollectionExists(ctx, name)
 	if err != nil {
 		return fmt.Errorf("failed to check collection existence: %w", err)
 	}
 
 	if !exists {
-		if _, err := db.CreateCollection(ctx, collection, &driver.CreateCollectionOptions{
+		col, err := db.CreateCollection(ctx, name, &driver.CreateCollectionOptions{
 			Type: driver.CollectionTypeEdge,
-		}); err != nil {
+		})
+		if err != nil {
 			return fmt.Errorf("failed to create collection: %w", err)
+		}
+
+		if field := g.LocationField(elem); field != nil {
+			g.indexGeoLocation(ctx, col, *field)
 		}
 	}
 
 	return nil
+}
+
+func (g *graph) LocationField(elem reflect.Type) *string {
+	field, found := elem.FieldByName("Location")
+	if !found {
+		return nil
+	}
+
+	if field.Type.Kind() != reflect.Pointer {
+		return nil
+	}
+
+	if field.Type.Elem().Kind() != reflect.Struct {
+		return nil
+	}
+
+	if field.Type.Elem().NumField() < 2 {
+		return nil
+	}
+
+	if lat, found := field.Type.Elem().FieldByName("Lat"); !found || lat.Type.Kind() != reflect.Float32 {
+		return nil
+	}
+
+	if lng, found := field.Type.Elem().FieldByName("Lng"); !found || lng.Type.Kind() != reflect.Float32 {
+		return nil
+	}
+
+	name, _ := jsonTag(field)
+	return &name
+}
+
+func (*graph) indexGeoLocation(ctx context.Context, col driver.Collection, field string) {
+	col.EnsureGeoIndex(ctx, []string{field}, &driver.EnsureGeoIndexOptions{})
+}
+
+func jsonTag(field reflect.StructField) (name string, omitempty bool) {
+	tag := field.Tag.Get("json")
+	if len(tag) == 0 {
+		return field.Name, false
+	}
+
+	parts := strings.SplitN(tag, ",", 2)
+	if len(parts) == 1 {
+		return parts[0], false
+	}
+
+	return parts[0], strings.Contains(parts[1], "omitempty")
 }

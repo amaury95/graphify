@@ -55,6 +55,7 @@ func main() {
 	graph.Node(admin.Admin{})
 	graph.Node(library.Book{})
 	graph.Node(library.Client{})
+	graph.Node(library.Library{})
 	graph.Edge(library.Client{}, library.Book{}, library.Borrow{})
 
 	// Add observer events
