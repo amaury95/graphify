@@ -7,14 +7,14 @@ import (
 	"strings"
 
 	observerv1 "github.com/amaury95/graphify/models/domain/observer/v1"
-	protocgengotag "github.com/amaury95/protoc-gen-graphify/utils"
+	protocgengraphify "github.com/amaury95/protoc-gen-graphify/utils"
 	"github.com/arangodb/go-driver"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 // List ...
-func List(ctx context.Context, out interface{}, bindVars map[string]interface{}) (int, error) {
+func List(ctx context.Context, bindVars map[string]interface{}, out interface{}) (int, error) {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return -1, fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -45,16 +45,11 @@ func List(ctx context.Context, out interface{}, bindVars map[string]interface{})
 
 	result := reflect.MakeSlice(reflect.SliceOf(elemType), 0, 0)
 	for {
-		var doc map[string]interface{}
-		_, err := cursor.ReadDocument(ctx, &doc)
-		if driver.IsNoMoreDocuments(err) {
+		elem := reflect.New(elemType)
+		if _, err := cursor.ReadDocument(ctx, elem.Interface()); driver.IsNoMoreDocuments(err) {
 			break
 		} else if err != nil {
 			return -1, err
-		}
-		elem := reflect.New(elemType)
-		if loader, ok := elem.Interface().(protocgengotag.Unmarshaler); ok {
-			loader.UnmarshalMap(doc)
 		}
 		result = reflect.Append(result, elem.Elem())
 	}
@@ -98,7 +93,7 @@ func ListKeys(ctx context.Context, keys []string, out interface{}) error {
 	result := reflect.MakeSlice(reflect.SliceOf(elemType), 0, len(keys))
 	for _, doc := range docs {
 		elem := reflect.New(elemType)
-		if loader, ok := elem.Interface().(protocgengotag.Unmarshaler); ok {
+		if loader, ok := elem.Interface().(protocgengraphify.Unmarshaler); ok {
 			loader.UnmarshalMap(doc)
 		}
 		result = reflect.Append(result, elem.Elem())
@@ -137,7 +132,7 @@ func Read(ctx context.Context, key string, out interface{}) error {
 	}
 
 	elem := reflect.New(elemType)
-	if loader, ok := elem.Interface().(protocgengotag.Unmarshaler); ok {
+	if loader, ok := elem.Interface().(protocgengraphify.Unmarshaler); ok {
 		loader.UnmarshalMap(doc)
 	}
 
@@ -155,7 +150,7 @@ func Create(ctx context.Context, val interface{}) ([]string, error) {
 		return createDocuments(ctx, val)
 	}
 
-	if valType.Kind() == reflect.Struct {
+	if valType.Kind() == reflect.Pointer && valType.Elem().Kind() == reflect.Struct {
 		return createDocument(ctx, val)
 	}
 
@@ -199,7 +194,7 @@ func createDocuments(ctx context.Context, items interface{}) (result []string, e
 	return result, nil
 }
 func createDocument(ctx context.Context, item interface{}) ([]string, error) {
-	itemType := reflect.TypeOf(item)
+	itemType := reflect.TypeOf(item).Elem()
 
 	conn, found := ConnectionFromContext(ctx)
 	if !found {
@@ -229,8 +224,8 @@ func createDocument(ctx context.Context, item interface{}) ([]string, error) {
 // Update ...
 func Update(ctx context.Context, key string, item interface{}) error {
 	itemVal := reflect.ValueOf(item)
-	if itemVal.Kind() != reflect.Struct {
-		return fmt.Errorf("item should be a struct")
+	if itemVal.Kind() != reflect.Pointer || itemVal.Elem().Kind() != reflect.Struct {
+		return fmt.Errorf("item should be a pointer to struct")
 	}
 
 	conn, found := ConnectionFromContext(ctx)
@@ -238,7 +233,7 @@ func Update(ctx context.Context, key string, item interface{}) error {
 		return fmt.Errorf("connection not found in context")
 	}
 
-	col, err := conn.GetCollection(ctx, reflect.TypeOf(item))
+	col, err := conn.GetCollection(ctx, reflect.TypeOf(item).Elem())
 	if err != nil {
 		return fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -305,7 +300,7 @@ const (
 )
 
 // Relations ...
-func Relations(ctx context.Context, id string, out interface{}, bindVars map[string]interface{}, direction Direction) (int, error) {
+func Relations(ctx context.Context, id string, bindVars map[string]interface{}, direction Direction, out interface{}) (int, error) {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return -1, fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -340,7 +335,7 @@ func Relations(ctx context.Context, id string, out interface{}, bindVars map[str
 		return -1, fmt.Errorf("failed to establish connection: %w", err)
 	}
 
-	query := fmt.Sprintf(`FOR v, e IN 1..1 %s '%s' %s %s %s RETURN {v, e}`,
+	query := fmt.Sprintf(`FOR node, edge IN 1..1 %s '%s' %s %s %s RETURN {node, edge}`,
 		string(direction), id, CollectionFor(edgeField.Type), getFilters(bindVars), getLimit(bindVars))
 
 	cursor, err := db.Query(ctx, query, bindVars)
@@ -351,31 +346,13 @@ func Relations(ctx context.Context, id string, out interface{}, bindVars map[str
 
 	result := reflect.MakeSlice(outType.Elem(), 0, 0)
 	for {
-		var doc struct {
-			Node map[string]interface{} `json:"v"`
-			Edge map[string]interface{} `json:"e"`
-		}
-		_, err := cursor.ReadDocument(ctx, &doc)
+		value := reflect.New(elemType)
+		_, err := cursor.ReadDocument(ctx, value.Interface())
 		if driver.IsNoMoreDocuments(err) {
 			break
 		} else if err != nil {
 			return -1, err
 		}
-
-		node := reflect.New(nodeField.Type)
-		if loader, ok := node.Interface().(protocgengotag.Unmarshaler); ok {
-			loader.UnmarshalMap(doc.Node)
-		}
-
-		edge := reflect.New(edgeField.Type)
-		if loader, ok := edge.Interface().(protocgengotag.Unmarshaler); ok {
-			loader.UnmarshalMap(doc.Edge)
-		}
-
-		value := reflect.New(elemType)
-		value.Elem().FieldByName("Node").Set(node.Elem())
-		value.Elem().FieldByName("Edge").Set(edge.Elem())
-
 		result = reflect.Append(result, value.Elem())
 	}
 
@@ -409,7 +386,7 @@ func getLimit(bindVars map[string]interface{}) string {
 func getFilters(bindVars map[string]interface{}) string {
 	var filters []string
 	for key := range bindVars {
-		if key == "count" || key == "offset" {
+		if len(key) == 0 || key[0] == '@' || key == "count" || key == "offset" {
 			continue
 		}
 		filters = append(filters, "doc."+key+" == @"+key)

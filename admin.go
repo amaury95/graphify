@@ -123,7 +123,7 @@ func (g *graph) authLoginHandler(c *fiber.Ctx) error {
 	}
 
 	var admins []adminv1.Admin
-	if _, err := List(c.UserContext(), &admins, map[string]interface{}{"email": request.Email}); err != nil {
+	if _, err := List(c.UserContext(), map[string]interface{}{"email": request.Email}, &admins); err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
 
@@ -201,7 +201,7 @@ func (g *graph) authRegisterHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	keys, err := Create(c.UserContext(), request.Admin)
+	keys, err := Create(c.UserContext(), &request.Admin)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
@@ -227,12 +227,11 @@ func (g *graph) resourcesListHandler(c *fiber.Ctx) error {
 	if len(keys) > 0 {
 		if err := ListKeys(c.UserContext(), keys, elems.Interface()); err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-		} else {
-			return c.JSON(elems.Interface())
 		}
+		return c.JSON(elems.Interface())
 	}
 
-	if _, err := List(c.UserContext(), elems.Interface(), nil); err != nil {
+	if _, err := List(c.UserContext(), nil, elems.Interface()); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
@@ -264,16 +263,12 @@ func (g *graph) resourcesCreateHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
-	var data map[string]interface{}
-	if err := json.Unmarshal(c.Body(), &data); err != nil {
+	elem := reflect.New(elemType)
+	if err := json.Unmarshal(c.Body(), elem.Interface()); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	elem := reflect.New(elemType)
-	if loader, ok := elem.Interface().(graphify.Unmarshaler); ok {
-		loader.UnmarshalMap(data)
-	}
-	keys, err := Create(c.UserContext(), elem.Elem().Interface())
+	keys, err := Create(c.UserContext(), elem.Interface())
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
@@ -291,16 +286,12 @@ func (g *graph) resourcesUpdateHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
-	var data map[string]interface{}
-	if err := json.Unmarshal(c.Body(), &data); err != nil {
+	elem := reflect.New(elemType)
+	if err := json.Unmarshal(c.Body(), elem.Interface()); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	elem := reflect.New(elemType)
-	if loader, ok := elem.Interface().(graphify.Unmarshaler); ok {
-		loader.UnmarshalMap(data)
-	}
-	if err := Update(c.UserContext(), key, elem.Elem().Interface()); err != nil {
+	if err := Update(c.UserContext(), key, elem.Interface()); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
@@ -345,7 +336,7 @@ func (g *graph) resourcesRelationHandler(c *fiber.Ctx) error {
 		resultType reflect.Type
 		direction  Direction
 	)
-	
+
 	if resource == CollectionFor(from) {
 		resultType = reflect.StructOf([]reflect.StructField{
 			{Name: "Node", Type: to, Tag: reflect.StructTag("json:\"node\"")},
@@ -363,7 +354,7 @@ func (g *graph) resourcesRelationHandler(c *fiber.Ctx) error {
 	}
 
 	elems := reflect.New(reflect.SliceOf(resultType))
-	if _, err := Relations(c.UserContext(), getId(resource, key), elems.Interface(), map[string]interface{}{}, direction); err != nil {
+	if _, err := Relations(c.UserContext(), getId(resource, key), map[string]interface{}{}, direction, elems.Interface()); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
