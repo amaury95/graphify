@@ -1,6 +1,7 @@
 package graphify
 
 import (
+	"reflect"
 	"sync"
 	"time"
 
@@ -102,3 +103,17 @@ func NewObserver[T comparable]() *Observer[T] {
 		m:           sync.RWMutex{},
 	}
 }
+
+/* OPERATION TOPICS */
+
+type Topic string
+
+func (t Topic) For(elem interface{}) Topic {
+	return Topic(string(t) + "_" + CollectionFor(reflect.TypeOf(elem)))
+}
+
+var (
+	CreatedTopic Topic = "created"
+	UpdatedTopic Topic = "updated"
+	DeletedTopic Topic = "deleted"
+)

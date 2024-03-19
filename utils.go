@@ -31,17 +31,3 @@ func hasStringField(t reflect.Type, fieldName, jsonTag string) bool {
 		field.Type.Kind() == reflect.String &&
 		strings.Contains(field.Tag.Get("json"), jsonTag)
 }
-
-/* OPERATION TOPICS */
-
-type Topic string
-
-func (t Topic) For(elem interface{}) Topic {
-	return Topic(string(t) + "_" + CollectionFor(reflect.TypeOf(elem)))
-}
-
-var (
-	CreatedTopic Topic = "created"
-	UpdatedTopic Topic = "updated"
-	DeletedTopic Topic = "deleted"
-)
