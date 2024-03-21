@@ -65,6 +65,13 @@ message Book {
   bytes portrait = 15;
   repeated bytes gallery = 16;
   Category category = 17;
+
+  oneof role {
+    bool admin = 18;
+    bool manager = 19;
+    bool client = 20;
+    string other = 21;
+  }
 }
 
 message Client {

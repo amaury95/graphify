@@ -255,11 +255,11 @@ func Update(ctx context.Context, key string, item interface{}) error {
 // Delete ...
 func Delete(ctx context.Context, item interface{}) error {
 	itemVal := reflect.ValueOf(item)
-	if itemVal.Kind() != reflect.Struct {
-		return fmt.Errorf("item should be a struct")
+	if itemVal.Kind() != reflect.Pointer || itemVal.Elem().Kind() != reflect.Struct {
+		return fmt.Errorf("item should be a pointer to struct")
 	}
 
-	keyVal := itemVal.FieldByName("Key")
+	keyVal := itemVal.Elem().FieldByName("Key")
 	if !keyVal.IsValid() {
 		return fmt.Errorf("item should have a Key")
 	}
@@ -274,7 +274,7 @@ func Delete(ctx context.Context, item interface{}) error {
 		return fmt.Errorf("connection not found in context")
 	}
 
-	col, err := conn.GetCollection(ctx, reflect.TypeOf(item))
+	col, err := conn.GetCollection(ctx, itemVal.Elem().Type())
 	if err != nil {
 		return fmt.Errorf("failed to load collection: %w", err)
 	}

@@ -307,8 +307,8 @@ func (g *graph) resourcesDeleteHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
-	elem := reflect.New(elemType).Elem()
-	elem.FieldByName("Key").Set(reflect.ValueOf(key))
+	elem := reflect.New(elemType)
+	elem.Elem().FieldByName("Key").Set(reflect.ValueOf(key))
 	if err := Delete(c.UserContext(), elem.Interface()); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
