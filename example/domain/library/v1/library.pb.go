@@ -1447,10 +1447,10 @@ var Book_Object = graphql.NewObject(graphql.ObjectConfig{
 			Type: utils.JSON,
 		},
 		"portrait": &graphql.Field{
-			Type: graphql.String,
+			Type: utils.Bytes,
 		},
 		"gallery": &graphql.Field{
-			Type: graphql.NewList(graphql.String),
+			Type: graphql.NewList(utils.Bytes),
 		},
 		"category": &graphql.Field{
 			Type: Category_Enum,
@@ -1800,9 +1800,9 @@ var Library_Location_Object = graphql.NewObject(graphql.ObjectConfig{
 var Category_Enum = graphql.NewEnum(graphql.EnumConfig{
 	Name: "Category",
 	Values: graphql.EnumValueConfigMap{
-		"CATEGORY_UNSPECIFIED": &graphql.EnumValueConfig{Value: 0},
-		"CATEGORY_DRAMA":       &graphql.EnumValueConfig{Value: 1},
-		"CATEGORY_HORROR":      &graphql.EnumValueConfig{Value: 2},
+		"CATEGORY_UNSPECIFIED": &graphql.EnumValueConfig{Value: Category_CATEGORY_UNSPECIFIED},
+		"CATEGORY_DRAMA":       &graphql.EnumValueConfig{Value: Category_CATEGORY_DRAMA},
+		"CATEGORY_HORROR":      &graphql.EnumValueConfig{Value: Category_CATEGORY_HORROR},
 	},
 })
 
