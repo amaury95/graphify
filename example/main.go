@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"time"
 
-	"os"
-	"golang.org/x/term"
+	// "os"
+	// "golang.org/x/term"
 
 	"github.com/amaury95/graphify"
 	"github.com/amaury95/graphify/example/domain/library/v1"
@@ -23,17 +24,17 @@ func main() {
 		password []byte
 		err      error
 	)
-	// Prompt for username
-	fmt.Print("Enter ArangoDB username: ")
-	fmt.Scanln(&username)
+	// // Prompt for username
+	// fmt.Print("Enter ArangoDB username: ")
+	// fmt.Scanln(&username)
 
-	// Prompt for password
-	fmt.Print("Enter password: ")
-	password, err = term.ReadPassword(int(os.Stdin.Fd()))
-	if err != nil {
-		fmt.Println("Error reading password:", err)
-		return
-	}
+	// // Prompt for password
+	// fmt.Print("Enter password: ")
+	// password, err = term.ReadPassword(int(os.Stdin.Fd()))
+	// if err != nil {
+	// 	fmt.Println("Error reading password:", err)
+	// 	return
+	// }
 
 	// Define app context
 	ctx := graphify.DevelopmentContext(context.Background())
@@ -59,6 +60,40 @@ func main() {
 	graph.Edge(libraryv1.Client{}, libraryv1.Book{}, libraryv1.Borrow{})
 
 	// Seed
+	seed(ctx)
+	// Add observer events
+	if observer, found := graphify.ObserverFromContext(ctx); found {
+		observer.Subscribe(
+			graphify.CreatedTopic.For(libraryv1.Book{}), logCreatedBook)
+	}
+
+	// Create and define routes
+	router := mux.NewRouter()
+
+	// Define routes using PathPrefix to match URL prefixes
+	router.PathPrefix("/admin").Handler(
+		graph.RestHandler(ctx))
+
+	router.PathPrefix("/graphql").Handler(
+		graph.GraphQLHandler(ctx))
+
+	// Create a server with the given multiplexer
+	server := &http.Server{
+		Addr:        ":8080",
+		Handler:     router,
+		BaseContext: func(net.Listener) context.Context { return ctx }, // Inject app context to requests
+	}
+
+	// Serve handlers
+	fmt.Println("\nServer is listening on :8080")
+	if err = server.ListenAndServe(); err != nil {
+		fmt.Println("Error:", err)
+	}
+}
+
+func seed(ctx context.Context) {
+	now := time.Now().Unix()
+
 	graphify.Delete(ctx, &libraryv1.Book{Key: "100"})
 	graphify.Create(ctx, &libraryv1.Book{
 		Key:    "100",
@@ -97,34 +132,12 @@ func main() {
 			Other: "moderator",
 		},
 	})
-	// Add observer events
-	if observer, found := graphify.ObserverFromContext(ctx); found {
-		observer.Subscribe(
-			graphify.CreatedTopic.For(libraryv1.Book{}), logCreatedBook)
-	}
 
-	// Create and define routes
-	router := mux.NewRouter()
+	graphify.Delete(ctx, &libraryv1.Client{Key: "100"})
+	graphify.Create(ctx, &libraryv1.Client{Key: "100", Name: "Gabriela", Email: "gabi.santacruzpacheco@gmail.com", Member: true})
 
-	// Define routes using PathPrefix to match URL prefixes
-	router.PathPrefix("/admin").Handler(
-		graph.RestHandler(ctx))
-
-	router.PathPrefix("/graphql").Handler(
-		graph.GraphQLHandler(ctx))
-
-	// Create a server with the given multiplexer
-	server := &http.Server{
-		Addr:        ":8080",
-		Handler:     router,
-		BaseContext: func(net.Listener) context.Context { return ctx }, // Inject app context to requests
-	}
-
-	// Serve handlers
-	fmt.Println("\nServer is listening on :8080")
-	if err = server.ListenAndServe(); err != nil {
-		fmt.Println("Error:", err)
-	}
+	graphify.Delete(ctx, &libraryv1.Borrow{Key: "100"})
+	graphify.Create(ctx, &libraryv1.Borrow{Key: "100", From: "clients/100", To: "books/100", Date: &now})
 }
 
 // logCreatedBook ...

@@ -1420,7 +1420,7 @@ var Book_Object = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Book",
 	Fields: graphql.Fields{
 		"_key": &graphql.Field{
-			Type: graphql.String,
+			Type: graphql.ID,
 		},
 		"title": &graphql.Field{
 			Type: graphql.String,
@@ -1710,7 +1710,7 @@ var Client_Object = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Client",
 	Fields: graphql.Fields{
 		"_key": &graphql.Field{
-			Type: graphql.String,
+			Type: graphql.ID,
 		},
 		"name": &graphql.Field{
 			Type: graphql.String,
@@ -1734,7 +1734,7 @@ var Borrow_Object = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Borrow",
 	Fields: graphql.Fields{
 		"_key": &graphql.Field{
-			Type: graphql.String,
+			Type: graphql.ID,
 		},
 		"_from": &graphql.Field{
 			Type: graphql.String,
@@ -1767,7 +1767,7 @@ var Library_Object = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Library",
 	Fields: graphql.Fields{
 		"_key": &graphql.Field{
-			Type: graphql.String,
+			Type: graphql.ID,
 		},
 		"name": &graphql.Field{
 			Type: graphql.String,
