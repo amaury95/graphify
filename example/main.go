@@ -8,12 +8,13 @@ import (
 	"time"
 
 	"os"
+
 	"golang.org/x/term"
 
 	"github.com/amaury95/graphify"
-	"github.com/amaury95/graphify/example/domain/library/v1"
-	"github.com/amaury95/graphify/models/domain/admin/v1"
-	"github.com/amaury95/graphify/models/domain/observer/v1"
+	libraryv1 "github.com/amaury95/graphify/example/domain/library/v1"
+	observerv1 "github.com/amaury95/graphify/models/domain/observer/v1"
+	"github.com/arangodb/go-driver"
 	"github.com/gorilla/mux"
 	"google.golang.org/protobuf/proto"
 )
@@ -53,14 +54,19 @@ func main() {
 	// Create and define graph
 	graph := graphify.NewGraph()
 
-	graph.Node(adminv1.Admin{})
 	graph.Node(libraryv1.Book{})
 	graph.Node(libraryv1.Client{})
 	graph.Node(libraryv1.Library{})
 	graph.Edge(libraryv1.Client{}, libraryv1.Book{}, libraryv1.Borrow{})
 
+	graphify.Collection(ctx, libraryv1.Library{}, func(ctx context.Context, c driver.Collection) {
+		c.EnsureGeoIndex(ctx, []string{"location"}, &driver.EnsureGeoIndexOptions{})
+	})
+	graph.AutoMigrate(ctx)
+
 	// Seed
 	seed(ctx)
+	
 	// Add observer events
 	if observer, found := graphify.ObserverFromContext(ctx); found {
 		observer.Subscribe(

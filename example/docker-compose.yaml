@@ -8,6 +8,7 @@ services:
       - ARANGO_NO_AUTH=1
     volumes:
       - persistence:/var/lib/arangodb3
+    restart: unless-stopped
 
 volumes:
   persistence:

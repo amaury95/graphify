@@ -10,6 +10,7 @@ import (
 
 	adminv1 "github.com/amaury95/graphify/models/domain/admin/v1"
 	graphify "github.com/amaury95/protoc-gen-graphify/utils"
+	"github.com/arangodb/go-driver"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -22,10 +23,10 @@ const configName = "config.json"
 var secretKey = []byte("secret")
 
 func (g *graph) RestHandler(ctx context.Context) http.Handler {
-	g.Node(adminv1.Admin{})
-	g.HiddenNode(adminv1.AdminPassword{})
-
-	g.AutoMigrate(ctx)
+	Collection(ctx, adminv1.Admin{}, func(ctx context.Context, c driver.Collection) {
+		c.EnsureHashIndex(ctx, []string{"email"}, &driver.EnsureHashIndexOptions{Unique: true})
+	})
+	Collection(ctx, adminv1.AdminPassword{})
 
 	router := fiber.New(fiber.Config{
 		BodyLimit: 10 << 20,
@@ -196,7 +197,7 @@ func (g *graph) authRegisterHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	password, err := bcrypt.GenerateFromPassword([]byte(request.Password), 14)
+	password, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
@@ -206,7 +207,7 @@ func (g *graph) authRegisterHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	if _, err := Create(c.UserContext(), adminv1.AdminPassword{Key: keys[0], PasswordHash: password}); err != nil {
+	if _, err := Create(c.UserContext(), &adminv1.AdminPassword{Key: keys[0], PasswordHash: password}); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
@@ -217,7 +218,7 @@ func (g *graph) resourcesListHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
 	var keys []string
 
-	elemType, found := g.getElem(resource)
+	elemType, found := g.restElem(resource)
 	if !found {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
@@ -242,7 +243,7 @@ func (g *graph) resourcesGetHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
 	key := c.Params("key")
 
-	elemType, found := g.getElem(resource)
+	elemType, found := g.restElem(resource)
 	if !found {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
@@ -258,7 +259,7 @@ func (g *graph) resourcesGetHandler(c *fiber.Ctx) error {
 func (g *graph) resourcesCreateHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
 
-	elemType, found := g.getElem(resource)
+	elemType, found := g.restElem(resource)
 	if !found {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
@@ -281,7 +282,7 @@ func (g *graph) resourcesUpdateHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
 	key := c.Params("key")
 
-	elemType, found := g.getElem(resource)
+	elemType, found := g.restElem(resource)
 	if !found {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
@@ -302,7 +303,7 @@ func (g *graph) resourcesDeleteHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
 	key := c.Params("key")
 
-	elemType, found := g.getElem(resource)
+	elemType, found := g.restElem(resource)
 	if !found {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
@@ -489,8 +490,29 @@ func (g *graph) filesDownloadHandler(c *fiber.Ctx) error {
 }
 
 /* General */
+func (g *graph) ensureUniqueAdmin(ctx context.Context) {
+	db, found := ConnectionFromContext(ctx)
+	if !found {
+		fmt.Println("ensureUniqueAdmin: database not found")
+	}
+	col, err := db.GetCollection(ctx, reflect.TypeOf(adminv1.Admin{}))
+	if err != nil {
+		fmt.Println("ensureUniqueAdmin:", err.Error())
+	}
+	col.EnsureHashIndex(ctx, []string{"email"}, &driver.EnsureHashIndexOptions{
+		Unique: true,
+	})
+}
 
-func (g *graph) getElem(name string) (reflect.Type, bool) {
+func (g *graph) restElem(name string) (reflect.Type, bool) {
+	exposed := map[string]reflect.Type{
+		"admins": reflect.TypeOf(adminv1.Admin{}),
+	}
+
+	if elem, found := exposed[name]; found {
+		return elem, true
+	}
+
 	if elem, found := g.Nodes[name]; found {
 		return elem, true
 	}

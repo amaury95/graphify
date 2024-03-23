@@ -18,8 +18,6 @@ type relation struct {
 type graph struct {
 	// Nodes collection => type
 	Nodes map[string]reflect.Type
-	// Private nodes (not added to endpoints) collection => type
-	privateNodes map[string]reflect.Type
 
 	// collection => type
 	Edges map[string]reflect.Type
@@ -30,10 +28,9 @@ type graph struct {
 
 func NewGraph() *graph {
 	return &graph{
-		Nodes:        make(map[string]reflect.Type),
-		privateNodes: make(map[string]reflect.Type),
-		Edges:        make(map[string]reflect.Type),
-		Relations:    make(map[string]relation),
+		Nodes:     make(map[string]reflect.Type),
+		Edges:     make(map[string]reflect.Type),
+		Relations: make(map[string]relation),
 	}
 }
 
@@ -49,20 +46,6 @@ func (g *graph) Node(node interface{}) {
 	}
 
 	g.Nodes[nodeName] = nodeType
-}
-
-func (g *graph) HiddenNode(node interface{}) {
-	nodeType := reflect.TypeOf(node)
-	if nodeType.Kind() != reflect.Struct || !isNode(nodeType) {
-		panic(errors.New("node must be a struct with valid fields"))
-	}
-
-	nodeName := CollectionFor(nodeType)
-	if _, exists := g.Nodes[nodeName]; exists {
-		panic(errors.New("node has been added as public node"))
-	}
-
-	g.privateNodes[nodeName] = nodeType
 }
 
 func (g *graph) Edge(from, to, edge interface{}) {
@@ -97,8 +80,26 @@ func (g *graph) Edge(from, to, edge interface{}) {
 	g.Relations[edgeName] = relation{From: fromName, To: toName}
 	g.Edges[edgeName] = edgeType
 }
-
 func (g *graph) AutoMigrate(ctx context.Context) error {
+	for _, node := range g.Nodes {
+		node := reflect.New(node).Elem()
+		if err := Collection(ctx, node.Interface()); err != nil {
+			return err
+		}
+	}
+	for _, edge := range g.Edges {
+		edge := reflect.New(edge).Elem()
+		if err := Collection(ctx, edge.Interface()); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func Collection(ctx context.Context, elem interface{}, callbacks ...func(context.Context, driver.Collection)) (err error) {
+	elemType := reflect.TypeOf(elem)
+	elemName := CollectionFor(elemType)
+
 	conn, found := ConnectionFromContext(ctx)
 	if !found {
 		return fmt.Errorf("connection not provided in context")
@@ -109,101 +110,56 @@ func (g *graph) AutoMigrate(ctx context.Context) error {
 		return fmt.Errorf("failed to establish connection: %w", err)
 	}
 
-	for col, elem := range g.Nodes {
-		if err := g.createNodeCollection(ctx, col, elem, db); err != nil {
-			return fmt.Errorf("failed to create node: %w", err)
+	var col driver.Collection
+	if isEdge(elemType) {
+		if col, err = createEdgeCollection(ctx, elemName, db); err != nil {
+			return err
 		}
+	} else if isNode(elemType) {
+		if col, err = createNodeCollection(ctx, elemName, db); err != nil {
+			return err
+		}
+	} else {
+		return errors.New("migrate only nodes and edges")
 	}
 
-	for col, elem := range g.privateNodes {
-		if err := g.createNodeCollection(ctx, col, elem, db); err != nil {
-			return fmt.Errorf("failed to create node: %w", err)
-		}
-	}
-
-	for col, elem := range g.Edges {
-		if err := g.createEdgeCollection(ctx, col, elem, db); err != nil {
-			return fmt.Errorf("failed to create edge: %w", err)
-		}
+	for _, callback := range callbacks {
+		callback(ctx, col)
 	}
 
 	return nil
 }
 
-func (g *graph) createNodeCollection(ctx context.Context, name string, elem reflect.Type, db driver.Database) error {
+func createNodeCollection(ctx context.Context, name string, db driver.Database) (col driver.Collection, err error) {
 	exists, err := db.CollectionExists(ctx, name)
 	if err != nil {
-		return fmt.Errorf("failed to check collection existence: %w", err)
+		return nil, fmt.Errorf("failed to check collection existence: %w", err)
 	}
 
 	if !exists {
-		col, err := db.CreateCollection(ctx, name, nil)
-		if err != nil {
-			return fmt.Errorf("failed to create collection: %w", err)
+		if col, err = db.CreateCollection(ctx, name, nil); err != nil {
+			return nil, fmt.Errorf("failed to create collection: %w", err)
 		}
-
-		if field := g.LocationField(elem); field != nil {
-			g.indexGeoLocation(ctx, col, *field)
-		}
+		return
 	}
 
-	return nil
+	return db.Collection(ctx, name)
 }
 
-func (g *graph) createEdgeCollection(ctx context.Context, name string, elem reflect.Type, db driver.Database) error {
+func createEdgeCollection(ctx context.Context, name string, db driver.Database) (col driver.Collection, err error) {
 	exists, err := db.CollectionExists(ctx, name)
 	if err != nil {
-		return fmt.Errorf("failed to check collection existence: %w", err)
+		return nil, fmt.Errorf("failed to check collection existence: %w", err)
 	}
 
 	if !exists {
-		col, err := db.CreateCollection(ctx, name, &driver.CreateCollectionOptions{
-			Type: driver.CollectionTypeEdge,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to create collection: %w", err)
+		if col, err = db.CreateCollection(ctx, name, &driver.CreateCollectionOptions{Type: driver.CollectionTypeEdge}); err != nil {
+			return nil, fmt.Errorf("failed to create collection: %w", err)
 		}
-
-		if field := g.LocationField(elem); field != nil {
-			g.indexGeoLocation(ctx, col, *field)
-		}
+		return
 	}
 
-	return nil
-}
-
-func (g *graph) LocationField(elem reflect.Type) *string {
-	field, found := elem.FieldByName("Location")
-	if !found {
-		return nil
-	}
-
-	if field.Type.Kind() != reflect.Pointer {
-		return nil
-	}
-
-	if field.Type.Elem().Kind() != reflect.Struct {
-		return nil
-	}
-
-	if field.Type.Elem().NumField() < 2 {
-		return nil
-	}
-
-	if lat, found := field.Type.Elem().FieldByName("Lat"); !found || lat.Type.Kind() != reflect.Float32 {
-		return nil
-	}
-
-	if lng, found := field.Type.Elem().FieldByName("Lng"); !found || lng.Type.Kind() != reflect.Float32 {
-		return nil
-	}
-
-	name, _ := jsonTag(field)
-	return &name
-}
-
-func (*graph) indexGeoLocation(ctx context.Context, col driver.Collection, field string) {
-	col.EnsureGeoIndex(ctx, []string{field}, &driver.EnsureGeoIndexOptions{})
+	return db.Collection(ctx, name)
 }
 
 func jsonTag(field reflect.StructField) (name string, omitempty bool) {

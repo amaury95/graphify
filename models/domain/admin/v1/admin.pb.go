@@ -8,6 +8,7 @@ package adminv1
 
 import (
 	utils "github.com/amaury95/protoc-gen-graphify/utils"
+	graphql "github.com/graphql-go/graphql"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -285,12 +286,83 @@ func file_admin_v1_admin_proto_init() {
 }
 
 /*
+	Graphql object
+*/
+
+/* QueryObject ... */
+func (*Admin) QueryObject() *graphql.Object {
+	return Admin_Object
+}
+
+var Admin_Object = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Admin",
+	Fields: graphql.Fields{
+		"_key": &graphql.Field{
+			Type: graphql.ID,
+		},
+		"firstName": &graphql.Field{
+			Type: graphql.String,
+		},
+		"lastName": &graphql.Field{
+			Type: graphql.String,
+		},
+		"email": &graphql.Field{
+			Type: graphql.String,
+		},
+		"avatar": &graphql.Field{
+			Type: utils.Bytes,
+		},
+		"notes": &graphql.Field{
+			Type: graphql.String,
+		},
+	},
+	Description: "",
+})
+
+var option_Admin_Avatar = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Admin_Avatar",
+	Fields: graphql.Fields{
+		"Avatar": &graphql.Field{
+			Type: utils.Bytes,
+		},
+	},
+})
+
+var option_Admin_Notes = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Admin_Notes",
+	Fields: graphql.Fields{
+		"Notes": &graphql.Field{
+			Type: graphql.String,
+		},
+	},
+})
+
+/* QueryObject ... */
+func (*AdminPassword) QueryObject() *graphql.Object {
+	return AdminPassword_Object
+}
+
+var AdminPassword_Object = graphql.NewObject(graphql.ObjectConfig{
+	Name: "AdminPassword",
+	Fields: graphql.Fields{
+		"_key": &graphql.Field{
+			Type: graphql.ID,
+		},
+		"passwordHash": &graphql.Field{
+			Type: utils.Bytes,
+		},
+	},
+	Description: "",
+})
+
+/*
 	Graphify schema module
 */
 
-/* Specs ... */
+/* Schema ... */
 func (*Admin) Schema() map[string]interface{} {
 	return map[string]interface{}{
+		"name": "Admin",
 		"fields": map[string]interface{}{
 			"_key": map[string]interface{}{
 				"name": "_key",
@@ -323,9 +395,10 @@ func (*Admin) Schema() map[string]interface{} {
 	}
 }
 
-/* Specs ... */
+/* Schema ... */
 func (*AdminPassword) Schema() map[string]interface{} {
 	return map[string]interface{}{
+		"name": "AdminPassword",
 		"fields": map[string]interface{}{
 			"_key": map[string]interface{}{
 				"name": "_key",
@@ -341,11 +414,21 @@ func (*AdminPassword) Schema() map[string]interface{} {
 }
 
 /*
-	Graphify loader module
+	Graphify unmarshaler
 */
 
-/* LoadMap populates struct fields from a map, handling decoding for special fields. */
-func (o *Admin) LoadMap(values map[string]interface{}) {
+/* UnmarshalJSON ...*/
+func (o *Admin) UnmarshalJSON(b []byte) error {
+	if values, err := utils.MapFromBytes(b); err != nil {
+		return err
+	} else {
+		o.UnmarshalMap(values)
+	}
+	return nil
+}
+
+/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
+func (o *Admin) UnmarshalMap(values map[string]interface{}) {
 	if val, ok := values["_key"].(string); ok {
 		o.Key = val
 	}
@@ -366,8 +449,18 @@ func (o *Admin) LoadMap(values map[string]interface{}) {
 	}
 }
 
-/* LoadMap populates struct fields from a map, handling decoding for special fields. */
-func (o *AdminPassword) LoadMap(values map[string]interface{}) {
+/* UnmarshalJSON ...*/
+func (o *AdminPassword) UnmarshalJSON(b []byte) error {
+	if values, err := utils.MapFromBytes(b); err != nil {
+		return err
+	} else {
+		o.UnmarshalMap(values)
+	}
+	return nil
+}
+
+/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
+func (o *AdminPassword) UnmarshalMap(values map[string]interface{}) {
 	if val, ok := values["_key"].(string); ok {
 		o.Key = val
 	}

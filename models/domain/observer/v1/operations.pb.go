@@ -9,6 +9,7 @@ package observerv1
 import (
 	_ "github.com/amaury95/graphify/models/domain/admin/v1"
 	utils "github.com/amaury95/protoc-gen-graphify/utils"
+	graphql "github.com/graphql-go/graphql"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -291,12 +292,65 @@ func file_observer_v1_operations_proto_init() {
 }
 
 /*
+	Graphql object
+*/
+
+/* QueryObject ... */
+func (*CreatedPayload) QueryObject() *graphql.Object {
+	return CreatedPayload_Object
+}
+
+var CreatedPayload_Object = graphql.NewObject(graphql.ObjectConfig{
+	Name: "CreatedPayload",
+	Fields: graphql.Fields{
+		"key": &graphql.Field{
+			Type: graphql.String,
+		},
+		"element": &graphql.Field{
+			Type: utils.Bytes,
+		},
+	},
+	Description: "",
+})
+
+/* QueryObject ... */
+func (*UpdatedPayload) QueryObject() *graphql.Object {
+	return UpdatedPayload_Object
+}
+
+var UpdatedPayload_Object = graphql.NewObject(graphql.ObjectConfig{
+	Name: "UpdatedPayload",
+	Fields: graphql.Fields{
+		"element": &graphql.Field{
+			Type: utils.Bytes,
+		},
+	},
+	Description: "",
+})
+
+/* QueryObject ... */
+func (*DeletedPayload) QueryObject() *graphql.Object {
+	return DeletedPayload_Object
+}
+
+var DeletedPayload_Object = graphql.NewObject(graphql.ObjectConfig{
+	Name: "DeletedPayload",
+	Fields: graphql.Fields{
+		"key": &graphql.Field{
+			Type: graphql.String,
+		},
+	},
+	Description: "",
+})
+
+/*
 	Graphify schema module
 */
 
-/* Specs ... */
+/* Schema ... */
 func (*CreatedPayload) Schema() map[string]interface{} {
 	return map[string]interface{}{
+		"name": "CreatedPayload",
 		"fields": map[string]interface{}{
 			"key": map[string]interface{}{
 				"name": "key",
@@ -311,9 +365,10 @@ func (*CreatedPayload) Schema() map[string]interface{} {
 	}
 }
 
-/* Specs ... */
+/* Schema ... */
 func (*UpdatedPayload) Schema() map[string]interface{} {
 	return map[string]interface{}{
+		"name": "UpdatedPayload",
 		"fields": map[string]interface{}{
 			"element": map[string]interface{}{
 				"name": "element",
@@ -324,9 +379,10 @@ func (*UpdatedPayload) Schema() map[string]interface{} {
 	}
 }
 
-/* Specs ... */
+/* Schema ... */
 func (*DeletedPayload) Schema() map[string]interface{} {
 	return map[string]interface{}{
+		"name": "DeletedPayload",
 		"fields": map[string]interface{}{
 			"key": map[string]interface{}{
 				"name": "key",
@@ -338,11 +394,21 @@ func (*DeletedPayload) Schema() map[string]interface{} {
 }
 
 /*
-	Graphify loader module
+	Graphify unmarshaler
 */
 
-/* LoadMap populates struct fields from a map, handling decoding for special fields. */
-func (o *CreatedPayload) LoadMap(values map[string]interface{}) {
+/* UnmarshalJSON ...*/
+func (o *CreatedPayload) UnmarshalJSON(b []byte) error {
+	if values, err := utils.MapFromBytes(b); err != nil {
+		return err
+	} else {
+		o.UnmarshalMap(values)
+	}
+	return nil
+}
+
+/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
+func (o *CreatedPayload) UnmarshalMap(values map[string]interface{}) {
 	if val, ok := values["key"].(string); ok {
 		o.Key = val
 	}
@@ -351,15 +417,35 @@ func (o *CreatedPayload) LoadMap(values map[string]interface{}) {
 	}
 }
 
-/* LoadMap populates struct fields from a map, handling decoding for special fields. */
-func (o *UpdatedPayload) LoadMap(values map[string]interface{}) {
+/* UnmarshalJSON ...*/
+func (o *UpdatedPayload) UnmarshalJSON(b []byte) error {
+	if values, err := utils.MapFromBytes(b); err != nil {
+		return err
+	} else {
+		o.UnmarshalMap(values)
+	}
+	return nil
+}
+
+/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
+func (o *UpdatedPayload) UnmarshalMap(values map[string]interface{}) {
 	if val, ok := values["element"].(string); ok {
 		o.Element = utils.DecodeBytes(val)
 	}
 }
 
-/* LoadMap populates struct fields from a map, handling decoding for special fields. */
-func (o *DeletedPayload) LoadMap(values map[string]interface{}) {
+/* UnmarshalJSON ...*/
+func (o *DeletedPayload) UnmarshalJSON(b []byte) error {
+	if values, err := utils.MapFromBytes(b); err != nil {
+		return err
+	} else {
+		o.UnmarshalMap(values)
+	}
+	return nil
+}
+
+/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
+func (o *DeletedPayload) UnmarshalMap(values map[string]interface{}) {
 	if val, ok := values["key"].(string); ok {
 		o.Key = val
 	}
