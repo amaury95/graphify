@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/arangodb/go-driver"
 )
@@ -120,7 +119,7 @@ func Collection(ctx context.Context, elem interface{}, callbacks ...func(context
 			return err
 		}
 	} else {
-		return errors.New("migrate only nodes and edges")
+		return errors.New("migrate only nodes or edges")
 	}
 
 	for _, callback := range callbacks {
@@ -160,18 +159,4 @@ func createEdgeCollection(ctx context.Context, name string, db driver.Database) 
 	}
 
 	return db.Collection(ctx, name)
-}
-
-func jsonTag(field reflect.StructField) (name string, omitempty bool) {
-	tag := field.Tag.Get("json")
-	if len(tag) == 0 {
-		return field.Name, false
-	}
-
-	parts := strings.SplitN(tag, ",", 2)
-	if len(parts) == 1 {
-		return parts[0], false
-	}
-
-	return parts[0], strings.Contains(parts[1], "omitempty")
 }

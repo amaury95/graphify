@@ -37,8 +37,7 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 			AllowCredentials: true,
 		}))
 	}
-	router.Use(g.contextMiddleware(ctx))
-	router.Use(g.authMiddleware)
+	router.Use(g.injectContext(ctx))
 
 	admin := router.Group("/admin")
 	admin.Get("/schema", g.adminSchemaHandler)
@@ -46,12 +45,13 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	admin.Post("/config", g.adminConfigInitHandler)
 
 	auth := admin.Group("/auth")
-	auth.Get("/account", g.authAccountHandler)
 	auth.Post("/login", g.authLoginHandler)
-	auth.Post("/register", g.authRegisterHandler)
+	auth.Use(g.authorized)
 	auth.Post("/logout", g.authLogoutHandler)
+	auth.Get("/account", g.authAccountHandler)
+	auth.Post("/account", g.authRegisterHandler)
 
-	resources := admin.Group("/:resource")
+	resources := admin.Group("/:resource", g.authorized)
 	resources.Get("", g.resourcesListHandler)
 	resources.Post("", g.resourcesCreateHandler)
 	resources.Get("/:key", g.resourcesGetHandler)
@@ -60,7 +60,7 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	resources.Get("/:key/:relation", g.resourcesRelationHandler)
 
 	if _, found := StorageFromContext(ctx); found {
-		files := admin.Group("/files")
+		files := admin.Group("/files", g.authorized)
 		files.Post("/upload", g.filesUploadHandler)
 		files.Get("/download/:name", g.filesDownloadHandler)
 	}
@@ -68,18 +68,18 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	return adaptor.FiberApp(router)
 }
 
-func (g *graph) contextMiddleware(ctx context.Context) fiber.Handler {
+func (g *graph) injectContext(ctx context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		c.SetUserContext(ctx)
 		return c.Next()
 	}
 }
 
-func (g *graph) authMiddleware(c *fiber.Ctx) error {
+func (g *graph) authorized(c *fiber.Ctx) error {
 	// Read the JWT token from the HTTP-only cookie
 	cookie := c.Cookies("jwt")
 	if cookie == "" {
-		return c.Next()
+		return fiber.NewError(fiber.StatusUnauthorized, "cookie not provided")
 	}
 
 	token, err := jwt.ParseWithClaims(cookie, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -487,21 +487,6 @@ func (g *graph) filesDownloadHandler(c *fiber.Ctx) error {
 
 	// Send the file content as the response
 	return c.Send(fileContent)
-}
-
-/* General */
-func (g *graph) ensureUniqueAdmin(ctx context.Context) {
-	db, found := ConnectionFromContext(ctx)
-	if !found {
-		fmt.Println("ensureUniqueAdmin: database not found")
-	}
-	col, err := db.GetCollection(ctx, reflect.TypeOf(adminv1.Admin{}))
-	if err != nil {
-		fmt.Println("ensureUniqueAdmin:", err.Error())
-	}
-	col.EnsureHashIndex(ctx, []string{"email"}, &driver.EnsureHashIndexOptions{
-		Unique: true,
-	})
 }
 
 func (g *graph) restElem(name string) (reflect.Type, bool) {
