@@ -1914,11 +1914,26 @@ func (*Book) Schema() map[string]interface{} {
 		},
 		"oneofs": map[string]interface{}{
 			"Type": map[string]interface{}{
-				"Novel":      new(Book_Novel).Schema(),
-				"ShortStory": new(Book_ShortStory).Schema(),
-				"Academic":   new(Book_Academic).Schema(),
-				"Poetry":     new(Book_Poetry).Schema(),
-				"Biography":  new(Book_Biography).Schema(),
+				"Novel": map[string]interface{}{
+					"type":   "message",
+					"schema": new(Book_Novel).Schema(),
+				},
+				"ShortStory": map[string]interface{}{
+					"type":   "message",
+					"schema": new(Book_ShortStory).Schema(),
+				},
+				"Academic": map[string]interface{}{
+					"type":   "message",
+					"schema": new(Book_Academic).Schema(),
+				},
+				"Poetry": map[string]interface{}{
+					"type":   "message",
+					"schema": new(Book_Poetry).Schema(),
+				},
+				"Biography": map[string]interface{}{
+					"type":   "message",
+					"schema": new(Book_Biography).Schema(),
+				},
 			},
 			"Role": map[string]interface{}{
 				"Admin": map[string]interface{}{
