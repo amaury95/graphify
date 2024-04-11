@@ -10,6 +10,7 @@ push:
 release: commit tag push
 
 # Commands to run example
+
 example-docker-up:
 	docker compose -f example/docker-compose.yaml up -d
 
