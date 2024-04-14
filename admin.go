@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"reflect"
 	"time"
@@ -50,6 +51,12 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	auth.Post("/logout", g.authLogoutHandler)
 	auth.Get("/account", g.authAccountHandler)
 	auth.Post("/account", g.authRegisterHandler)
+	
+	if _, found := StorageFromContext(ctx); found {
+		files := admin.Group("/files", g.authorized)
+		files.Post("/upload", g.filesUploadHandler)
+		files.Get("/download/:name", g.filesDownloadHandler)
+	}
 
 	resources := admin.Group("/:resource", g.authorized)
 	resources.Get("", g.resourcesListHandler)
@@ -59,11 +66,7 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	resources.Delete("/:key", g.resourcesDeleteHandler)
 	resources.Get("/:key/:relation", g.resourcesRelationHandler)
 
-	if _, found := StorageFromContext(ctx); found {
-		files := admin.Group("/files", g.authorized)
-		files.Post("/upload", g.filesUploadHandler)
-		files.Get("/download/:name", g.filesDownloadHandler)
-	}
+	
 
 	return adaptor.FiberApp(router)
 }
@@ -444,14 +447,23 @@ func (g *graph) filesUploadHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	files, found := form.Value["file"]
+	headers, found := form.File["file"]
 	if !found {
 		return fiber.NewError(fiber.StatusBadRequest, "file not provided")
 	}
 
 	hashes := []string{}
-	for _, file := range files {
-		hash, err := storage.StoreByHash([]byte(file))
+	for _, header := range headers {
+		file, err := header.Open()
+		if err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
+		defer file.Close()
+		data, err := io.ReadAll(file)
+		if err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
+		hash, err := storage.StoreByHash(data)
 		if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
