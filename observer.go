@@ -117,3 +117,9 @@ var (
 	UpdatedTopic Topic = "updated"
 	DeletedTopic Topic = "deleted"
 )
+
+var (
+	AdminCreatedTopic Topic = "admin_created"
+	AdminUpdatedTopic Topic = "admin_updated"
+	AdminDeletedTopic Topic = "admin_deleted"
+)

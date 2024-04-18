@@ -1,0 +1,11 @@
+syntax = "proto3";
+package observer.v1;
+
+message CreatedPayload {
+  string key = 1;
+  bytes element = 2;
+}
+
+message UpdatedPayload { bytes element = 1; }
+
+message DeletedPayload { string key = 1; }

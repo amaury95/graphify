@@ -1,0 +1,20 @@
+syntax = "proto3";
+package admin.v1;
+
+import "admin/v1/admin.proto";
+
+message AdminCreatedPayload {
+  string key = 1;
+  bytes element = 2;
+  Admin admin = 3;
+}
+
+message AdminUpdatedPayload {
+  bytes element = 1;
+  Admin admin = 2;
+}
+
+message AdminDeletedPayload {
+  string key = 1;
+  Admin admin = 2;
+}
