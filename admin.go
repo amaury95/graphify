@@ -19,8 +19,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const configName = "config.json"
-
 var secretKey = []byte("secret")
 
 func (g *graph) RestHandler(ctx context.Context) http.Handler {
@@ -42,8 +40,6 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 
 	admin := router.Group("/admin")
 	admin.Get("/schema", g.adminSchemaHandler)
-	admin.Get("/config", g.adminConfigHandler)
-	admin.Post("/config", g.adminConfigInitHandler)
 
 	auth := admin.Group("/auth")
 	auth.Post("/login", g.authLoginHandler)
@@ -51,7 +47,7 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	auth.Post("/logout", g.authLogoutHandler)
 	auth.Get("/account", g.authAccountHandler)
 	auth.Post("/account", g.authRegisterHandler)
-	
+
 	if _, found := StorageFromContext(ctx); found {
 		files := admin.Group("/files", g.authorized)
 		files.Post("/upload", g.filesUploadHandler)
@@ -65,8 +61,6 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	resources.Put("/:key", g.resourcesUpdateHandler)
 	resources.Delete("/:key", g.resourcesDeleteHandler)
 	resources.Get("/:key/:relation", g.resourcesRelationHandler)
-
-	
 
 	return adaptor.FiberApp(router)
 }
@@ -107,7 +101,7 @@ func (g *graph) authorized(c *fiber.Ctx) error {
 	return c.Next()
 }
 
-/* Rest Handlers */
+/* Auth Handlers */
 func (g *graph) authAccountHandler(c *fiber.Ctx) error {
 	admin, found := AdminFromContext(c.UserContext())
 	if !found {
@@ -133,7 +127,6 @@ func (g *graph) authLoginHandler(c *fiber.Ctx) error {
 
 	if len(admins) == 0 {
 		return fiber.NewError(fiber.StatusNotFound)
-
 	}
 
 	var password adminv1.AdminPassword
@@ -188,10 +181,6 @@ func (g *graph) authLogoutHandler(c *fiber.Ctx) error {
 }
 
 func (g *graph) authRegisterHandler(c *fiber.Ctx) error {
-	if _, found := AdminFromContext(c.Context()); !found {
-		return fiber.NewError(fiber.StatusUnauthorized)
-	}
-
 	var request struct {
 		Admin    adminv1.Admin `json:"admin"`
 		Password string        `json:"password"`
@@ -200,23 +189,32 @@ func (g *graph) authRegisterHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	password, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-	}
-
-	keys, err := Create(c.UserContext(), &request.Admin)
-	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-	}
-
-	if _, err := Create(c.UserContext(), &adminv1.AdminPassword{Key: keys[0], PasswordHash: password}); err != nil {
+	if err := g.createAdmin(c.UserContext(), &request.Admin, request.Password); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	return c.SendStatus(fiber.StatusCreated)
 }
 
+func (g *graph) createAdmin(ctx context.Context, admin *adminv1.Admin, password string) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	keys, err := Create(ctx, admin)
+	if err != nil {
+		return err
+	}
+
+	if _, err := Create(ctx, &adminv1.AdminPassword{Key: keys[0], PasswordHash: hash}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/* Resource Handlers */
 func (g *graph) resourcesListHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
 	var keys []string
@@ -394,45 +392,6 @@ func (g *graph) adminSchemaHandler(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(result)
-}
-
-/* Config Handlers */
-func (g *graph) adminConfigInitHandler(c *fiber.Ctx) error {
-	storage, found := StorageFromContext(c.UserContext())
-	if !found {
-		return fmt.Errorf("storage not found in context")
-	}
-
-	if _, err := storage.ReadFile(configName); err == nil {
-		return fiber.NewError(fiber.StatusNotFound)
-	}
-
-	var request ApplicationConfig
-	if err := c.BodyParser(&request); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	}
-
-	cnf, _ := json.Marshal(request)
-	if err := storage.StoreFile(configName, cnf); err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-	}
-
-	return c.SendStatus(fiber.StatusCreated)
-}
-
-func (g *graph) adminConfigHandler(c *fiber.Ctx) error {
-	storage, found := StorageFromContext(c.UserContext())
-	if !found {
-		return fmt.Errorf("storage not found in context")
-	}
-
-	conf, err := storage.ReadFile(configName)
-	if err != nil {
-		return fiber.NewError(fiber.StatusNotFound, err.Error())
-	}
-
-	c.Set("Content-Type", "application/json")
-	return c.Send(conf)
 }
 
 /* Files Handlers */

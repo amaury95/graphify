@@ -108,7 +108,7 @@ func NewObserver[T comparable]() *Observer[T] {
 
 type Topic string
 
-func (t Topic) For(elem interface{}) Topic {
+func (t Topic) For(elem any) Topic {
 	return Topic(string(t) + "_" + CollectionFor(reflect.TypeOf(elem)))
 }
 

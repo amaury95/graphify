@@ -33,7 +33,7 @@ func NewGraph() *graph {
 	}
 }
 
-func (g *graph) Node(node interface{}) {
+func (g *graph) Node(node any) {
 	nodeType := reflect.TypeOf(node)
 	if nodeType.Kind() != reflect.Struct || !isNode(nodeType) {
 		panic(errors.New("node must be a struct with valid fields"))
@@ -47,7 +47,7 @@ func (g *graph) Node(node interface{}) {
 	g.Nodes[nodeName] = nodeType
 }
 
-func (g *graph) Edge(from, to, edge interface{}) {
+func (g *graph) Edge(from, to, edge any) {
 	fromType := reflect.TypeOf(from)
 	toType := reflect.TypeOf(to)
 	edgeType := reflect.TypeOf(edge)
@@ -95,7 +95,7 @@ func (g *graph) AutoMigrate(ctx context.Context) error {
 	return nil
 }
 
-func Collection(ctx context.Context, elem interface{}, callbacks ...func(context.Context, driver.Collection)) (err error) {
+func Collection(ctx context.Context, elem any, callbacks ...func(context.Context, driver.Collection)) (err error) {
 	elemType := reflect.TypeOf(elem)
 	elemName := CollectionFor(elemType)
 

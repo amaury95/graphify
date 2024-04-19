@@ -16,7 +16,7 @@ import (
 )
 
 // List ...
-func List(ctx context.Context, bindVars map[string]interface{}, out interface{}) (int, error) {
+func List(ctx context.Context, bindVars map[string]interface{}, out any) (int, error) {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return -1, fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -62,7 +62,7 @@ func List(ctx context.Context, bindVars map[string]interface{}, out interface{})
 }
 
 // ListKeys ...
-func ListKeys(ctx context.Context, keys []string, out interface{}) error {
+func ListKeys(ctx context.Context, keys []string, out any) error {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -107,7 +107,7 @@ func ListKeys(ctx context.Context, keys []string, out interface{}) error {
 }
 
 // Read ...
-func Read(ctx context.Context, key string, out interface{}) error {
+func Read(ctx context.Context, key string, out any) error {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer {
 		return fmt.Errorf("out must be a pointer to return the element")
@@ -145,7 +145,7 @@ func Read(ctx context.Context, key string, out interface{}) error {
 }
 
 // Create ...
-func Create(ctx context.Context, val interface{}) ([]string, error) {
+func Create(ctx context.Context, val any) ([]string, error) {
 	valType := reflect.TypeOf(val)
 
 	if valType.Kind() == reflect.Slice && valType.Elem().Kind() == reflect.Struct {
@@ -158,7 +158,7 @@ func Create(ctx context.Context, val interface{}) ([]string, error) {
 
 	return nil, fmt.Errorf("val must be struct or list of struct")
 }
-func createDocuments(ctx context.Context, items interface{}) (result []string, err error) {
+func createDocuments(ctx context.Context, items any) (result []string, err error) {
 	itemType := reflect.TypeOf(items).Elem()
 
 	conn, found := ConnectionFromContext(ctx)
@@ -206,7 +206,7 @@ func createDocuments(ctx context.Context, items interface{}) (result []string, e
 
 	return result, nil
 }
-func createDocument(ctx context.Context, item interface{}) ([]string, error) {
+func createDocument(ctx context.Context, item any) ([]string, error) {
 	itemType := reflect.TypeOf(item).Elem()
 
 	conn, found := ConnectionFromContext(ctx)
@@ -246,7 +246,7 @@ func createDocument(ctx context.Context, item interface{}) ([]string, error) {
 }
 
 // Update ...
-func Update(ctx context.Context, key string, item interface{}) error {
+func Update(ctx context.Context, key string, item any) error {
 	itemVal := reflect.ValueOf(item)
 	if itemVal.Kind() != reflect.Pointer || itemVal.Elem().Kind() != reflect.Struct {
 		return fmt.Errorf("item should be a pointer to struct")
@@ -288,7 +288,7 @@ func Update(ctx context.Context, key string, item interface{}) error {
 }
 
 // Delete ...
-func Delete(ctx context.Context, item interface{}) error {
+func Delete(ctx context.Context, item any) error {
 	itemVal := reflect.ValueOf(item)
 	if itemVal.Kind() != reflect.Pointer || itemVal.Elem().Kind() != reflect.Struct {
 		return fmt.Errorf("item should be a pointer to struct")
@@ -346,7 +346,7 @@ const (
 )
 
 // Relations ...
-func Relations(ctx context.Context, id string, bindVars map[string]interface{}, direction Direction, out interface{}) (int, error) {
+func Relations(ctx context.Context, id string, bindVars map[string]interface{}, direction Direction, out any) (int, error) {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return -1, fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -407,7 +407,7 @@ func Relations(ctx context.Context, id string, bindVars map[string]interface{}, 
 	return 0, nil // TODO: finish return total count
 }
 
-func protoEncode(item interface{}) ([]byte, bool) {
+func protoEncode(item any) ([]byte, bool) {
 	message := reflect.New(reflect.TypeOf(item))
 	message.Elem().Set(reflect.ValueOf(item))
 	if elem, ok := message.Interface().(protoreflect.ProtoMessage); ok {
