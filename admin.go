@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"reflect"
+	"strconv"
+	"strings"
 	"time"
 
 	adminv1 "github.com/amaury95/graphify/models/domain/admin/v1"
@@ -43,10 +45,10 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 
 	auth := admin.Group("/auth")
 	auth.Post("/login", g.authLoginHandler)
+	auth.Post("/account", g.authRegisterHandler)
 	auth.Use(g.authorized)
 	auth.Post("/logout", g.authLogoutHandler)
 	auth.Get("/account", g.authAccountHandler)
-	auth.Post("/account", g.authRegisterHandler)
 
 	if _, found := StorageFromContext(ctx); found {
 		files := admin.Group("/files", g.authorized)
@@ -217,7 +219,7 @@ func (g *graph) createAdmin(ctx context.Context, admin *adminv1.Admin, password 
 /* Resource Handlers */
 func (g *graph) resourcesListHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
-	var keys []string
+	keys := getQueryList(c, "keys")
 
 	elemType, found := g.restElem(resource)
 	if !found {
@@ -233,11 +235,23 @@ func (g *graph) resourcesListHandler(c *fiber.Ctx) error {
 		return c.JSON(elems.Interface())
 	}
 
-	if _, err := List(c.UserContext(), nil, elems.Interface()); err != nil {
+	bindVars := make(map[string]interface{})
+	if offset, err := strconv.ParseInt(c.Query("offset"), 10, 64); err == nil {
+		bindVars["offset"] = offset
+	}
+	if count, err := strconv.ParseInt(c.Query("count"), 10, 64); err == nil {
+		bindVars["count"] = count
+	}
+
+	count, err := List(c.UserContext(), bindVars, elems.Interface())
+	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(elems.Interface())
+	return c.JSON(Pagination{
+		Items: elems.Interface(),
+		Count: count,
+	})
 }
 
 func (g *graph) resourcesGetHandler(c *fiber.Ctx) error {
@@ -482,4 +496,17 @@ func (g *graph) restElem(name string) (reflect.Type, bool) {
 
 func getId(resource, key string) string {
 	return resource + "/" + key
+}
+
+func getQueryList(c *fiber.Ctx, key string) (values []string) {
+	query := c.Query(key)
+	if len(query) > 0 {
+		values = append(values, strings.Split(query, ",")...)
+	}
+	return
+}
+
+type Pagination struct {
+	Items any   `json:"items"`
+	Count int64 `json:"count"`
 }

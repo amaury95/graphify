@@ -16,7 +16,7 @@ import (
 )
 
 // List ...
-func List(ctx context.Context, bindVars map[string]interface{}, out any) (int, error) {
+func List(ctx context.Context, bindVars map[string]interface{}, out any) (int64, error) {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return -1, fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -35,6 +35,15 @@ func List(ctx context.Context, bindVars map[string]interface{}, out any) (int, e
 	db, err := conn.GetDatabase(ctx)
 	if err != nil {
 		return -1, fmt.Errorf("failed to establish connection: %w", err)
+	}
+
+	collection, err := conn.GetCollection(ctx, elemType)
+	if err != nil {
+		return -1, fmt.Errorf("failed tp load collection: %w", err)
+	}
+	count, err := collection.Count(ctx)
+	if err != nil {
+		return -1, err
 	}
 
 	query := fmt.Sprintf(`FOR doc IN %s %s %s RETURN doc`, CollectionFor(elemType), getFilters(bindVars), getLimit(bindVars))
@@ -58,7 +67,7 @@ func List(ctx context.Context, bindVars map[string]interface{}, out any) (int, e
 
 	outValue := reflect.ValueOf(out).Elem()
 	outValue.Set(result)
-	return 0, nil // TODO: finish return total count
+	return count, nil // TODO: finish return total count
 }
 
 // ListKeys ...

@@ -1814,12 +1814,12 @@ var Category_Enum = graphql.NewEnum(graphql.EnumConfig{
 func (*Character) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "Character",
-		"fields": map[string]interface{}{
-			"name": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "name",
 				"type": "string",
 			},
-			"role": map[string]interface{}{
+			map[string]interface{}{
 				"name": "role",
 				"type": "string",
 			},
@@ -1832,37 +1832,37 @@ func (*Character) Schema() map[string]interface{} {
 func (*Book) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "Book",
-		"fields": map[string]interface{}{
-			"_key": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "_key",
 				"type": "string",
 			},
-			"title": map[string]interface{}{
+			map[string]interface{}{
 				"name": "title",
 				"type": "string",
 			},
-			"author": map[string]interface{}{
+			map[string]interface{}{
 				"name": "author",
 				"type": "string",
 			},
-			"mainReview": map[string]interface{}{
+			map[string]interface{}{
 				"name":     "mainReview",
 				"optional": true,
 				"type":     "message",
 				"schema":   new(Book_Review).Schema(),
 			},
-			"reviews": map[string]interface{}{
+			map[string]interface{}{
 				"name":   "reviews",
 				"kind":   "list",
 				"type":   "message",
 				"schema": new(Book_Review).Schema(),
 			},
-			"tags": map[string]interface{}{
+			map[string]interface{}{
 				"name": "tags",
 				"kind": "list",
 				"type": "string",
 			},
-			"bookPrice": map[string]interface{}{
+			map[string]interface{}{
 				"name": "bookPrice",
 				"kind": "map",
 				"key": map[string]interface{}{
@@ -1872,7 +1872,7 @@ func (*Book) Schema() map[string]interface{} {
 					"type": "int32",
 				},
 			},
-			"chapters": map[string]interface{}{
+			map[string]interface{}{
 				"name": "chapters",
 				"kind": "map",
 				"key": map[string]interface{}{
@@ -1882,7 +1882,7 @@ func (*Book) Schema() map[string]interface{} {
 					"type": "string",
 				},
 			},
-			"characters": map[string]interface{}{
+			map[string]interface{}{
 				"name": "characters",
 				"kind": "map",
 				"key": map[string]interface{}{
@@ -1893,16 +1893,16 @@ func (*Book) Schema() map[string]interface{} {
 					"schema": new(Character).Schema(),
 				},
 			},
-			"portrait": map[string]interface{}{
+			map[string]interface{}{
 				"name": "portrait",
 				"type": "bytes",
 			},
-			"gallery": map[string]interface{}{
+			map[string]interface{}{
 				"name": "gallery",
 				"kind": "list",
 				"type": "bytes",
 			},
-			"category": map[string]interface{}{
+			map[string]interface{}{
 				"name": "category",
 				"type": "enum",
 				"options": map[string]interface{}{
@@ -1957,12 +1957,12 @@ func (*Book) Schema() map[string]interface{} {
 func (*Book_Novel) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "Book_Novel",
-		"fields": map[string]interface{}{
-			"genre": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "genre",
 				"type": "string",
 			},
-			"publicationYear": map[string]interface{}{
+			map[string]interface{}{
 				"name": "publicationYear",
 				"type": "int32",
 			},
@@ -1975,12 +1975,12 @@ func (*Book_Novel) Schema() map[string]interface{} {
 func (*Book_ShortStory) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "Book_ShortStory",
-		"fields": map[string]interface{}{
-			"lengthPages": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "lengthPages",
 				"type": "int32",
 			},
-			"isCollection": map[string]interface{}{
+			map[string]interface{}{
 				"name": "isCollection",
 				"type": "bool",
 			},
@@ -1993,12 +1993,12 @@ func (*Book_ShortStory) Schema() map[string]interface{} {
 func (*Book_Academic) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "Book_Academic",
-		"fields": map[string]interface{}{
-			"subject": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "subject",
 				"type": "string",
 			},
-			"edition": map[string]interface{}{
+			map[string]interface{}{
 				"name": "edition",
 				"type": "int32",
 			},
@@ -2011,12 +2011,12 @@ func (*Book_Academic) Schema() map[string]interface{} {
 func (*Book_Poetry) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "Book_Poetry",
-		"fields": map[string]interface{}{
-			"style": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "style",
 				"type": "string",
 			},
-			"isAnthology": map[string]interface{}{
+			map[string]interface{}{
 				"name": "isAnthology",
 				"type": "bool",
 			},
@@ -2029,12 +2029,12 @@ func (*Book_Poetry) Schema() map[string]interface{} {
 func (*Book_Biography) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "Book_Biography",
-		"fields": map[string]interface{}{
-			"subjectPerson": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "subjectPerson",
 				"type": "string",
 			},
-			"notableAchievements": map[string]interface{}{
+			map[string]interface{}{
 				"name": "notableAchievements",
 				"type": "string",
 			},
@@ -2047,12 +2047,12 @@ func (*Book_Biography) Schema() map[string]interface{} {
 func (*Book_Review) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "Book_Review",
-		"fields": map[string]interface{}{
-			"message": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "message",
 				"type": "string",
 			},
-			"name": map[string]interface{}{
+			map[string]interface{}{
 				"name": "name",
 				"type": "string",
 			},
@@ -2065,20 +2065,20 @@ func (*Book_Review) Schema() map[string]interface{} {
 func (*Client) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "Client",
-		"fields": map[string]interface{}{
-			"_key": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "_key",
 				"type": "string",
 			},
-			"name": map[string]interface{}{
+			map[string]interface{}{
 				"name": "name",
 				"type": "string",
 			},
-			"email": map[string]interface{}{
+			map[string]interface{}{
 				"name": "email",
 				"type": "string",
 			},
-			"member": map[string]interface{}{
+			map[string]interface{}{
 				"name": "member",
 				"type": "bool",
 			},
@@ -2091,20 +2091,20 @@ func (*Client) Schema() map[string]interface{} {
 func (*Borrow) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "Borrow",
-		"fields": map[string]interface{}{
-			"_key": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "_key",
 				"type": "string",
 			},
-			"_from": map[string]interface{}{
+			map[string]interface{}{
 				"name": "_from",
 				"type": "string",
 			},
-			"_to": map[string]interface{}{
+			map[string]interface{}{
 				"name": "_to",
 				"type": "string",
 			},
-			"date": map[string]interface{}{
+			map[string]interface{}{
 				"name":     "date",
 				"optional": true,
 				"type":     "int64",
@@ -2118,16 +2118,16 @@ func (*Borrow) Schema() map[string]interface{} {
 func (*Library) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "Library",
-		"fields": map[string]interface{}{
-			"_key": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "_key",
 				"type": "string",
 			},
-			"name": map[string]interface{}{
+			map[string]interface{}{
 				"name": "name",
 				"type": "string",
 			},
-			"location": map[string]interface{}{
+			map[string]interface{}{
 				"name":     "location",
 				"optional": true,
 				"type":     "message",
@@ -2142,12 +2142,12 @@ func (*Library) Schema() map[string]interface{} {
 func (*Library_Location) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "Library_Location",
-		"fields": map[string]interface{}{
-			"lat": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "lat",
 				"type": "float",
 			},
-			"lng": map[string]interface{}{
+			map[string]interface{}{
 				"name": "lng",
 				"type": "float",
 			},

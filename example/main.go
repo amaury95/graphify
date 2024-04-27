@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"os"
+	// "os"
 
-	"golang.org/x/term"
+	// "golang.org/x/term"
 
 	"github.com/amaury95/graphify"
 	libraryv1 "github.com/amaury95/graphify/example/domain/library/v1"
@@ -25,17 +25,17 @@ func main() {
 		password []byte
 		err      error
 	)
-	// Prompt for username
-	fmt.Print("Enter ArangoDB username: ")
-	fmt.Scanln(&username)
+	// // Prompt for username
+	// fmt.Print("Enter ArangoDB username: ")
+	// fmt.Scanln(&username)
 
-	// Prompt for password
-	fmt.Print("Enter password: ")
-	password, err = term.ReadPassword(int(os.Stdin.Fd()))
-	if err != nil {
-		fmt.Println("Error reading password:", err)
-		return
-	}
+	// // Prompt for password
+	// fmt.Print("Enter password: ")
+	// password, err = term.ReadPassword(int(os.Stdin.Fd()))
+	// if err != nil {
+	// 	fmt.Println("Error reading password:", err)
+	// 	return
+	// }
 
 	// Define app context
 	ctx := graphify.DevelopmentContext(context.Background())
