@@ -348,12 +348,12 @@ var DeletedPayload_Object = graphql.NewObject(graphql.ObjectConfig{
 func (*CreatedPayload) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "CreatedPayload",
-		"fields": map[string]interface{}{
-			"key": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "key",
 				"type": "string",
 			},
-			"element": map[string]interface{}{
+			map[string]interface{}{
 				"name": "element",
 				"type": "bytes",
 			},
@@ -366,8 +366,8 @@ func (*CreatedPayload) Schema() map[string]interface{} {
 func (*UpdatedPayload) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "UpdatedPayload",
-		"fields": map[string]interface{}{
-			"element": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "element",
 				"type": "bytes",
 			},
@@ -380,8 +380,8 @@ func (*UpdatedPayload) Schema() map[string]interface{} {
 func (*DeletedPayload) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "DeletedPayload",
-		"fields": map[string]interface{}{
-			"key": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "key",
 				"type": "string",
 			},

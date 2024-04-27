@@ -363,29 +363,29 @@ var AdminPassword_Object = graphql.NewObject(graphql.ObjectConfig{
 func (*Admin) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "Admin",
-		"fields": map[string]interface{}{
-			"_key": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "_key",
 				"type": "string",
 			},
-			"firstName": map[string]interface{}{
+			map[string]interface{}{
 				"name": "firstName",
 				"type": "string",
 			},
-			"lastName": map[string]interface{}{
+			map[string]interface{}{
 				"name": "lastName",
 				"type": "string",
 			},
-			"email": map[string]interface{}{
+			map[string]interface{}{
 				"name": "email",
 				"type": "string",
 			},
-			"avatar": map[string]interface{}{
+			map[string]interface{}{
 				"name":     "avatar",
 				"optional": true,
 				"type":     "bytes",
 			},
-			"notes": map[string]interface{}{
+			map[string]interface{}{
 				"name":     "notes",
 				"optional": true,
 				"type":     "string",
@@ -399,12 +399,12 @@ func (*Admin) Schema() map[string]interface{} {
 func (*AdminPassword) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "AdminPassword",
-		"fields": map[string]interface{}{
-			"_key": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "_key",
 				"type": "string",
 			},
-			"passwordHash": map[string]interface{}{
+			map[string]interface{}{
 				"name": "passwordHash",
 				"type": "bytes",
 			},

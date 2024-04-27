@@ -66,7 +66,7 @@ func main() {
 
 	// Seed
 	seed(ctx)
-	
+
 	// Add observer events
 	if observer, found := graphify.ObserverFromContext(ctx); found {
 		observer.Subscribe(
@@ -140,7 +140,7 @@ func seed(ctx context.Context) {
 	})
 
 	graphify.Delete(ctx, &libraryv1.Client{Key: "100"})
-	graphify.Create(ctx, &libraryv1.Client{Key: "100", Name: "Gabriela", Email: "gabi.santacruzpacheco@gmail.com", Member: true})
+	graphify.Create(ctx, &libraryv1.Client{Key: "100", Name: "Gabriela", Email: "gabi.santacruzpacheco@gmail.com"})
 
 	graphify.Delete(ctx, &libraryv1.Borrow{Key: "100"})
 	graphify.Create(ctx, &libraryv1.Borrow{Key: "100", From: "clients/100", To: "books/100", Date: &now})

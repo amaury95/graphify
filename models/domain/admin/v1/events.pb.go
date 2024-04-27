@@ -394,16 +394,16 @@ var AdminDeletedPayload_Object = graphql.NewObject(graphql.ObjectConfig{
 func (*AdminCreatedPayload) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "AdminCreatedPayload",
-		"fields": map[string]interface{}{
-			"key": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "key",
 				"type": "string",
 			},
-			"element": map[string]interface{}{
+			map[string]interface{}{
 				"name": "element",
 				"type": "bytes",
 			},
-			"admin": map[string]interface{}{
+			map[string]interface{}{
 				"name":     "admin",
 				"optional": true,
 				"type":     "message",
@@ -418,12 +418,12 @@ func (*AdminCreatedPayload) Schema() map[string]interface{} {
 func (*AdminUpdatedPayload) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "AdminUpdatedPayload",
-		"fields": map[string]interface{}{
-			"element": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "element",
 				"type": "bytes",
 			},
-			"admin": map[string]interface{}{
+			map[string]interface{}{
 				"name":     "admin",
 				"optional": true,
 				"type":     "message",
@@ -438,12 +438,12 @@ func (*AdminUpdatedPayload) Schema() map[string]interface{} {
 func (*AdminDeletedPayload) Schema() map[string]interface{} {
 	return map[string]interface{}{
 		"name": "AdminDeletedPayload",
-		"fields": map[string]interface{}{
-			"key": map[string]interface{}{
+		"fields": []interface{}{
+			map[string]interface{}{
 				"name": "key",
 				"type": "string",
 			},
-			"admin": map[string]interface{}{
+			map[string]interface{}{
 				"name":     "admin",
 				"optional": true,
 				"type":     "message",
