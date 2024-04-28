@@ -296,6 +296,48 @@ func Update(ctx context.Context, key string, item any) error {
 	return nil
 }
 
+// Replace ...
+func Replace(ctx context.Context, key string, item any) error {
+	itemVal := reflect.ValueOf(item)
+	if itemVal.Kind() != reflect.Pointer || itemVal.Elem().Kind() != reflect.Struct {
+		return fmt.Errorf("item should be a pointer to struct")
+	}
+
+	conn, found := ConnectionFromContext(ctx)
+	if !found {
+		return fmt.Errorf("connection not found in context")
+	}
+
+	col, err := conn.GetCollection(ctx, reflect.TypeOf(item).Elem())
+	if err != nil {
+		return fmt.Errorf("failed to load collection: %w", err)
+	}
+
+	if _, err := col.ReplaceDocument(ctx, key, item); err != nil {
+		return fmt.Errorf("failed to replace the document")
+	}
+
+	if observer, found := ObserverFromContext(ctx); found {
+		if bytes, ok := protoEncode(item); ok {
+			go observer.Emit(&Event[Topic]{
+				Topic:     ReplacedTopic.For(item),
+				Payload:   &observerv1.ReplacedPayload{Element: bytes},
+				Timestamp: time.Now(),
+			})
+
+			if admin, ok := AdminFromContext(ctx); ok {
+				go observer.Emit(&Event[Topic]{
+					Topic:     AdminReplacedTopic.For(item),
+					Payload:   &adminv1.AdminReplacedPayload{Element: bytes, Admin: admin},
+					Timestamp: time.Now(),
+				})
+			}
+		}
+	}
+
+	return nil
+}
+
 // Delete ...
 func Delete(ctx context.Context, item any) error {
 	itemVal := reflect.ValueOf(item)

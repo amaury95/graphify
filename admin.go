@@ -60,7 +60,7 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	resources.Get("", g.resourcesListHandler)
 	resources.Post("", g.resourcesCreateHandler)
 	resources.Get("/:key", g.resourcesGetHandler)
-	resources.Put("/:key", g.resourcesUpdateHandler)
+	resources.Put("/:key", g.resourcesReplaceHandler)
 	resources.Delete("/:key", g.resourcesDeleteHandler)
 	resources.Get("/:key/:relation", g.resourcesRelationHandler)
 
@@ -293,7 +293,7 @@ func (g *graph) resourcesCreateHandler(c *fiber.Ctx) error {
 	return c.JSON(keys)
 }
 
-func (g *graph) resourcesUpdateHandler(c *fiber.Ctx) error {
+func (g *graph) resourcesReplaceHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
 	key := c.Params("key")
 
@@ -307,7 +307,7 @@ func (g *graph) resourcesUpdateHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	if err := Update(c.UserContext(), key, elem.Interface()); err != nil {
+	if err := Replace(c.UserContext(), key, elem.Interface()); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 

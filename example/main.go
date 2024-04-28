@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"time"
 
 	// "os"
 
@@ -64,9 +63,6 @@ func main() {
 	})
 	graph.AutoMigrate(ctx)
 
-	// Seed
-	seed(ctx)
-
 	// Add observer events
 	if observer, found := graphify.ObserverFromContext(ctx); found {
 		observer.Subscribe(
@@ -95,55 +91,6 @@ func main() {
 	if err = server.ListenAndServe(); err != nil {
 		fmt.Println("Error:", err)
 	}
-}
-
-func seed(ctx context.Context) {
-	now := time.Now().Unix()
-
-	graphify.Delete(ctx, &libraryv1.Book{Key: "100"})
-	graphify.Create(ctx, &libraryv1.Book{
-		Key:    "100",
-		Title:  "The Great Gatsby",
-		Author: "F. Scott Fitzgerald",
-		Type: &libraryv1.Book_Novel_{
-			Novel: &libraryv1.Book_Novel{
-				Genre:           "Fiction",
-				PublicationYear: 1925,
-			},
-		},
-		MainReview: &libraryv1.Book_Review{
-			Message:  "Review",
-			UserName: "Name",
-		},
-		Reviews: []*libraryv1.Book_Review{
-			{Message: "List", UserName: "User List"},
-		},
-		Tags: []string{"action", "fiction"},
-		BookPrice: map[string]int32{
-			"new":  200,
-			"used": 100,
-		},
-		Chapters: map[int32]string{
-			1: "The Phantom Menace",
-			2: "Attack of the Clones",
-		},
-		Portrait: []byte("https://picsum.photos/200/300"),
-		Gallery:  [][]byte{[]byte("https://picsum.photos/200/300"), []byte("https://picsum.photos/200/300")},
-		Characters: map[string]*libraryv1.Character{
-			"J. Gatsby": {Name: "J. Gatsby", Role: "Main Character"},
-		},
-		Category: 1,
-
-		Role: &libraryv1.Book_Other{
-			Other: "moderator",
-		},
-	})
-
-	graphify.Delete(ctx, &libraryv1.Client{Key: "100"})
-	graphify.Create(ctx, &libraryv1.Client{Key: "100", Name: "Gabriela", Email: "gabi.santacruzpacheco@gmail.com"})
-
-	graphify.Delete(ctx, &libraryv1.Borrow{Key: "100"})
-	graphify.Create(ctx, &libraryv1.Borrow{Key: "100", From: "clients/100", To: "books/100", Date: &now})
 }
 
 // logCreatedBook ...

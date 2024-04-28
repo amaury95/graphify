@@ -8,4 +8,6 @@ message CreatedPayload {
 
 message UpdatedPayload { bytes element = 1; }
 
+message ReplacedPayload { bytes element = 1; }
+
 message DeletedPayload { string key = 1; }
