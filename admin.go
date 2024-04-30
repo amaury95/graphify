@@ -71,7 +71,10 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	resources.Delete("/:key", g.resourcesDeleteHandler)
 	resources.Get("/:key/:relation", g.resourcesRelationHandler)
 
-	
+	// Redirect to Dashboard on NotFound
+	admin.Get("/", func(c *fiber.Ctx) error {
+		return c.Redirect("/admin/dashboard")
+	})
 	return adaptor.FiberApp(router)
 }
 
