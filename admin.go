@@ -11,12 +11,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/amaury95/graphify/client"
 	adminv1 "github.com/amaury95/graphify/models/domain/admin/v1"
 	graphify "github.com/amaury95/protoc-gen-graphify/utils"
 	"github.com/arangodb/go-driver"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -42,6 +44,11 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 
 	admin := router.Group("/admin")
 	admin.Get("/schema", g.adminSchemaHandler)
+	admin.Use("/dashboard", filesystem.New(filesystem.Config{
+		Root:       http.FS(client.Build),
+		PathPrefix: "build",
+		Browse:     true,
+	}))
 
 	auth := admin.Group("/auth")
 	auth.Post("/login", g.authLoginHandler)
@@ -64,6 +71,7 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	resources.Delete("/:key", g.resourcesDeleteHandler)
 	resources.Get("/:key/:relation", g.resourcesRelationHandler)
 
+	
 	return adaptor.FiberApp(router)
 }
 
