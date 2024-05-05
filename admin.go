@@ -13,7 +13,7 @@ import (
 
 	"github.com/amaury95/graphify/client"
 	adminv1 "github.com/amaury95/graphify/models/domain/admin/v1"
-	graphify "github.com/amaury95/protoc-gen-graphify/utils"
+	"github.com/amaury95/protoc-gen-graphify/interfaces"
 	"github.com/arangodb/go-driver"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
@@ -133,7 +133,7 @@ func (g *graph) authLoginHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	var admins []adminv1.Admin
+	var admins []*adminv1.Admin
 	if _, err := List(c.UserContext(), map[string]interface{}{"email": request.Email}, &admins); err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
@@ -237,7 +237,7 @@ func (g *graph) resourcesListHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
-	elems := reflect.New(reflect.SliceOf(elemType))
+	elems := reflect.New(reflect.SliceOf(reflect.PointerTo(elemType)))
 
 	if len(keys) > 0 {
 		if err := ListKeys(c.UserContext(), keys, elems.Interface()); err != nil {
@@ -395,7 +395,7 @@ func (g *graph) adminSchemaHandler(c *fiber.Ctx) error {
 	nodes := map[string]interface{}{}
 	for name, nodeType := range g.Nodes {
 		node := reflect.New(nodeType).Interface()
-		if spec, ok := node.(graphify.Message); ok {
+		if spec, ok := node.(interfaces.Message); ok {
 			nodes[name] = spec.Schema()
 		}
 	}
@@ -404,7 +404,7 @@ func (g *graph) adminSchemaHandler(c *fiber.Ctx) error {
 	edges := map[string]interface{}{}
 	for name, edgeType := range g.Edges {
 		edge := reflect.New(edgeType).Interface()
-		if spec, ok := edge.(graphify.Message); ok {
+		if spec, ok := edge.(interfaces.Message); ok {
 			edges[name] = spec.Schema()
 		}
 	}

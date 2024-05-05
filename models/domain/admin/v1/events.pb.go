@@ -404,8 +404,8 @@ func file_admin_v1_events_proto_init() {
 	Graphql object
 */
 
-/* QueryObject ... */
-func (*AdminCreatedPayload) QueryObject() *graphql.Object {
+/* Object ... */
+func (*AdminCreatedPayload) Object() *graphql.Object {
 	return AdminCreatedPayload_Object
 }
 
@@ -425,8 +425,45 @@ var AdminCreatedPayload_Object = graphql.NewObject(graphql.ObjectConfig{
 	Description: "",
 })
 
-/* QueryObject ... */
-func (*AdminUpdatedPayload) QueryObject() *graphql.Object {
+var AdminCreatedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "AdminCreatedPayload_Input",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"key": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"element": &graphql.InputObjectFieldConfig{
+			Type: utils.Bytes,
+		},
+		"admin": &graphql.InputObjectFieldConfig{
+			Type: Admin_Input,
+		},
+	},
+})
+
+/* Argument ... */
+func (*AdminCreatedPayload) Argument() graphql.FieldConfigArgument {
+	return AdminCreatedPayload_Arg
+}
+
+/* Output ... */
+func (*AdminCreatedPayload) Output() graphql.Output {
+	return AdminCreatedPayload_Object
+}
+
+var AdminCreatedPayload_Arg = graphql.FieldConfigArgument{
+	"key": &graphql.ArgumentConfig{
+		Type: graphql.String,
+	},
+	"element": &graphql.ArgumentConfig{
+		Type: utils.Bytes,
+	},
+	"admin": &graphql.ArgumentConfig{
+		Type: Admin_Input,
+	},
+}
+
+/* Object ... */
+func (*AdminUpdatedPayload) Object() *graphql.Object {
 	return AdminUpdatedPayload_Object
 }
 
@@ -443,8 +480,39 @@ var AdminUpdatedPayload_Object = graphql.NewObject(graphql.ObjectConfig{
 	Description: "",
 })
 
-/* QueryObject ... */
-func (*AdminReplacedPayload) QueryObject() *graphql.Object {
+var AdminUpdatedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "AdminUpdatedPayload_Input",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"element": &graphql.InputObjectFieldConfig{
+			Type: utils.Bytes,
+		},
+		"admin": &graphql.InputObjectFieldConfig{
+			Type: Admin_Input,
+		},
+	},
+})
+
+/* Argument ... */
+func (*AdminUpdatedPayload) Argument() graphql.FieldConfigArgument {
+	return AdminUpdatedPayload_Arg
+}
+
+/* Output ... */
+func (*AdminUpdatedPayload) Output() graphql.Output {
+	return AdminUpdatedPayload_Object
+}
+
+var AdminUpdatedPayload_Arg = graphql.FieldConfigArgument{
+	"element": &graphql.ArgumentConfig{
+		Type: utils.Bytes,
+	},
+	"admin": &graphql.ArgumentConfig{
+		Type: Admin_Input,
+	},
+}
+
+/* Object ... */
+func (*AdminReplacedPayload) Object() *graphql.Object {
 	return AdminReplacedPayload_Object
 }
 
@@ -461,8 +529,39 @@ var AdminReplacedPayload_Object = graphql.NewObject(graphql.ObjectConfig{
 	Description: "",
 })
 
-/* QueryObject ... */
-func (*AdminDeletedPayload) QueryObject() *graphql.Object {
+var AdminReplacedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "AdminReplacedPayload_Input",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"element": &graphql.InputObjectFieldConfig{
+			Type: utils.Bytes,
+		},
+		"admin": &graphql.InputObjectFieldConfig{
+			Type: Admin_Input,
+		},
+	},
+})
+
+/* Argument ... */
+func (*AdminReplacedPayload) Argument() graphql.FieldConfigArgument {
+	return AdminReplacedPayload_Arg
+}
+
+/* Output ... */
+func (*AdminReplacedPayload) Output() graphql.Output {
+	return AdminReplacedPayload_Object
+}
+
+var AdminReplacedPayload_Arg = graphql.FieldConfigArgument{
+	"element": &graphql.ArgumentConfig{
+		Type: utils.Bytes,
+	},
+	"admin": &graphql.ArgumentConfig{
+		Type: Admin_Input,
+	},
+}
+
+/* Object ... */
+func (*AdminDeletedPayload) Object() *graphql.Object {
 	return AdminDeletedPayload_Object
 }
 
@@ -478,6 +577,37 @@ var AdminDeletedPayload_Object = graphql.NewObject(graphql.ObjectConfig{
 	},
 	Description: "",
 })
+
+var AdminDeletedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "AdminDeletedPayload_Input",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"key": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"admin": &graphql.InputObjectFieldConfig{
+			Type: Admin_Input,
+		},
+	},
+})
+
+/* Argument ... */
+func (*AdminDeletedPayload) Argument() graphql.FieldConfigArgument {
+	return AdminDeletedPayload_Arg
+}
+
+/* Output ... */
+func (*AdminDeletedPayload) Output() graphql.Output {
+	return AdminDeletedPayload_Object
+}
+
+var AdminDeletedPayload_Arg = graphql.FieldConfigArgument{
+	"key": &graphql.ArgumentConfig{
+		Type: graphql.String,
+	},
+	"admin": &graphql.ArgumentConfig{
+		Type: Admin_Input,
+	},
+}
 
 /*
 	Graphify schema module

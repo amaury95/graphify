@@ -289,8 +289,8 @@ func file_admin_v1_admin_proto_init() {
 	Graphql object
 */
 
-/* QueryObject ... */
-func (*Admin) QueryObject() *graphql.Object {
+/* Object ... */
+func (*Admin) Object() *graphql.Object {
 	return Admin_Object
 }
 
@@ -337,8 +337,63 @@ var option_Admin_Notes = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
-/* QueryObject ... */
-func (*AdminPassword) QueryObject() *graphql.Object {
+var Admin_Input = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "Admin_Input",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"_key": &graphql.InputObjectFieldConfig{
+			Type: graphql.ID,
+		},
+		"firstName": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"lastName": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"email": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"avatar": &graphql.InputObjectFieldConfig{
+			Type: utils.Bytes,
+		},
+		"notes": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+	},
+})
+
+/* Argument ... */
+func (*Admin) Argument() graphql.FieldConfigArgument {
+	return Admin_Arg
+}
+
+/* Output ... */
+func (*Admin) Output() graphql.Output {
+	return Admin_Object
+}
+
+var Admin_Arg = graphql.FieldConfigArgument{
+	"_key": &graphql.ArgumentConfig{
+		Type: graphql.ID,
+	},
+	"firstName": &graphql.ArgumentConfig{
+		Type: graphql.String,
+	},
+	"lastName": &graphql.ArgumentConfig{
+		Type: graphql.String,
+	},
+	"email": &graphql.ArgumentConfig{
+		Type: graphql.String,
+	},
+	"avatar": &graphql.ArgumentConfig{
+		Type: utils.Bytes,
+	},
+	"notes": &graphql.ArgumentConfig{
+		Type: graphql.String,
+	},
+}
+
+/* Object ... */
+func (*AdminPassword) Object() *graphql.Object {
 	return AdminPassword_Object
 }
 
@@ -354,6 +409,37 @@ var AdminPassword_Object = graphql.NewObject(graphql.ObjectConfig{
 	},
 	Description: "",
 })
+
+var AdminPassword_Input = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "AdminPassword_Input",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"_key": &graphql.InputObjectFieldConfig{
+			Type: graphql.ID,
+		},
+		"passwordHash": &graphql.InputObjectFieldConfig{
+			Type: utils.Bytes,
+		},
+	},
+})
+
+/* Argument ... */
+func (*AdminPassword) Argument() graphql.FieldConfigArgument {
+	return AdminPassword_Arg
+}
+
+/* Output ... */
+func (*AdminPassword) Output() graphql.Output {
+	return AdminPassword_Object
+}
+
+var AdminPassword_Arg = graphql.FieldConfigArgument{
+	"_key": &graphql.ArgumentConfig{
+		Type: graphql.ID,
+	},
+	"passwordHash": &graphql.ArgumentConfig{
+		Type: utils.Bytes,
+	},
+}
 
 /*
 	Graphify schema module

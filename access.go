@@ -9,7 +9,7 @@ import (
 
 	adminv1 "github.com/amaury95/graphify/models/domain/admin/v1"
 	observerv1 "github.com/amaury95/graphify/models/domain/observer/v1"
-	protocgengraphify "github.com/amaury95/protoc-gen-graphify/utils"
+	"github.com/amaury95/protoc-gen-graphify/interfaces"
 	"github.com/arangodb/go-driver"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -23,8 +23,8 @@ func List(ctx context.Context, bindVars map[string]interface{}, out any) (int64,
 	}
 
 	elemType := outType.Elem().Elem()
-	if elemType.Kind() != reflect.Struct {
-		return -1, fmt.Errorf("out elements must be struct")
+	if elemType.Kind() != reflect.Pointer && elemType.Elem().Kind() != reflect.Struct {
+		return -1, fmt.Errorf("out elements must be pointers to struct")
 	}
 
 	conn, found := ConnectionFromContext(ctx)
@@ -37,7 +37,7 @@ func List(ctx context.Context, bindVars map[string]interface{}, out any) (int64,
 		return -1, fmt.Errorf("failed to establish connection: %w", err)
 	}
 
-	collection, err := conn.GetCollection(ctx, elemType)
+	collection, err := conn.GetCollection(ctx, elemType.Elem())
 	if err != nil {
 		return -1, fmt.Errorf("failed tp load collection: %w", err)
 	}
@@ -46,7 +46,7 @@ func List(ctx context.Context, bindVars map[string]interface{}, out any) (int64,
 		return -1, err
 	}
 
-	query := fmt.Sprintf(`FOR doc IN %s %s %s RETURN doc`, CollectionFor(elemType), getFilters(bindVars), getLimit(bindVars))
+	query := fmt.Sprintf(`FOR doc IN %s %s %s RETURN doc`, CollectionFor(elemType.Elem()), getFilters(bindVars), getLimit(bindVars))
 
 	cursor, err := db.Query(ctx, query, bindVars)
 	if err != nil {
@@ -56,13 +56,13 @@ func List(ctx context.Context, bindVars map[string]interface{}, out any) (int64,
 
 	result := reflect.MakeSlice(reflect.SliceOf(elemType), 0, 0)
 	for {
-		elem := reflect.New(elemType)
+		elem := reflect.New(elemType.Elem())
 		if _, err := cursor.ReadDocument(ctx, elem.Interface()); driver.IsNoMoreDocuments(err) {
 			break
 		} else if err != nil {
 			return -1, err
 		}
-		result = reflect.Append(result, elem.Elem())
+		result = reflect.Append(result, elem)
 	}
 
 	outValue := reflect.ValueOf(out).Elem()
@@ -104,7 +104,7 @@ func ListKeys(ctx context.Context, keys []string, out any) error {
 	result := reflect.MakeSlice(reflect.SliceOf(elemType), 0, len(keys))
 	for _, doc := range docs {
 		elem := reflect.New(elemType)
-		if loader, ok := elem.Interface().(protocgengraphify.Unmarshaler); ok {
+		if loader, ok := elem.Interface().(interfaces.Unmarshaler); ok {
 			loader.UnmarshalMap(doc)
 		}
 		result = reflect.Append(result, elem.Elem())
@@ -143,7 +143,7 @@ func Read(ctx context.Context, key string, out any) error {
 	}
 
 	elem := reflect.New(elemType)
-	if loader, ok := elem.Interface().(protocgengraphify.Unmarshaler); ok {
+	if loader, ok := elem.Interface().(interfaces.Unmarshaler); ok {
 		loader.UnmarshalMap(doc)
 	}
 

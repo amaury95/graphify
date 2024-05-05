@@ -355,8 +355,8 @@ func file_observer_v1_events_proto_init() {
 	Graphql object
 */
 
-/* QueryObject ... */
-func (*CreatedPayload) QueryObject() *graphql.Object {
+/* Object ... */
+func (*CreatedPayload) Object() *graphql.Object {
 	return CreatedPayload_Object
 }
 
@@ -373,8 +373,39 @@ var CreatedPayload_Object = graphql.NewObject(graphql.ObjectConfig{
 	Description: "",
 })
 
-/* QueryObject ... */
-func (*UpdatedPayload) QueryObject() *graphql.Object {
+var CreatedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "CreatedPayload_Input",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"key": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"element": &graphql.InputObjectFieldConfig{
+			Type: utils.Bytes,
+		},
+	},
+})
+
+/* Argument ... */
+func (*CreatedPayload) Argument() graphql.FieldConfigArgument {
+	return CreatedPayload_Arg
+}
+
+/* Output ... */
+func (*CreatedPayload) Output() graphql.Output {
+	return CreatedPayload_Object
+}
+
+var CreatedPayload_Arg = graphql.FieldConfigArgument{
+	"key": &graphql.ArgumentConfig{
+		Type: graphql.String,
+	},
+	"element": &graphql.ArgumentConfig{
+		Type: utils.Bytes,
+	},
+}
+
+/* Object ... */
+func (*UpdatedPayload) Object() *graphql.Object {
 	return UpdatedPayload_Object
 }
 
@@ -388,8 +419,33 @@ var UpdatedPayload_Object = graphql.NewObject(graphql.ObjectConfig{
 	Description: "",
 })
 
-/* QueryObject ... */
-func (*ReplacedPayload) QueryObject() *graphql.Object {
+var UpdatedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "UpdatedPayload_Input",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"element": &graphql.InputObjectFieldConfig{
+			Type: utils.Bytes,
+		},
+	},
+})
+
+/* Argument ... */
+func (*UpdatedPayload) Argument() graphql.FieldConfigArgument {
+	return UpdatedPayload_Arg
+}
+
+/* Output ... */
+func (*UpdatedPayload) Output() graphql.Output {
+	return UpdatedPayload_Object
+}
+
+var UpdatedPayload_Arg = graphql.FieldConfigArgument{
+	"element": &graphql.ArgumentConfig{
+		Type: utils.Bytes,
+	},
+}
+
+/* Object ... */
+func (*ReplacedPayload) Object() *graphql.Object {
 	return ReplacedPayload_Object
 }
 
@@ -403,8 +459,33 @@ var ReplacedPayload_Object = graphql.NewObject(graphql.ObjectConfig{
 	Description: "",
 })
 
-/* QueryObject ... */
-func (*DeletedPayload) QueryObject() *graphql.Object {
+var ReplacedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "ReplacedPayload_Input",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"element": &graphql.InputObjectFieldConfig{
+			Type: utils.Bytes,
+		},
+	},
+})
+
+/* Argument ... */
+func (*ReplacedPayload) Argument() graphql.FieldConfigArgument {
+	return ReplacedPayload_Arg
+}
+
+/* Output ... */
+func (*ReplacedPayload) Output() graphql.Output {
+	return ReplacedPayload_Object
+}
+
+var ReplacedPayload_Arg = graphql.FieldConfigArgument{
+	"element": &graphql.ArgumentConfig{
+		Type: utils.Bytes,
+	},
+}
+
+/* Object ... */
+func (*DeletedPayload) Object() *graphql.Object {
 	return DeletedPayload_Object
 }
 
@@ -417,6 +498,31 @@ var DeletedPayload_Object = graphql.NewObject(graphql.ObjectConfig{
 	},
 	Description: "",
 })
+
+var DeletedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "DeletedPayload_Input",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"key": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+	},
+})
+
+/* Argument ... */
+func (*DeletedPayload) Argument() graphql.FieldConfigArgument {
+	return DeletedPayload_Arg
+}
+
+/* Output ... */
+func (*DeletedPayload) Output() graphql.Output {
+	return DeletedPayload_Object
+}
+
+var DeletedPayload_Arg = graphql.FieldConfigArgument{
+	"key": &graphql.ArgumentConfig{
+		Type: graphql.String,
+	},
+}
 
 /*
 	Graphify schema module

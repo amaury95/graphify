@@ -11,6 +11,7 @@ import (
 
 	"github.com/amaury95/graphify"
 	libraryv1 "github.com/amaury95/graphify/example/domain/library/v1"
+	relationv1 "github.com/amaury95/graphify/example/domain/relation/v1"
 	observerv1 "github.com/amaury95/graphify/models/domain/observer/v1"
 	"github.com/arangodb/go-driver"
 	"github.com/gorilla/mux"
@@ -55,7 +56,7 @@ func main() {
 	graph.Node(libraryv1.Book{})
 	graph.Node(libraryv1.Client{})
 	graph.Node(libraryv1.Library{})
-	graph.Edge(libraryv1.Client{}, libraryv1.Book{}, libraryv1.Borrow{})
+	graph.Edge(libraryv1.Client{}, libraryv1.Book{}, relationv1.Borrow{})
 
 	graphify.Collection(ctx, libraryv1.Library{}, func(ctx context.Context, c driver.Collection) {
 		c.EnsureGeoIndex(ctx, []string{"location"}, &driver.EnsureGeoIndexOptions{})
@@ -76,7 +77,11 @@ func main() {
 		graph.RestHandler(ctx))
 
 	router.PathPrefix("/graphql").Handler(
-		graph.GraphQLHandler(ctx))
+		graph.GraphQLHandler(ctx,
+			graph.Query(filterBooks),
+			graph.Mutation(createBook),
+			graph.UnsafeHandlers(false),
+		))
 
 	// Create a server with the given multiplexer
 	server := &http.Server{
@@ -104,4 +109,16 @@ func logCreatedBook(e *graphify.Event[graphify.Topic]) error {
 	}
 	fmt.Printf("Created book: %s with key: %s", book.Title, payload.Key)
 	return nil
+}
+
+func filterBooks(ctx context.Context) (resp *libraryv1.ListBooksResponse, err error) {
+	var books []*libraryv1.Book
+	_, err = graphify.List(ctx, map[string]interface{}{"author": "F. Scott Fitzgerald"}, &books)
+	return &libraryv1.ListBooksResponse{Books: books}, err
+}
+
+func createBook(ctx context.Context, req *libraryv1.Book) (*libraryv1.ListBooksResponse, error) {
+	return &libraryv1.ListBooksResponse{
+		Books: []*libraryv1.Book{req},
+	}, nil
 }
