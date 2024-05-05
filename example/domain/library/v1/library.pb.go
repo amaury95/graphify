@@ -250,6 +250,26 @@ func file_library_v1_library_proto_init() {
 	Graphql object
 */
 
+/* Argument ... */
+func (*Library) Argument() graphql.FieldConfigArgument {
+	return graphql.FieldConfigArgument{
+		"_key": &graphql.ArgumentConfig{
+			Type: graphql.ID,
+		},
+		"name": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+		"location": &graphql.ArgumentConfig{
+			Type: Library_Location_Input,
+		},
+	}
+}
+
+/* Output ... */
+func (*Library) Output() graphql.Output {
+	return Library_Object
+}
+
 /* Object ... */
 func (*Library) Object() *graphql.Object {
 	return Library_Object
@@ -287,25 +307,20 @@ var Library_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 })
 
 /* Argument ... */
-func (*Library) Argument() graphql.FieldConfigArgument {
-	return Library_Arg
+func (*Library_Location) Argument() graphql.FieldConfigArgument {
+	return graphql.FieldConfigArgument{
+		"lat": &graphql.ArgumentConfig{
+			Type: graphql.Float,
+		},
+		"lng": &graphql.ArgumentConfig{
+			Type: graphql.Float,
+		},
+	}
 }
 
 /* Output ... */
-func (*Library) Output() graphql.Output {
-	return Library_Object
-}
-
-var Library_Arg = graphql.FieldConfigArgument{
-	"_key": &graphql.ArgumentConfig{
-		Type: graphql.ID,
-	},
-	"name": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
-	"location": &graphql.ArgumentConfig{
-		Type: Library_Location_Input,
-	},
+func (*Library_Location) Output() graphql.Output {
+	return Library_Location_Object
 }
 
 /* Object ... */
@@ -337,25 +352,6 @@ var Library_Location_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 	},
 })
-
-/* Argument ... */
-func (*Library_Location) Argument() graphql.FieldConfigArgument {
-	return Library_Location_Arg
-}
-
-/* Output ... */
-func (*Library_Location) Output() graphql.Output {
-	return Library_Location_Object
-}
-
-var Library_Location_Arg = graphql.FieldConfigArgument{
-	"lat": &graphql.ArgumentConfig{
-		Type: graphql.Float,
-	},
-	"lng": &graphql.ArgumentConfig{
-		Type: graphql.Float,
-	},
-}
 
 /*
 	Graphify schema module

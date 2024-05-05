@@ -1065,6 +1065,59 @@ func file_library_v1_book_proto_init() {
 	Graphql object
 */
 
+/* Argument ... */
+func (*Book) Argument() graphql.FieldConfigArgument {
+	return graphql.FieldConfigArgument{
+		"_key": &graphql.ArgumentConfig{
+			Type: graphql.ID,
+		},
+		"title": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+		"author": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+		"mainReview": &graphql.ArgumentConfig{
+			Type: Book_Review_Input,
+		},
+		"reviews": &graphql.ArgumentConfig{
+			Type: graphql.NewList(Book_Review_Input),
+		},
+		"tags": &graphql.ArgumentConfig{
+			Type: graphql.NewList(graphql.String),
+		},
+		"bookPrice": &graphql.ArgumentConfig{
+			Type: utils.JSON,
+		},
+		"chapters": &graphql.ArgumentConfig{
+			Type: utils.JSON,
+		},
+		"characters": &graphql.ArgumentConfig{
+			Type: utils.JSON,
+		},
+		"portrait": &graphql.ArgumentConfig{
+			Type: utils.Bytes,
+		},
+		"gallery": &graphql.ArgumentConfig{
+			Type: graphql.NewList(utils.Bytes),
+		},
+		"category": &graphql.ArgumentConfig{
+			Type: v1.Category_Enum,
+		},
+		"Type": &graphql.ArgumentConfig{
+			Type: utils.JSON,
+		},
+		"Role": &graphql.ArgumentConfig{
+			Type: utils.JSON,
+		},
+	}
+}
+
+/* Output ... */
+func (*Book) Output() graphql.Output {
+	return Book_Object
+}
+
 /* Object ... */
 func (*Book) Object() *graphql.Object {
 	return Book_Object
@@ -1296,58 +1349,20 @@ var Book_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 })
 
 /* Argument ... */
-func (*Book) Argument() graphql.FieldConfigArgument {
-	return Book_Arg
+func (*Book_Novel) Argument() graphql.FieldConfigArgument {
+	return graphql.FieldConfigArgument{
+		"genre": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+		"publicationYear": &graphql.ArgumentConfig{
+			Type: graphql.Int,
+		},
+	}
 }
 
 /* Output ... */
-func (*Book) Output() graphql.Output {
-	return Book_Object
-}
-
-var Book_Arg = graphql.FieldConfigArgument{
-	"_key": &graphql.ArgumentConfig{
-		Type: graphql.ID,
-	},
-	"title": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
-	"author": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
-	"mainReview": &graphql.ArgumentConfig{
-		Type: Book_Review_Input,
-	},
-	"reviews": &graphql.ArgumentConfig{
-		Type: graphql.NewList(Book_Review_Input),
-	},
-	"tags": &graphql.ArgumentConfig{
-		Type: graphql.NewList(graphql.String),
-	},
-	"bookPrice": &graphql.ArgumentConfig{
-		Type: utils.JSON,
-	},
-	"chapters": &graphql.ArgumentConfig{
-		Type: utils.JSON,
-	},
-	"characters": &graphql.ArgumentConfig{
-		Type: utils.JSON,
-	},
-	"portrait": &graphql.ArgumentConfig{
-		Type: utils.Bytes,
-	},
-	"gallery": &graphql.ArgumentConfig{
-		Type: graphql.NewList(utils.Bytes),
-	},
-	"category": &graphql.ArgumentConfig{
-		Type: v1.Category_Enum,
-	},
-	"Type": &graphql.ArgumentConfig{
-		Type: utils.JSON,
-	},
-	"Role": &graphql.ArgumentConfig{
-		Type: utils.JSON,
-	},
+func (*Book_Novel) Output() graphql.Output {
+	return Book_Novel_Object
 }
 
 /* Object ... */
@@ -1381,22 +1396,20 @@ var Book_Novel_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 })
 
 /* Argument ... */
-func (*Book_Novel) Argument() graphql.FieldConfigArgument {
-	return Book_Novel_Arg
+func (*Book_ShortStory) Argument() graphql.FieldConfigArgument {
+	return graphql.FieldConfigArgument{
+		"lengthPages": &graphql.ArgumentConfig{
+			Type: graphql.Int,
+		},
+		"isCollection": &graphql.ArgumentConfig{
+			Type: graphql.Boolean,
+		},
+	}
 }
 
 /* Output ... */
-func (*Book_Novel) Output() graphql.Output {
-	return Book_Novel_Object
-}
-
-var Book_Novel_Arg = graphql.FieldConfigArgument{
-	"genre": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
-	"publicationYear": &graphql.ArgumentConfig{
-		Type: graphql.Int,
-	},
+func (*Book_ShortStory) Output() graphql.Output {
+	return Book_ShortStory_Object
 }
 
 /* Object ... */
@@ -1439,22 +1452,20 @@ var Book_ShortStory_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 })
 
 /* Argument ... */
-func (*Book_ShortStory) Argument() graphql.FieldConfigArgument {
-	return Book_ShortStory_Arg
+func (*Book_Academic) Argument() graphql.FieldConfigArgument {
+	return graphql.FieldConfigArgument{
+		"subject": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+		"edition": &graphql.ArgumentConfig{
+			Type: graphql.Int,
+		},
+	}
 }
 
 /* Output ... */
-func (*Book_ShortStory) Output() graphql.Output {
-	return Book_ShortStory_Object
-}
-
-var Book_ShortStory_Arg = graphql.FieldConfigArgument{
-	"lengthPages": &graphql.ArgumentConfig{
-		Type: graphql.Int,
-	},
-	"isCollection": &graphql.ArgumentConfig{
-		Type: graphql.Boolean,
-	},
+func (*Book_Academic) Output() graphql.Output {
+	return Book_Academic_Object
 }
 
 /* Object ... */
@@ -1488,22 +1499,20 @@ var Book_Academic_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 })
 
 /* Argument ... */
-func (*Book_Academic) Argument() graphql.FieldConfigArgument {
-	return Book_Academic_Arg
+func (*Book_Poetry) Argument() graphql.FieldConfigArgument {
+	return graphql.FieldConfigArgument{
+		"style": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+		"isAnthology": &graphql.ArgumentConfig{
+			Type: graphql.Boolean,
+		},
+	}
 }
 
 /* Output ... */
-func (*Book_Academic) Output() graphql.Output {
-	return Book_Academic_Object
-}
-
-var Book_Academic_Arg = graphql.FieldConfigArgument{
-	"subject": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
-	"edition": &graphql.ArgumentConfig{
-		Type: graphql.Int,
-	},
+func (*Book_Poetry) Output() graphql.Output {
+	return Book_Poetry_Object
 }
 
 /* Object ... */
@@ -1546,22 +1555,20 @@ var Book_Poetry_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 })
 
 /* Argument ... */
-func (*Book_Poetry) Argument() graphql.FieldConfigArgument {
-	return Book_Poetry_Arg
+func (*Book_Biography) Argument() graphql.FieldConfigArgument {
+	return graphql.FieldConfigArgument{
+		"subjectPerson": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+		"notableAchievements": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+	}
 }
 
 /* Output ... */
-func (*Book_Poetry) Output() graphql.Output {
-	return Book_Poetry_Object
-}
-
-var Book_Poetry_Arg = graphql.FieldConfigArgument{
-	"style": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
-	"isAnthology": &graphql.ArgumentConfig{
-		Type: graphql.Boolean,
-	},
+func (*Book_Biography) Output() graphql.Output {
+	return Book_Biography_Object
 }
 
 /* Object ... */
@@ -1595,22 +1602,20 @@ var Book_Biography_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 })
 
 /* Argument ... */
-func (*Book_Biography) Argument() graphql.FieldConfigArgument {
-	return Book_Biography_Arg
+func (*Book_Review) Argument() graphql.FieldConfigArgument {
+	return graphql.FieldConfigArgument{
+		"message": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+		"name": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+	}
 }
 
 /* Output ... */
-func (*Book_Biography) Output() graphql.Output {
-	return Book_Biography_Object
-}
-
-var Book_Biography_Arg = graphql.FieldConfigArgument{
-	"subjectPerson": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
-	"notableAchievements": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
+func (*Book_Review) Output() graphql.Output {
+	return Book_Review_Object
 }
 
 /* Object ... */
@@ -1644,22 +1649,17 @@ var Book_Review_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 })
 
 /* Argument ... */
-func (*Book_Review) Argument() graphql.FieldConfigArgument {
-	return Book_Review_Arg
+func (*ListBooksResponse) Argument() graphql.FieldConfigArgument {
+	return graphql.FieldConfigArgument{
+		"books": &graphql.ArgumentConfig{
+			Type: graphql.NewList(Book_Input),
+		},
+	}
 }
 
 /* Output ... */
-func (*Book_Review) Output() graphql.Output {
-	return Book_Review_Object
-}
-
-var Book_Review_Arg = graphql.FieldConfigArgument{
-	"message": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
-	"name": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
+func (*ListBooksResponse) Output() graphql.Output {
+	return ListBooksResponse_Object
 }
 
 /* Object ... */
@@ -1687,19 +1687,17 @@ var ListBooksResponse_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 })
 
 /* Argument ... */
-func (*ListBooksResponse) Argument() graphql.FieldConfigArgument {
-	return ListBooksResponse_Arg
+func (*DeleteBookRequest) Argument() graphql.FieldConfigArgument {
+	return graphql.FieldConfigArgument{
+		"key": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+	}
 }
 
 /* Output ... */
-func (*ListBooksResponse) Output() graphql.Output {
-	return ListBooksResponse_Object
-}
-
-var ListBooksResponse_Arg = graphql.FieldConfigArgument{
-	"books": &graphql.ArgumentConfig{
-		Type: graphql.NewList(Book_Input),
-	},
+func (*DeleteBookRequest) Output() graphql.Output {
+	return DeleteBookRequest_Object
 }
 
 /* Object ... */
@@ -1725,22 +1723,6 @@ var DeleteBookRequest_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 	},
 })
-
-/* Argument ... */
-func (*DeleteBookRequest) Argument() graphql.FieldConfigArgument {
-	return DeleteBookRequest_Arg
-}
-
-/* Output ... */
-func (*DeleteBookRequest) Output() graphql.Output {
-	return DeleteBookRequest_Object
-}
-
-var DeleteBookRequest_Arg = graphql.FieldConfigArgument{
-	"key": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
-}
 
 /*
 	Graphify schema module

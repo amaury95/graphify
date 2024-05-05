@@ -223,6 +223,23 @@ func file_common_v1_common_proto_init() {
 	Graphql object
 */
 
+/* Argument ... */
+func (*Character) Argument() graphql.FieldConfigArgument {
+	return graphql.FieldConfigArgument{
+		"name": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+		"role": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+	}
+}
+
+/* Output ... */
+func (*Character) Output() graphql.Output {
+	return Character_Object
+}
+
 /* Object ... */
 func (*Character) Object() *graphql.Object {
 	return Character_Object
@@ -252,25 +269,6 @@ var Character_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 	},
 })
-
-/* Argument ... */
-func (*Character) Argument() graphql.FieldConfigArgument {
-	return Character_Arg
-}
-
-/* Output ... */
-func (*Character) Output() graphql.Output {
-	return Character_Object
-}
-
-var Character_Arg = graphql.FieldConfigArgument{
-	"name": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
-	"role": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
-}
 
 var Category_Enum = graphql.NewEnum(graphql.EnumConfig{
 	Name: "Category",

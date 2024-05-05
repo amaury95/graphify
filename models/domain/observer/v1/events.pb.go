@@ -355,6 +355,23 @@ func file_observer_v1_events_proto_init() {
 	Graphql object
 */
 
+/* Argument ... */
+func (*CreatedPayload) Argument() graphql.FieldConfigArgument {
+	return graphql.FieldConfigArgument{
+		"key": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+		"element": &graphql.ArgumentConfig{
+			Type: utils.Bytes,
+		},
+	}
+}
+
+/* Output ... */
+func (*CreatedPayload) Output() graphql.Output {
+	return CreatedPayload_Object
+}
+
 /* Object ... */
 func (*CreatedPayload) Object() *graphql.Object {
 	return CreatedPayload_Object
@@ -386,22 +403,17 @@ var CreatedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 })
 
 /* Argument ... */
-func (*CreatedPayload) Argument() graphql.FieldConfigArgument {
-	return CreatedPayload_Arg
+func (*UpdatedPayload) Argument() graphql.FieldConfigArgument {
+	return graphql.FieldConfigArgument{
+		"element": &graphql.ArgumentConfig{
+			Type: utils.Bytes,
+		},
+	}
 }
 
 /* Output ... */
-func (*CreatedPayload) Output() graphql.Output {
-	return CreatedPayload_Object
-}
-
-var CreatedPayload_Arg = graphql.FieldConfigArgument{
-	"key": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
-	"element": &graphql.ArgumentConfig{
-		Type: utils.Bytes,
-	},
+func (*UpdatedPayload) Output() graphql.Output {
+	return UpdatedPayload_Object
 }
 
 /* Object ... */
@@ -429,19 +441,17 @@ var UpdatedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 })
 
 /* Argument ... */
-func (*UpdatedPayload) Argument() graphql.FieldConfigArgument {
-	return UpdatedPayload_Arg
+func (*ReplacedPayload) Argument() graphql.FieldConfigArgument {
+	return graphql.FieldConfigArgument{
+		"element": &graphql.ArgumentConfig{
+			Type: utils.Bytes,
+		},
+	}
 }
 
 /* Output ... */
-func (*UpdatedPayload) Output() graphql.Output {
-	return UpdatedPayload_Object
-}
-
-var UpdatedPayload_Arg = graphql.FieldConfigArgument{
-	"element": &graphql.ArgumentConfig{
-		Type: utils.Bytes,
-	},
+func (*ReplacedPayload) Output() graphql.Output {
+	return ReplacedPayload_Object
 }
 
 /* Object ... */
@@ -469,19 +479,17 @@ var ReplacedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 })
 
 /* Argument ... */
-func (*ReplacedPayload) Argument() graphql.FieldConfigArgument {
-	return ReplacedPayload_Arg
+func (*DeletedPayload) Argument() graphql.FieldConfigArgument {
+	return graphql.FieldConfigArgument{
+		"key": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+	}
 }
 
 /* Output ... */
-func (*ReplacedPayload) Output() graphql.Output {
-	return ReplacedPayload_Object
-}
-
-var ReplacedPayload_Arg = graphql.FieldConfigArgument{
-	"element": &graphql.ArgumentConfig{
-		Type: utils.Bytes,
-	},
+func (*DeletedPayload) Output() graphql.Output {
+	return DeletedPayload_Object
 }
 
 /* Object ... */
@@ -507,22 +515,6 @@ var DeletedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 	},
 })
-
-/* Argument ... */
-func (*DeletedPayload) Argument() graphql.FieldConfigArgument {
-	return DeletedPayload_Arg
-}
-
-/* Output ... */
-func (*DeletedPayload) Output() graphql.Output {
-	return DeletedPayload_Object
-}
-
-var DeletedPayload_Arg = graphql.FieldConfigArgument{
-	"key": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
-}
 
 /*
 	Graphify schema module

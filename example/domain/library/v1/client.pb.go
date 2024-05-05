@@ -187,6 +187,29 @@ func file_library_v1_client_proto_init() {
 	Graphql object
 */
 
+/* Argument ... */
+func (*Client) Argument() graphql.FieldConfigArgument {
+	return graphql.FieldConfigArgument{
+		"_key": &graphql.ArgumentConfig{
+			Type: graphql.ID,
+		},
+		"name": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+		"email": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+		"member": &graphql.ArgumentConfig{
+			Type: graphql.Boolean,
+		},
+	}
+}
+
+/* Output ... */
+func (*Client) Output() graphql.Output {
+	return Client_Object
+}
+
 /* Object ... */
 func (*Client) Object() *graphql.Object {
 	return Client_Object
@@ -237,31 +260,6 @@ var Client_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 	},
 })
-
-/* Argument ... */
-func (*Client) Argument() graphql.FieldConfigArgument {
-	return Client_Arg
-}
-
-/* Output ... */
-func (*Client) Output() graphql.Output {
-	return Client_Object
-}
-
-var Client_Arg = graphql.FieldConfigArgument{
-	"_key": &graphql.ArgumentConfig{
-		Type: graphql.ID,
-	},
-	"name": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
-	"email": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
-	"member": &graphql.ArgumentConfig{
-		Type: graphql.Boolean,
-	},
-}
 
 /*
 	Graphify schema module

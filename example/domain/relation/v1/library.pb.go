@@ -187,6 +187,29 @@ func file_relation_v1_library_proto_init() {
 	Graphql object
 */
 
+/* Argument ... */
+func (*Borrow) Argument() graphql.FieldConfigArgument {
+	return graphql.FieldConfigArgument{
+		"_key": &graphql.ArgumentConfig{
+			Type: graphql.ID,
+		},
+		"_from": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+		"_to": &graphql.ArgumentConfig{
+			Type: graphql.String,
+		},
+		"date": &graphql.ArgumentConfig{
+			Type: graphql.Int,
+		},
+	}
+}
+
+/* Output ... */
+func (*Borrow) Output() graphql.Output {
+	return Borrow_Object
+}
+
 /* Object ... */
 func (*Borrow) Object() *graphql.Object {
 	return Borrow_Object
@@ -237,31 +260,6 @@ var Borrow_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 	},
 })
-
-/* Argument ... */
-func (*Borrow) Argument() graphql.FieldConfigArgument {
-	return Borrow_Arg
-}
-
-/* Output ... */
-func (*Borrow) Output() graphql.Output {
-	return Borrow_Object
-}
-
-var Borrow_Arg = graphql.FieldConfigArgument{
-	"_key": &graphql.ArgumentConfig{
-		Type: graphql.ID,
-	},
-	"_from": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
-	"_to": &graphql.ArgumentConfig{
-		Type: graphql.String,
-	},
-	"date": &graphql.ArgumentConfig{
-		Type: graphql.Int,
-	},
-}
 
 /*
 	Graphify schema module
