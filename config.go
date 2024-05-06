@@ -1,5 +1,7 @@
 package graphify
 
+import "github.com/arangodb/go-driver/http"
+
 // ApplicationConfig ...
 type ApplicationConfig struct {
 	// Name ...
@@ -18,4 +20,6 @@ type DatabaseConfig struct {
 	UserName string
 	// Password ...
 	Password string
+	// Connection ...
+	Connection http.ConnectionConfig
 }

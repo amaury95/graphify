@@ -4,7 +4,7 @@ import (
 	"context"
 	"reflect"
 
-	commonv1 "github.com/amaury95/graphify/models/domain/common/v1"
+	"github.com/amaury95/graphify/models/domain/argument/v1"
 	"github.com/amaury95/protoc-gen-graphify/interfaces"
 	"github.com/go-openapi/inflect"
 	"github.com/graphql-go/graphql"
@@ -140,13 +140,13 @@ func (g *graph) GraphQLHandler(ctx context.Context, handlers ...interface{}) *ha
 			// expose public handlers (use only for CMS or testing purpose)
 			if g.UsingUnsafeHandlers(handlers...) {
 				queries.AddFieldConfig(nodeName, &graphql.Field{
-					Args:    new(commonv1.Pagination).Argument(),
+					Args:    new(argumentv1.Pagination).Argument(),
 					Type:    graphql.NewList(graphNode.Object()),
 					Resolve: unsafe_ListElements(node),
 				})
 
 				queries.AddFieldConfig(inflect.Singularize(nodeName), &graphql.Field{
-					Args:    new(commonv1.Key).Argument(),
+					Args:    new(argumentv1.Key).Argument(),
 					Type:    graphNode.Object(),
 					Resolve: unsafe_GetElement(node),
 				})
@@ -200,7 +200,7 @@ func addRelationship(name, relation string, from, to, edge reflect.Type, directi
 	}
 
 	fromNode.Object().AddFieldConfig(name, &graphql.Field{
-		Args: new(commonv1.Pagination).Argument(),
+		Args: new(argumentv1.Pagination).Argument(),
 		Type: graphql.NewList(graphql.NewObject(graphql.ObjectConfig{
 			Name: from.Name() + "_" + inflect.Capitalize(name),
 			Fields: graphql.Fields{
@@ -243,7 +243,7 @@ func unsafe_ListElements(t reflect.Type) graphql.FieldResolveFn {
 
 func unsafe_GetElement(t reflect.Type) graphql.FieldResolveFn {
 	return func(p graphql.ResolveParams) (interface{}, error) {
-		var args commonv1.Key
+		var args argumentv1.Key
 		args.UnmarshalMap(p.Args)
 
 		out := reflect.New(t)

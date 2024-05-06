@@ -2,7 +2,6 @@ package graphify
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 
 	"github.com/arangodb/go-driver"
@@ -18,47 +17,45 @@ type IConnection interface {
 }
 
 type connection struct {
-	conf DatabaseConfig
+	database driver.Database
 }
 
 // NewConnection ...
-func NewConnection(conf DatabaseConfig) *connection {
-	return &connection{conf}
-}
-
-func (c *connection) GetDatabase(ctx context.Context) (db driver.Database, err error) {
-	conn, err := http.NewConnection(http.ConnectionConfig{
-		Endpoints: []string{"http://localhost:8529"},
-	})
+func NewConnection(ctx context.Context, conf DatabaseConfig) *connection {
+	conn, err := http.NewConnection(conf.Connection)
 	if err != nil {
 		panic(err)
 	}
 
 	client, err := driver.NewClient(driver.ClientConfig{
 		Connection:     conn,
-		Authentication: driver.BasicAuthentication(c.conf.UserName, c.conf.Password),
+		Authentication: driver.BasicAuthentication(conf.UserName, conf.Password),
 	})
 	if err != nil {
-		panic(err)
+		panic("failed to establish connection")
 	}
 
-	exists, err := client.DatabaseExists(ctx, c.conf.DBName)
+	exists, err := client.DatabaseExists(ctx, conf.DBName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to check database existence: %w", err)
+		panic("failed to check database existence")
 	}
 	if exists {
-		db, err = client.Database(ctx, c.conf.DBName)
+		db, err := client.Database(ctx, conf.DBName)
 		if err != nil {
-			return nil, fmt.Errorf("failed to connect to database: %w", err)
+			panic("failed to connect to database")
 		}
+		return &connection{database: db}
 	} else {
-		db, err = client.CreateDatabase(ctx, c.conf.DBName, nil)
+		db, err := client.CreateDatabase(ctx, conf.DBName, nil)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create database: %w", err)
+			panic("failed to create database")
 		}
+		return &connection{database: db}
 	}
+}
 
-	return db, nil
+func (c *connection) GetDatabase(ctx context.Context) (db driver.Database, err error) {
+	return c.database, nil
 }
 
 func (c *connection) GetCollection(ctx context.Context, elem reflect.Type) (driver.Collection, error) {

@@ -6,44 +6,30 @@ import (
 	"net"
 	"net/http"
 
-	"os"
-
-	"golang.org/x/term"
-
 	"github.com/amaury95/graphify"
-	libraryv1 "github.com/amaury95/graphify/example/domain/library/v1"
-	relationv1 "github.com/amaury95/graphify/example/domain/relation/v1"
-	observerv1 "github.com/amaury95/graphify/models/domain/observer/v1"
+	"github.com/amaury95/graphify/example/domain/library/v1"
+	"github.com/amaury95/graphify/example/domain/relation/v1"
+	"github.com/amaury95/graphify/models/domain/observer/v1"
 	"github.com/arangodb/go-driver"
+	config "github.com/arangodb/go-driver/http"
 	"github.com/gorilla/mux"
 	"google.golang.org/protobuf/proto"
 )
 
 func main() {
-	var (
-		username string
-		password []byte
-		err      error
-	)
-	// Prompt for username
-	fmt.Print("Enter ArangoDB username: ")
-	fmt.Scanln(&username)
-
-	// Prompt for password
-	fmt.Print("Enter password: ")
-	password, err = term.ReadPassword(int(os.Stdin.Fd()))
-	if err != nil {
-		fmt.Println("Error reading password:", err)
-		return
-	}
-
 	// Define app context
 	ctx := graphify.DevelopmentContext(context.Background())
 
 	// Configure app context
 	ctx = graphify.ContextWithConnection(ctx,
-		graphify.NewConnection(
-			graphify.DatabaseConfig{DBName: "library", UserName: username, Password: string(password)}))
+		graphify.NewConnection(ctx,
+			graphify.DatabaseConfig{
+				DBName:     "library",
+				UserName:   "library",
+				Password:   "0Jt8Vsyp",
+				Connection: config.ConnectionConfig{Endpoints: []string{"http://localhost:8529"}},
+			},
+		))
 
 	ctx = graphify.ContextWithObserver(ctx,
 		graphify.NewObserver[graphify.Topic]())
@@ -93,7 +79,7 @@ func main() {
 
 	// Serve handlers
 	fmt.Println("\nServer is listening on :8080")
-	if err = server.ListenAndServe(); err != nil {
+	if err := server.ListenAndServe(); err != nil {
 		fmt.Println("Error:", err)
 	}
 }
@@ -112,12 +98,14 @@ func logCreatedBook(e *graphify.Event[graphify.Topic]) error {
 	return nil
 }
 
+// filterBooks is an example of query without arguments
 func filterBooks(ctx context.Context) (resp *libraryv1.ListBooksResponse, err error) {
 	var books []*libraryv1.Book
 	_, err = graphify.List(ctx, map[string]interface{}{"author": "F. Scott Fitzgerald"}, &books)
 	return &libraryv1.ListBooksResponse{Books: books}, err
 }
 
+// createBook is an example of mutation with arguments
 func createBook(ctx context.Context, req *libraryv1.Book) (*libraryv1.Book, error) {
 	keys, err := graphify.Create(ctx, req)
 	if err != nil {

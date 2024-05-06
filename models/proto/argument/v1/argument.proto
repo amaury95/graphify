@@ -1,5 +1,5 @@
 syntax = "proto3";
-package common.v1;
+package argument.v1;
 
 message Pagination {
   optional int64 count = 1;
