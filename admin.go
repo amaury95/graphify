@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/amaury95/graphify/client"
@@ -230,20 +229,10 @@ func (g *graph) createAdmin(ctx context.Context, admin *adminv1.Admin, password 
 /* Resource Handlers */
 func (g *graph) resourcesListHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
-	keys := getQueryList(c, "keys")
 
 	elemType, found := g.restElem(resource)
 	if !found {
 		return fiber.NewError(fiber.StatusNotFound)
-	}
-
-	elems := reflect.New(reflect.SliceOf(reflect.PointerTo(elemType)))
-
-	if len(keys) > 0 {
-		if err := ListKeys(c.UserContext(), keys, elems.Interface()); err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-		}
-		return c.JSON(elems.Interface())
 	}
 
 	bindVars := make(map[string]interface{})
@@ -254,12 +243,13 @@ func (g *graph) resourcesListHandler(c *fiber.Ctx) error {
 		bindVars["count"] = count
 	}
 
+	elems := reflect.New(reflect.SliceOf(reflect.PointerTo(elemType)))
 	count, err := List(c.UserContext(), bindVars, elems.Interface())
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(Pagination{
+	return c.JSON(PaginationResult{
 		Items: elems.Interface(),
 		Count: count,
 	})
@@ -509,15 +499,7 @@ func getId(resource, key string) string {
 	return resource + "/" + key
 }
 
-func getQueryList(c *fiber.Ctx, key string) (values []string) {
-	query := c.Query(key)
-	if len(query) > 0 {
-		values = append(values, strings.Split(query, ",")...)
-	}
-	return
-}
-
-type Pagination struct {
+type PaginationResult struct {
 	Items any   `json:"items"`
 	Count int64 `json:"count"`
 }
