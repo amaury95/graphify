@@ -411,7 +411,7 @@ func (*AdminCreatedPayload) Argument() graphql.FieldConfigArgument {
 			Type: graphql.String,
 		},
 		"element": &graphql.ArgumentConfig{
-			Type: utils.Bytes,
+			Type: graphql.String,
 		},
 		"admin": &graphql.ArgumentConfig{
 			Type: Admin_Input,
@@ -452,7 +452,7 @@ var AdminCreatedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig
 			Type: graphql.String,
 		},
 		"element": &graphql.InputObjectFieldConfig{
-			Type: utils.Bytes,
+			Type: graphql.String,
 		},
 		"admin": &graphql.InputObjectFieldConfig{
 			Type: Admin_Input,
@@ -464,7 +464,7 @@ var AdminCreatedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig
 func (*AdminUpdatedPayload) Argument() graphql.FieldConfigArgument {
 	return graphql.FieldConfigArgument{
 		"element": &graphql.ArgumentConfig{
-			Type: utils.Bytes,
+			Type: graphql.String,
 		},
 		"admin": &graphql.ArgumentConfig{
 			Type: Admin_Input,
@@ -499,7 +499,7 @@ var AdminUpdatedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig
 	Name: "AdminUpdatedPayload_Input",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"element": &graphql.InputObjectFieldConfig{
-			Type: utils.Bytes,
+			Type: graphql.String,
 		},
 		"admin": &graphql.InputObjectFieldConfig{
 			Type: Admin_Input,
@@ -511,7 +511,7 @@ var AdminUpdatedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig
 func (*AdminReplacedPayload) Argument() graphql.FieldConfigArgument {
 	return graphql.FieldConfigArgument{
 		"element": &graphql.ArgumentConfig{
-			Type: utils.Bytes,
+			Type: graphql.String,
 		},
 		"admin": &graphql.ArgumentConfig{
 			Type: Admin_Input,
@@ -546,7 +546,7 @@ var AdminReplacedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfi
 	Name: "AdminReplacedPayload_Input",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"element": &graphql.InputObjectFieldConfig{
-			Type: utils.Bytes,
+			Type: graphql.String,
 		},
 		"admin": &graphql.InputObjectFieldConfig{
 			Type: Admin_Input,

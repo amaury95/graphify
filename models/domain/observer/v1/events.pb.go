@@ -362,7 +362,7 @@ func (*CreatedPayload) Argument() graphql.FieldConfigArgument {
 			Type: graphql.String,
 		},
 		"element": &graphql.ArgumentConfig{
-			Type: utils.Bytes,
+			Type: graphql.String,
 		},
 	}
 }
@@ -397,7 +397,7 @@ var CreatedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type: graphql.String,
 		},
 		"element": &graphql.InputObjectFieldConfig{
-			Type: utils.Bytes,
+			Type: graphql.String,
 		},
 	},
 })
@@ -406,7 +406,7 @@ var CreatedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 func (*UpdatedPayload) Argument() graphql.FieldConfigArgument {
 	return graphql.FieldConfigArgument{
 		"element": &graphql.ArgumentConfig{
-			Type: utils.Bytes,
+			Type: graphql.String,
 		},
 	}
 }
@@ -435,7 +435,7 @@ var UpdatedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "UpdatedPayload_Input",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"element": &graphql.InputObjectFieldConfig{
-			Type: utils.Bytes,
+			Type: graphql.String,
 		},
 	},
 })
@@ -444,7 +444,7 @@ var UpdatedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 func (*ReplacedPayload) Argument() graphql.FieldConfigArgument {
 	return graphql.FieldConfigArgument{
 		"element": &graphql.ArgumentConfig{
-			Type: utils.Bytes,
+			Type: graphql.String,
 		},
 	}
 }
@@ -473,7 +473,7 @@ var ReplacedPayload_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "ReplacedPayload_Input",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"element": &graphql.InputObjectFieldConfig{
-			Type: utils.Bytes,
+			Type: graphql.String,
 		},
 	},
 })

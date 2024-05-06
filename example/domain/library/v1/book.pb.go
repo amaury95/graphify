@@ -1096,10 +1096,10 @@ func (*Book) Argument() graphql.FieldConfigArgument {
 			Type: utils.JSON,
 		},
 		"portrait": &graphql.ArgumentConfig{
-			Type: utils.Bytes,
+			Type: graphql.String,
 		},
 		"gallery": &graphql.ArgumentConfig{
-			Type: graphql.NewList(utils.Bytes),
+			Type: graphql.NewList(graphql.String),
 		},
 		"category": &graphql.ArgumentConfig{
 			Type: v1.Category_Enum,
@@ -1331,10 +1331,10 @@ var Book_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type: utils.JSON,
 		},
 		"portrait": &graphql.InputObjectFieldConfig{
-			Type: utils.Bytes,
+			Type: graphql.String,
 		},
 		"gallery": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewList(utils.Bytes),
+			Type: graphql.NewList(graphql.String),
 		},
 		"category": &graphql.InputObjectFieldConfig{
 			Type: v1.Category_Enum,

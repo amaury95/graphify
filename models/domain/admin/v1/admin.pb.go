@@ -305,7 +305,7 @@ func (*Admin) Argument() graphql.FieldConfigArgument {
 			Type: graphql.String,
 		},
 		"avatar": &graphql.ArgumentConfig{
-			Type: utils.Bytes,
+			Type: graphql.String,
 		},
 		"notes": &graphql.ArgumentConfig{
 			Type: graphql.String,
@@ -382,7 +382,7 @@ var Admin_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type: graphql.String,
 		},
 		"avatar": &graphql.InputObjectFieldConfig{
-			Type: utils.Bytes,
+			Type: graphql.String,
 		},
 		"notes": &graphql.InputObjectFieldConfig{
 			Type: graphql.String,
@@ -397,7 +397,7 @@ func (*AdminPassword) Argument() graphql.FieldConfigArgument {
 			Type: graphql.ID,
 		},
 		"passwordHash": &graphql.ArgumentConfig{
-			Type: utils.Bytes,
+			Type: graphql.String,
 		},
 	}
 }
@@ -432,7 +432,7 @@ var AdminPassword_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type: graphql.ID,
 		},
 		"passwordHash": &graphql.InputObjectFieldConfig{
-			Type: utils.Bytes,
+			Type: graphql.String,
 		},
 	},
 })

@@ -1,0 +1,9 @@
+syntax = "proto3";
+package common.v1;
+
+message Pagination {
+  optional int64 count = 1;
+  optional int64 offset = 2;
+}
+
+message Key { string key = 1 [ json_name = "_key" ]; }

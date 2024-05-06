@@ -6,8 +6,9 @@ import (
 	"net"
 	"net/http"
 
-	"golang.org/x/term"
 	"os"
+
+	"golang.org/x/term"
 
 	"github.com/amaury95/graphify"
 	libraryv1 "github.com/amaury95/graphify/example/domain/library/v1"
@@ -78,9 +79,9 @@ func main() {
 
 	router.PathPrefix("/graphql").Handler(
 		graph.GraphQLHandler(ctx,
+			graph.WithUnsafeHandlers(false),
 			graph.Query(filterBooks),
 			graph.Mutation(createBook),
-			graph.UnsafeHandlers(false),
 		))
 
 	// Create a server with the given multiplexer
@@ -117,8 +118,12 @@ func filterBooks(ctx context.Context) (resp *libraryv1.ListBooksResponse, err er
 	return &libraryv1.ListBooksResponse{Books: books}, err
 }
 
-func createBook(ctx context.Context, req *libraryv1.Book) (*libraryv1.ListBooksResponse, error) {
-	return &libraryv1.ListBooksResponse{
-		Books: []*libraryv1.Book{req},
-	}, nil
+func createBook(ctx context.Context, req *libraryv1.Book) (*libraryv1.Book, error) {
+	keys, err := graphify.Create(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Key = keys[0]
+	return req, nil
 }

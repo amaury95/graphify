@@ -2,6 +2,7 @@ package graphify
 
 import (
 	"reflect"
+	"runtime"
 	"strings"
 
 	"github.com/go-openapi/inflect"
@@ -30,4 +31,15 @@ func hasStringField(t reflect.Type, fieldName, jsonTag string) bool {
 	return exists &&
 		field.Type.Kind() == reflect.String &&
 		strings.Contains(field.Tag.Get("json"), jsonTag)
+}
+
+func funcName(v reflect.Value) string {
+	// Get the name of the function
+	name := runtime.FuncForPC(v.Pointer()).Name()
+	// Trim the package path
+	dotIndex := strings.LastIndex(name, ".")
+	if dotIndex != -1 {
+		name = name[dotIndex+1:]
+	}
+	return name
 }
