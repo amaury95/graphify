@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	adminv1 "github.com/amaury95/graphify/models/domain/admin/v1"
 	observerv1 "github.com/amaury95/graphify/models/domain/observer/v1"
 	"github.com/amaury95/protoc-gen-graphify/interfaces"
 	"github.com/arangodb/go-driver"
@@ -201,14 +200,6 @@ func createDocuments(ctx context.Context, items any) (result []string, err error
 					Payload:   &observerv1.CreatedPayload{Key: meta.Key, Element: bytes},
 					Timestamp: time.Now(),
 				})
-
-				if admin, ok := AdminFromContext(ctx); ok {
-					go observer.Emit(&Event[Topic]{
-						Topic:     AdminCreatedTopic.For(item),
-						Payload:   &adminv1.AdminCreatedPayload{Key: meta.Key, Element: bytes, Admin: admin},
-						Timestamp: time.Now(),
-					})
-				}
 			}
 		}
 	}
@@ -240,14 +231,6 @@ func createDocument(ctx context.Context, item any) ([]string, error) {
 				Payload:   &observerv1.CreatedPayload{Key: meta.Key, Element: bytes},
 				Timestamp: time.Now(),
 			})
-
-			if admin, ok := AdminFromContext(ctx); ok {
-				go observer.Emit(&Event[Topic]{
-					Topic:     AdminCreatedTopic.For(item),
-					Payload:   &adminv1.AdminCreatedPayload{Key: meta.Key, Element: bytes, Admin: admin},
-					Timestamp: time.Now(),
-				})
-			}
 		}
 	}
 
@@ -282,14 +265,6 @@ func Update(ctx context.Context, key string, item any) error {
 				Payload:   &observerv1.UpdatedPayload{Element: bytes},
 				Timestamp: time.Now(),
 			})
-
-			if admin, ok := AdminFromContext(ctx); ok {
-				go observer.Emit(&Event[Topic]{
-					Topic:     AdminUpdatedTopic.For(item),
-					Payload:   &adminv1.AdminUpdatedPayload{Element: bytes, Admin: admin},
-					Timestamp: time.Now(),
-				})
-			}
 		}
 	}
 
@@ -324,14 +299,6 @@ func Replace(ctx context.Context, key string, item any) error {
 				Payload:   &observerv1.ReplacedPayload{Element: bytes},
 				Timestamp: time.Now(),
 			})
-
-			if admin, ok := AdminFromContext(ctx); ok {
-				go observer.Emit(&Event[Topic]{
-					Topic:     AdminReplacedTopic.For(item),
-					Payload:   &adminv1.AdminReplacedPayload{Element: bytes, Admin: admin},
-					Timestamp: time.Now(),
-				})
-			}
 		}
 	}
 
@@ -375,14 +342,6 @@ func Delete(ctx context.Context, item any) error {
 			Payload:   &observerv1.DeletedPayload{Key: key},
 			Timestamp: time.Now(),
 		})
-
-		if admin, ok := AdminFromContext(ctx); ok {
-			go observer.Emit(&Event[Topic]{
-				Topic:     AdminDeletedTopic.For(item),
-				Payload:   &adminv1.AdminDeletedPayload{Key: key, Admin: admin},
-				Timestamp: time.Now(),
-			})
-		}
 	}
 
 	return nil
@@ -493,3 +452,10 @@ func getFilters(bindVars map[string]interface{}) string {
 	}
 	return ""
 }
+
+var (
+	CreatedTopic  Topic = "created"
+	UpdatedTopic  Topic = "updated"
+	ReplacedTopic Topic = "replaced"
+	DeletedTopic  Topic = "deleted"
+)

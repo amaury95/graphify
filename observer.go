@@ -111,17 +111,3 @@ type Topic string
 func (t Topic) For(elem any) Topic {
 	return Topic(string(t) + "_" + CollectionFor(reflect.TypeOf(elem)))
 }
-
-var (
-	CreatedTopic Topic = "created"
-	UpdatedTopic Topic = "updated"
-	ReplacedTopic Topic = "replaced"
-	DeletedTopic Topic = "deleted"
-)
-
-var (
-	AdminCreatedTopic Topic = "admin_created"
-	AdminUpdatedTopic Topic = "admin_updated"
-	AdminReplacedTopic Topic = "admin_replaced"
-	AdminDeletedTopic Topic = "admin_deleted"
-)

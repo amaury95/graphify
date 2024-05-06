@@ -290,6 +290,17 @@ func (g *graph) resourcesCreateHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
+	if observer, found := ObserverFromContext(c.UserContext()); found {
+		if bytes, ok := protoEncode(elem.Interface()); ok {
+			admin, _ := AdminFromContext(c.UserContext())
+			go observer.Emit(&Event[Topic]{
+				Topic:     AdminCreatedTopic.For(elem.Elem().Interface()),
+				Payload:   &adminv1.AdminCreatedPayload{Element: bytes, Admin: admin, Key: keys[0]},
+				Timestamp: time.Now(),
+			})
+		}
+	}
+
 	c.Status(fiber.StatusCreated)
 	return c.JSON(keys)
 }
@@ -312,6 +323,17 @@ func (g *graph) resourcesReplaceHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
+	if observer, found := ObserverFromContext(c.UserContext()); found {
+		if bytes, ok := protoEncode(elem.Interface()); ok {
+			admin, _ := AdminFromContext(c.UserContext())
+			go observer.Emit(&Event[Topic]{
+				Topic:     AdminReplacedTopic.For(elem.Elem().Interface()),
+				Payload:   &adminv1.AdminReplacedPayload{Element: bytes, Admin: admin},
+				Timestamp: time.Now(),
+			})
+		}
+	}
+
 	return c.SendStatus(fiber.StatusOK)
 }
 
@@ -328,6 +350,15 @@ func (g *graph) resourcesDeleteHandler(c *fiber.Ctx) error {
 	elem.Elem().FieldByName("Key").Set(reflect.ValueOf(key))
 	if err := Delete(c.UserContext(), elem.Interface()); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	if observer, found := ObserverFromContext(c.UserContext()); found {
+		admin, _ := AdminFromContext(c.UserContext())
+		go observer.Emit(&Event[Topic]{
+			Topic:     AdminDeletedTopic.For(elem.Elem().Interface()),
+			Payload:   &adminv1.AdminDeletedPayload{Admin: admin, Key: key},
+			Timestamp: time.Now(),
+		})
 	}
 
 	return c.SendStatus(fiber.StatusOK)
@@ -503,3 +534,9 @@ type PaginationResult struct {
 	Items any   `json:"items"`
 	Count int64 `json:"count"`
 }
+
+var (
+	AdminCreatedTopic  Topic = "admin_created"
+	AdminReplacedTopic Topic = "admin_replaced"
+	AdminDeletedTopic  Topic = "admin_deleted"
+)
