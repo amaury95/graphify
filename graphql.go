@@ -219,7 +219,7 @@ func listRelations(relation string, to, edge reflect.Type, direction Direction) 
 			{Name: "Edge", Type: edge, Tag: reflect.StructTag("json:\"edge\"")},
 		})
 
-		key := reflect.ValueOf(p.Source).FieldByName("Key").
+		key := reflect.ValueOf(p.Source).Elem().FieldByName("Key").
 			Interface().(string)
 
 		out := reflect.New(reflect.SliceOf(resultType))
@@ -250,6 +250,6 @@ func unsafe_GetElement(t reflect.Type) graphql.FieldResolveFn {
 		if err := Read(p.Context, args.Key, out.Interface()); err != nil {
 			return nil, err
 		}
-		return out.Elem().Interface(), nil
+		return out.Interface(), nil
 	}
 }
