@@ -65,7 +65,7 @@ func main() {
 
 	router.PathPrefix("/graphql").Handler(
 		graph.GraphQLHandler(ctx,
-			graph.WithUnsafeHandlers(false),
+			graph.WithUnsafeHandlers(true),
 			graph.Query(filterBooks),
 			graph.Mutation(createBook),
 		))
