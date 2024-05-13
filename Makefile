@@ -18,7 +18,6 @@ release: commit tag push
 next:
 	@make release version=${GIT_NEXT_VERSION}
 
-
 # Commands to run example
 
 example-docker-up:
