@@ -31,6 +31,9 @@ func main() {
 			},
 		))
 
+	ctx = graphify.ContextWithSecret(ctx,
+		[]byte("secret"))
+
 	ctx = graphify.ContextWithObserver(ctx,
 		graphify.NewObserver[graphify.Topic]())
 

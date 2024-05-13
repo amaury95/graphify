@@ -6,7 +6,7 @@ import (
 	adminv1 "github.com/amaury95/graphify/models/domain/admin/v1"
 )
 
-// Admin
+/* Admin */
 type adminKey struct{}
 
 // ContextWithAdmin ...
@@ -15,15 +15,12 @@ func ContextWithAdmin(parent context.Context, admin *adminv1.Admin) context.Cont
 }
 
 // AdminFromContext ...
-func AdminFromContext(ctx context.Context) (admin *adminv1.Admin, found bool) {
-	val := ctx.Value(adminKey{})
-	if result, ok := val.(*adminv1.Admin); ok {
-		return result, true
-	}
-	return nil, false
+func AdminFromContext(ctx context.Context) (value *adminv1.Admin, found bool) {
+	value, found = ctx.Value(adminKey{}).(*adminv1.Admin)
+	return
 }
 
-// IConnection
+/* IConnection */
 type connectionKey struct{}
 
 // ContextWithConnection ...
@@ -32,15 +29,12 @@ func ContextWithConnection(parent context.Context, conn IConnection) context.Con
 }
 
 // ConnectionFromContext ...
-func ConnectionFromContext(ctx context.Context) (conn IConnection, found bool) {
-	val := ctx.Value(connectionKey{})
-	if result, ok := val.(IConnection); ok {
-		return result, true
-	}
-	return nil, false
+func ConnectionFromContext(ctx context.Context) (value IConnection, found bool) {
+	value, found = ctx.Value(connectionKey{}).(IConnection)
+	return
 }
 
-// IObserver
+/* IObserver */
 type observerKey struct{}
 
 // ContextWithObserver ...
@@ -49,41 +43,45 @@ func ContextWithObserver(parent context.Context, observer IObserver[Topic]) cont
 }
 
 // ObserverFromContext ...
-func ObserverFromContext(ctx context.Context) (observer IObserver[Topic], found bool) {
-	val := ctx.Value(observerKey{})
-	if result, ok := val.(IObserver[Topic]); ok {
-		return result, true
-	}
-	return nil, false
+func ObserverFromContext(ctx context.Context) (value IObserver[Topic], found bool) {
+	value, found = ctx.Value(observerKey{}).(IObserver[Topic])
+	return
 }
 
-// IStorage
+/* IStorage */
 type storageKey struct{}
 
 func ContextWithStorage(parent context.Context, storage IFileStorage) context.Context {
 	return context.WithValue(parent, storageKey{}, storage)
 }
 
-func StorageFromContext(ctx context.Context) (storage IFileStorage, found bool) {
-	val := ctx.Value(storageKey{})
-	if result, ok := val.(IFileStorage); ok {
-		return result, true
-	}
-	return nil, false
+func StorageFromContext(ctx context.Context) (value IFileStorage, found bool) {
+	value, found = ctx.Value(storageKey{}).(IFileStorage)
+	return
 }
 
-// Development Environment (Set if env is in development, otherwise assumes production)
-
+/* Development Environment (Set if env is in development, otherwise assumes production) */
 type developmentKey struct{}
 
+// DevelopmentContext ...
 func DevelopmentContext(parent context.Context) context.Context {
 	return context.WithValue(parent, developmentKey{}, true)
 }
 
-func IsDevelopmentContext(ctx context.Context) bool {
-	val := ctx.Value(developmentKey{})
-	if result, ok := val.(bool); ok {
-		return result
-	}
-	return false
+// IsDevelopmentContext ...
+func IsDevelopmentContext(ctx context.Context) (value bool) {
+	value = ctx.Value(developmentKey{}).(bool)
+	return
+}
+
+/* Secret Key */
+type secretKey struct{}
+
+func ContextWithSecret(parent context.Context, secret []byte) context.Context {
+	return context.WithValue(parent, secretKey{}, secret)
+}
+
+func SecretFromContext(ctx context.Context) (value []byte, found bool) {
+	value, found = ctx.Value(secretKey{}).([]byte)
+	return
 }

@@ -22,8 +22,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var secretKey = []byte("secret")
-
 func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	Collection(ctx, adminv1.Admin{}, func(ctx context.Context, c driver.Collection) {
 		c.EnsureHashIndex(ctx, []string{"email"}, &driver.EnsureHashIndexOptions{Unique: true})
@@ -91,7 +89,11 @@ func (g *graph) authorized(c *fiber.Ctx) error {
 	}
 
 	token, err := jwt.ParseWithClaims(cookie, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return secretKey, nil
+		secret, found := SecretFromContext(c.UserContext())
+		if !found {
+			return nil, fmt.Errorf("secret not found")
+		}
+		return secret, nil
 	})
 	if err != nil || !token.Valid {
 		return fiber.NewError(fiber.StatusUnauthorized)
@@ -147,7 +149,11 @@ func (g *graph) authLoginHandler(c *fiber.Ctx) error {
 		Subject:   admin.Key,
 	})
 
-	token, err := claims.SignedString(secretKey)
+	secret, found := SecretFromContext(c.UserContext())
+	if !found {
+		return fmt.Errorf("secret not found")
+	}
+	token, err := claims.SignedString(secret)
 	if err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
