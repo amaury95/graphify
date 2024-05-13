@@ -1,6 +1,10 @@
 GIT_VERSION=$(shell git describe --tags)
 GIT_NEXT_VERSION=$(shell echo $(GIT_VERSION) | awk -F. '{print "v" $$1"."$$2"."$$3+1}')
 
+ifndef version
+	version=$(GIT_NEXT_VERSION)
+endif
+
 commit:
 	@git commit -am "Release $(version)"
 
@@ -12,11 +16,6 @@ push:
 
 release: commit tag push
 	@echo $(version)
-
-ifndef version
-	version=$(GIT_NEXT_VERSION)
-endif
-
 
 
 # Commands to run example
