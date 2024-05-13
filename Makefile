@@ -1,5 +1,6 @@
 # Release new version
 
+
 GIT_VERSION=$(shell git describe --tags)
 GIT_NEXT_VERSION=$(shell echo $(GIT_VERSION) | awk -F. '{print $$1"."$$2"."$$3+1}')
 
