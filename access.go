@@ -115,6 +115,7 @@ func ListKeys(ctx context.Context, keys []string, out any) error {
 	return nil
 }
 
+// Find ...
 func Find(ctx context.Context, bindVars map[string]interface{}, out any) error {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer {
