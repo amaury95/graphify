@@ -28,7 +28,6 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	Collection(ctx, adminv1.Admin{}, func(ctx context.Context, c driver.Collection) {
 		c.EnsureHashIndex(ctx, []string{"email"}, &driver.EnsureHashIndexOptions{Unique: true})
 	})
-	Collection(ctx, adminv1.AdminPassword{})
 
 	router := fiber.New(fiber.Config{
 		BodyLimit: 10 << 20,
@@ -132,21 +131,12 @@ func (g *graph) authLoginHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	var admins []*adminv1.Admin
-	if _, err := List(c.UserContext(), map[string]interface{}{"email": request.Email}, &admins); err != nil {
+	var admin adminv1.Admin
+	if err := Find(c.UserContext(), map[string]interface{}{"email": request.Email}, &admin); err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
 
-	if len(admins) == 0 {
-		return fiber.NewError(fiber.StatusNotFound)
-	}
-
-	var password adminv1.AdminPassword
-	if err := Read(c.UserContext(), admins[0].Key, &password); err != nil {
-		return fiber.NewError(fiber.StatusNotFound, err.Error())
-	}
-
-	if err := bcrypt.CompareHashAndPassword(password.PasswordHash, []byte(request.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword(admin.PasswordHash, []byte(request.Password)); err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
 
@@ -154,7 +144,7 @@ func (g *graph) authLoginHandler(c *fiber.Ctx) error {
 
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(expiresAt),
-		Subject:   admins[0].Key,
+		Subject:   admin.Key,
 	})
 
 	token, err := claims.SignedString(secretKey)
@@ -208,18 +198,12 @@ func (g *graph) authRegisterHandler(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusCreated)
 }
 
-func (g *graph) createAdmin(ctx context.Context, admin *adminv1.Admin, password string) error {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
+func (g *graph) createAdmin(ctx context.Context, admin *adminv1.Admin, password string) (err error) {
+	if admin.PasswordHash, err = bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost); err != nil {
 		return err
 	}
 
-	keys, err := Create(ctx, admin)
-	if err != nil {
-		return err
-	}
-
-	if _, err := Create(ctx, &adminv1.AdminPassword{Key: keys[0], PasswordHash: hash}); err != nil {
+	if _, err := Create(ctx, admin); err != nil {
 		return err
 	}
 

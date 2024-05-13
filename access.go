@@ -31,11 +31,6 @@ func List(ctx context.Context, bindVars map[string]interface{}, out any) (int64,
 		return -1, fmt.Errorf("connection not found in context")
 	}
 
-	db, err := conn.GetDatabase(ctx)
-	if err != nil {
-		return -1, fmt.Errorf("failed to establish connection: %w", err)
-	}
-
 	collection, err := conn.GetCollection(ctx, elemType.Elem())
 	if err != nil {
 		return -1, fmt.Errorf("failed tp load collection: %w", err)
@@ -45,7 +40,13 @@ func List(ctx context.Context, bindVars map[string]interface{}, out any) (int64,
 		return -1, err
 	}
 
-	query := fmt.Sprintf(`FOR doc IN %s %s %s RETURN doc`, CollectionFor(elemType.Elem()), getFilters(bindVars), getLimit(bindVars))
+	db, err := conn.GetDatabase(ctx)
+	if err != nil {
+		return -1, fmt.Errorf("failed to establish connection: %w", err)
+	}
+
+	query := fmt.Sprintf(`FOR doc IN %s %s %s RETURN doc`,
+		CollectionFor(elemType.Elem()), getFilters(bindVars), getLimit(bindVars))
 
 	cursor, err := db.Query(ctx, query, bindVars)
 	if err != nil {
@@ -59,7 +60,7 @@ func List(ctx context.Context, bindVars map[string]interface{}, out any) (int64,
 		if _, err := cursor.ReadDocument(ctx, elem.Interface()); driver.IsNoMoreDocuments(err) {
 			break
 		} else if err != nil {
-			return -1, err
+			return -1, fmt.Errorf("failed to read document: %w", err)
 		}
 		result = reflect.Append(result, elem)
 	}
@@ -111,6 +112,43 @@ func ListKeys(ctx context.Context, keys []string, out any) error {
 
 	outValue := reflect.ValueOf(out).Elem()
 	outValue.Set(result)
+	return nil
+}
+
+func Find(ctx context.Context, bindVars map[string]interface{}, out any) error {
+	outType := reflect.TypeOf(out)
+	if outType.Kind() != reflect.Pointer {
+		return fmt.Errorf("out must be a pointer to return the element")
+	}
+
+	elemType := outType.Elem()
+	if elemType.Kind() != reflect.Struct {
+		return fmt.Errorf("out element must be struct")
+	}
+
+	conn, found := ConnectionFromContext(ctx)
+	if !found {
+		return fmt.Errorf("connection not found in context")
+	}
+
+	db, err := conn.GetDatabase(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to establish connection: %w", err)
+	}
+
+	query := fmt.Sprintf(`FOR doc IN %s %s LIMIT 1 RETURN doc`,
+		CollectionFor(elemType), getFilters(bindVars))
+
+	cursor, err := db.Query(ctx, query, bindVars)
+	if err != nil {
+		return fmt.Errorf("failed to execute query: %w", err)
+	}
+	defer cursor.Close()
+
+	if _, err := cursor.ReadDocument(ctx, out); err != nil {
+		return fmt.Errorf("failed to read document: %w", err)
+	}
+
 	return nil
 }
 
