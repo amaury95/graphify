@@ -13,7 +13,6 @@ push:
 	@git push origin main $(version)
 
 release: commit tag push
-	@echo "Released $(version)"
 
 next:
 	@make release version=${GIT_NEXT_VERSION}
