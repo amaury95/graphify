@@ -16,12 +16,15 @@ push:
 
 release: commit tag push
 
+# Bug fixes
 patch:
 	@make release version=${GIT_NEXT_PATCH}
 
+# Minor changes: Does not break the API
 minor:
 	@make release version=${GIT_NEXT_MINOR}
 
+# Major changes: Breaks the API
 major:
 	@make release version=${GIT_NEXT_MAJOR}
 
