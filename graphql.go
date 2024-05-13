@@ -15,20 +15,20 @@ import (
 type Query *graphql.Field
 
 // Query ...
-func (*graph) Query(item interface{}) Query {
-	return toHandler(item)
+func (*graph) Query(fn interface{}) Query {
+	return toHandler(fn)
 }
 
 // Mutation ...
 type Mutation *graphql.Field
 
 // Mutation ...
-func (*graph) Mutation(item interface{}) Mutation {
-	return toHandler(item)
+func (*graph) Mutation(fn interface{}) Mutation {
+	return toHandler(fn)
 }
 
-func toHandler(item interface{}) *graphql.Field {
-	fv := reflect.ValueOf(item)
+func toHandler(fn interface{}) *graphql.Field {
+	fv := reflect.ValueOf(fn)
 	if fv.Kind() != reflect.Func {
 		panic("provided item is not a function")
 	}
@@ -101,8 +101,8 @@ func toHandler(item interface{}) *graphql.Field {
 // UnsafeHandlers ...
 type UnsafeHandlers bool
 
-func (*graph) WithUnsafeHandlers(value bool) UnsafeHandlers {
-	return UnsafeHandlers(value)
+func (*graph) WithUnsafeHandlers() UnsafeHandlers {
+	return UnsafeHandlers(true)
 }
 
 func (*graph) UsingUnsafeHandlers(handlers ...interface{}) bool {
