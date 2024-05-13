@@ -9,16 +9,16 @@ ifndef version
 endif
 
 commit:
-	@git commit -am "Release $(version)"
+	git commit -am "Release $(version)"
 
 tag:
-	@git tag $(version)
+	git tag $(version)
 
 push:
-	@git push origin main $(version)
+	git push origin main $(version)
 
 release: commit tag push
-	@echo $(version)
+	echo $(version)
 
 
 # Commands to run example
