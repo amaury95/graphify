@@ -8,12 +8,15 @@ ifndef version
 endif
 
 commit:
+	@echo $(version)
 	@git commit -am "Release $(version)"
 
 tag:
+	@echo $(version)
 	@git tag $(version)
 
 push:
+	@echo $(version)
 	@git push origin main $(version)
 
 release: commit tag push
