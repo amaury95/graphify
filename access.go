@@ -67,7 +67,7 @@ func List(ctx context.Context, bindVars map[string]interface{}, out any) (int64,
 
 	outValue := reflect.ValueOf(out).Elem()
 	outValue.Set(result)
-	return count, nil // TODO: finish return total count
+	return count, nil
 }
 
 // ListKeys ...
