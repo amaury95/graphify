@@ -2083,13 +2083,11 @@ func (o *Book) UnmarshalMap(values map[string]interface{}) {
 			}
 		}
 	}
-	var category int32
-	if val, ok := values["category"].(float64); ok {
-		category = int32(val)
-	}
-	o.Category = v1.Category(category)
 	if val, ok := values["category"].(v1.Category); ok {
 		o.Category = val
+	}
+	if val, ok := values["category"].(float64); ok {
+		o.Category = v1.Category(val)
 	}
 	if opt, ok := values["Type"].(map[string]interface{}); ok {
 		if val, ok := opt["Novel"].(map[string]interface{}); ok {

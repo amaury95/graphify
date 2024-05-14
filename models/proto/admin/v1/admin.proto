@@ -1,8 +1,22 @@
 syntax = "proto3";
 package admin.v1;
 
+enum Role {
+  ROLE_UNSPECIFIED = 0;
+  ROLE_OWNER = 1;
+  ROLE_MANAGER = 2;
+}
+
+enum Scope {
+  SCOPE_UNSPECIFIED = 0;
+  SCOPE_READ = 1;
+  SCOPE_WRITE = 2;
+}
+
 // Account ...
 message Admin {
+  /* Admin data */
+
   // key represents the unique identifier of the admin
   string key = 1 [ json_name = "_key" ];
   // first name of the admin
@@ -17,4 +31,11 @@ message Admin {
   optional bytes avatar = 6;
   // notes associated to the admin
   optional string notes = 7;
+
+  /* Authorization */
+
+  // role of the admin
+  Role role = 8;
+  // scopes that the admin contains for each model
+  map<string, Scope> scopes = 9;
 }

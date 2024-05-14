@@ -3,7 +3,7 @@ module github.com/amaury95/graphify
 go 1.20
 
 require (
-	github.com/amaury95/protoc-gen-graphify v0.6.32
+	github.com/amaury95/protoc-gen-graphify v0.7.7
 	github.com/arangodb/go-driver v1.6.1
 	github.com/go-openapi/inflect v0.21.0
 	github.com/gofiber/fiber/v2 v2.52.2
@@ -13,7 +13,7 @@ require (
 	github.com/graphql-go/handler v0.2.3
 	github.com/stoewer/go-strcase v1.3.0
 	golang.org/x/crypto v0.21.0
-	google.golang.org/protobuf v1.34.0
+	google.golang.org/protobuf v1.34.1
 )
 
 require (
