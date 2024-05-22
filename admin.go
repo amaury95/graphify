@@ -36,7 +36,7 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 			AllowCredentials: true,
 		}))
 	}
-	router.Use(g.injectContext(ctx))
+	router.Use(injectContext(ctx))
 
 	admin := router.Group("/admin")
 	admin.Get("/schema", g.adminSchemaHandler)
@@ -74,7 +74,7 @@ func (g *graph) RestHandler(ctx context.Context) http.Handler {
 	return adaptor.FiberApp(router)
 }
 
-func (g *graph) injectContext(ctx context.Context) fiber.Handler {
+func injectContext(ctx context.Context) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		c.SetUserContext(ctx)
 		return c.Next()
