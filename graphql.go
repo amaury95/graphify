@@ -4,78 +4,51 @@ import (
 	"context"
 	"reflect"
 
-	"github.com/amaury95/graphify/models/domain/argument/v1"
+	argument "github.com/amaury95/graphify/models/domain/argument/v1"
 	"github.com/amaury95/protoc-gen-graphify/interfaces"
 	"github.com/go-openapi/inflect"
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/handler"
 )
 
-// Query ...
-type Query *graphql.Field
+// Empty is ignored from graphql input
+type Empty struct{}
+
+func (*Empty) Argument() graphql.FieldConfigArgument {
+	return nil
+}
+
+// query ...
+type query *graphql.Field
 
 // Query ...
-func (*graph) Query(fn interface{}) Query {
+func Query[Arg interfaces.GraphqlArgument, Out interfaces.GraphqlOutput](fn func(context.Context, Arg) (Out, error)) query {
 	return toHandler(fn)
 }
 
-// Mutation ...
-type Mutation *graphql.Field
+// mutation ...
+type mutation *graphql.Field
 
 // Mutation ...
-func (*graph) Mutation(fn interface{}) Mutation {
+func Mutation[Arg interfaces.GraphqlArgument, Out interfaces.GraphqlOutput](fn func(context.Context, Arg) (Out, error)) mutation {
 	return toHandler(fn)
 }
 
-func toHandler(fn interface{}) *graphql.Field {
+func toHandler[Arg interfaces.GraphqlArgument, Out interfaces.GraphqlOutput](fn func(context.Context, Arg) (Out, error)) *graphql.Field {
 	fv := reflect.ValueOf(fn)
-	if fv.Kind() != reflect.Func {
-		panic("provided item is not a function")
-	}
-
 	ft := fv.Type()
-	// check range for argument and output
-	if !(1 <= ft.NumIn() && ft.NumIn() <= 2) || ft.NumOut() != 2 {
-		panic("provided function must have at least one argument and exactly two return values")
-	}
 
-	// Check if the first argument is Context
-	if ft.In(0) != reflect.TypeOf((*context.Context)(nil)).Elem() {
-		panic("first argument of the function should be context.Context")
-	}
+	// Get output instance
+	output := reflect.New(ft.Out(0).Elem()).Interface().(interfaces.GraphqlOutput)
 
-	// Check if the first return value implements GraphqlOutput
-	output, ok := reflect.New(ft.Out(0).Elem()).Interface().(interfaces.GraphqlOutput)
-	if !ok {
-		panic("first return value of the function should implement GraphqlOutput")
-	}
-
-	// Check if the second return value is an error
-	if ft.Out(1) != reflect.TypeOf((*error)(nil)).Elem() {
-		panic("second return value of the function should be an error")
-	}
-
-	if ft.NumIn() == 2 {
-		// Check if the second argument implements GraphqlArgument
-		args, ok := reflect.New(ft.In(1).Elem()).Interface().(interfaces.GraphqlArgument)
-		if !ok {
-			panic("second argument of the function should be utils.GraphqlArgument")
-		}
-
-		// Check if the second argument implements Unmarshaler
-		if !ft.In(1).Implements(reflect.TypeOf((*interfaces.Unmarshaler)(nil)).Elem()) {
-			panic("second argument of the function should implement Unmarshaler")
-		}
-
-		// handler with arguments
+	if !ft.In(1).Implements(reflect.TypeOf((*interfaces.Unmarshaler)(nil)).Elem()) {
+		// Handler with no argument
 		return &graphql.Field{
 			Name: funcName(fv),
 			Type: output.Output(),
-			Args: args.Argument(),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				args := reflect.New(ft.In(1).Elem()).Interface()
-				args.(interfaces.Unmarshaler).UnmarshalMap(p.Args)
-				result := fv.Call([]reflect.Value{reflect.ValueOf(p.Context), reflect.ValueOf(args)})
+				args := reflect.New(ft.In(1).Elem())
+				result := fv.Call([]reflect.Value{reflect.ValueOf(p.Context), args})
 				if err := result[1].Interface(); err != nil {
 					return nil, err.(error)
 				}
@@ -84,36 +57,44 @@ func toHandler(fn interface{}) *graphql.Field {
 		}
 	}
 
-	// handler with no argument
+	// Get argument instance
+	arg := reflect.New(ft.In(1).Elem()).Interface().(interfaces.GraphqlArgument)
+
+	// Handler with arguments
 	return &graphql.Field{
 		Name: funcName(fv),
 		Type: output.Output(),
+		Args: arg.Argument(),
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			result := fv.Call([]reflect.Value{reflect.ValueOf(p.Context)})
+			args := reflect.New(ft.In(1).Elem()).Interface()
+			args.(interfaces.Unmarshaler).UnmarshalMap(p.Args)
+			result := fv.Call([]reflect.Value{reflect.ValueOf(p.Context), reflect.ValueOf(args)})
 			if err := result[1].Interface(); err != nil {
 				return nil, err.(error)
 			}
 			return result[0].Interface(), nil
 		},
 	}
+
 }
 
-// UnsafeHandlers ...
-type UnsafeHandlers bool
+// unsafeHandlers ...
+type unsafeHandlers bool
 
-func (*graph) WithUnsafeHandlers() UnsafeHandlers {
-	return UnsafeHandlers(true)
+func WithUnsafeHandlers() unsafeHandlers {
+	return unsafeHandlers(true)
 }
 
-func (*graph) UsingUnsafeHandlers(handlers ...interface{}) bool {
+func usingUnsafeHandlers(handlers ...interface{}) bool {
 	for _, handler := range handlers {
-		if useUnsafe, ok := handler.(UnsafeHandlers); ok && bool(useUnsafe) {
+		if useUnsafe, ok := handler.(unsafeHandlers); ok && bool(useUnsafe) {
 			return true
 		}
 	}
 	return false
 }
 
+// GraphQLHandler ...
 func (g *graph) GraphQLHandler(ctx context.Context, handlers ...interface{}) *handler.Handler {
 	var queries = graphql.NewObject(graphql.ObjectConfig{
 		Name:   "Query",
@@ -138,15 +119,15 @@ func (g *graph) GraphQLHandler(ctx context.Context, handlers ...interface{}) *ha
 			}
 
 			// expose public handlers (use only for CMS or testing purpose)
-			if g.UsingUnsafeHandlers(handlers...) {
+			if usingUnsafeHandlers(handlers...) {
 				queries.AddFieldConfig(nodeName, &graphql.Field{
-					Args:    new(argumentv1.Pagination).Argument(),
+					Args:    new(argument.Pagination).Argument(),
 					Type:    graphql.NewList(graphNode.Object()),
 					Resolve: unsafe_ListElements(node),
 				})
 
 				queries.AddFieldConfig(inflect.Singularize(nodeName), &graphql.Field{
-					Args:    new(argumentv1.Key).Argument(),
+					Args:    new(argument.Key).Argument(),
 					Type:    graphNode.Object(),
 					Resolve: unsafe_GetElement(node),
 				})
@@ -156,10 +137,10 @@ func (g *graph) GraphQLHandler(ctx context.Context, handlers ...interface{}) *ha
 
 	// add handlers to queries or mutations
 	for _, handler := range handlers {
-		if query, ok := handler.(Query); ok {
+		if query, ok := handler.(query); ok {
 			queries.AddFieldConfig(query.Name, query)
 		}
-		if mutation, ok := handler.(Mutation); ok {
+		if mutation, ok := handler.(mutation); ok {
 			mutations.AddFieldConfig(mutation.Name, mutation)
 		}
 	}
@@ -200,7 +181,7 @@ func addRelationship(name, relation string, from, to, edge reflect.Type, directi
 	}
 
 	fromNode.Object().AddFieldConfig(name, &graphql.Field{
-		Args: new(argumentv1.Pagination).Argument(),
+		Args: new(argument.Pagination).Argument(),
 		Type: graphql.NewList(graphql.NewObject(graphql.ObjectConfig{
 			Name: from.Name() + "_" + inflect.Capitalize(name),
 			Fields: graphql.Fields{
@@ -243,7 +224,7 @@ func unsafe_ListElements(t reflect.Type) graphql.FieldResolveFn {
 
 func unsafe_GetElement(t reflect.Type) graphql.FieldResolveFn {
 	return func(p graphql.ResolveParams) (interface{}, error) {
-		var args argumentv1.Key
+		var args argument.Key
 		args.UnmarshalMap(p.Args)
 
 		out := reflect.New(t)

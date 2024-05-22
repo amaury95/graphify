@@ -68,9 +68,9 @@ func main() {
 
 	router.PathPrefix("/graphql").Handler(
 		graph.GraphQLHandler(ctx,
-			graph.WithUnsafeHandlers(),
-			graph.Query(fitzgeraldBooks),
-			graph.Mutation(createBook),
+			graphify.WithUnsafeHandlers(),
+			graphify.Query(fitzgeraldBooks),
+			graphify.Mutation(createBook),
 		))
 
 	// Create a server with the given multiplexer
@@ -102,7 +102,7 @@ func logCreatedBook(e *graphify.Event[graphify.Topic]) error {
 }
 
 // fitzgeraldBooks is an example of query without arguments
-func fitzgeraldBooks(ctx context.Context) (resp *libraryv1.ListBooksResponse, err error) {
+func fitzgeraldBooks(ctx context.Context, _ *graphify.Empty) (resp *libraryv1.ListBooksResponse, err error) {
 	var books []*libraryv1.Book
 	_, err = graphify.List(ctx, map[string]interface{}{"author": "F. Scott Fitzgerald"}, &books)
 	return &libraryv1.ListBooksResponse{Books: books}, err
