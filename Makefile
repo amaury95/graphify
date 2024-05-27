@@ -3,7 +3,7 @@
 GIT_VERSION=$(shell git describe --tags)
 GIT_NEXT_PATCH=$(shell echo $(GIT_VERSION) | awk -F. '{print $$1"."$$2"."$$3+1}')
 GIT_NEXT_MINOR=$(shell echo $(GIT_VERSION) | awk -F. '{print $$1"."$$2+1".0"}')
-GIT_NEXT_MAJOR=$(shell echo $(GIT_VERSION) | awk -F. '{print v$$1+1".0.0"}')
+GIT_NEXT_MAJOR=v$(shell echo $(GIT_VERSION) | awk -F. '{print $$1+1".0.0"}')
 
 commit:
 	@git commit -am "Release $(version)"
