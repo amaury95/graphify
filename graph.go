@@ -25,6 +25,7 @@ type graph struct {
 	Relations map[string]relation
 }
 
+// NewGraph ...
 func NewGraph() *graph {
 	return &graph{
 		Nodes:     make(map[string]reflect.Type),
@@ -33,6 +34,7 @@ func NewGraph() *graph {
 	}
 }
 
+// Node ...
 func (g *graph) Node(node any) {
 	nodeType := reflect.TypeOf(node)
 	if nodeType.Kind() != reflect.Struct || !isNode(nodeType) {
@@ -47,6 +49,7 @@ func (g *graph) Node(node any) {
 	g.Nodes[nodeName] = nodeType
 }
 
+// Edge ...
 func (g *graph) Edge(from, to, edge any) {
 	fromType := reflect.TypeOf(from)
 	toType := reflect.TypeOf(to)
@@ -79,6 +82,8 @@ func (g *graph) Edge(from, to, edge any) {
 	g.Relations[edgeName] = relation{From: fromName, To: toName}
 	g.Edges[edgeName] = edgeType
 }
+
+// AutoMigrate ...
 func (g *graph) AutoMigrate(ctx context.Context) error {
 	for _, node := range g.Nodes {
 		node := reflect.New(node).Elem()
@@ -95,6 +100,7 @@ func (g *graph) AutoMigrate(ctx context.Context) error {
 	return nil
 }
 
+// Collection ...
 func Collection(ctx context.Context, elem any, callbacks ...func(context.Context, driver.Collection)) (err error) {
 	elemType := reflect.TypeOf(elem)
 	elemName := CollectionFor(elemType)
@@ -104,7 +110,7 @@ func Collection(ctx context.Context, elem any, callbacks ...func(context.Context
 		return fmt.Errorf("connection not provided in context")
 	}
 
-	db, err := conn.GetDatabase(ctx)
+	db, err := conn.Database(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to establish connection: %w", err)
 	}

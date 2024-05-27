@@ -10,10 +10,12 @@ import (
 
 // IConnection ...
 type IConnection interface {
-	// GetDatabase ...
-	GetDatabase(ctx context.Context) (driver.Database, error)
-	// GetCollection ...
-	GetCollection(ctx context.Context, elem reflect.Type) (driver.Collection, error)
+	// Database ...
+	Database(ctx context.Context) (driver.Database, error)
+	// Collection ...
+	Collection(ctx context.Context, elem any) (driver.Collection, error)
+	// Reflect ...
+	Reflect(ctx context.Context, elem reflect.Type) (driver.Collection, error)
 }
 
 type connection struct {
@@ -54,12 +56,16 @@ func NewConnection(ctx context.Context, conf DatabaseConfig) *connection {
 	}
 }
 
-func (c *connection) GetDatabase(ctx context.Context) (db driver.Database, err error) {
+func (c *connection) Database(ctx context.Context) (db driver.Database, err error) {
 	return c.database, nil
 }
 
-func (c *connection) GetCollection(ctx context.Context, elem reflect.Type) (driver.Collection, error) {
-	db, err := c.GetDatabase(ctx)
+func (c *connection) Collection(ctx context.Context, elem any) (driver.Collection, error) {
+	return c.Reflect(ctx, reflect.TypeOf(elem))
+}
+
+func (c *connection) Reflect(ctx context.Context, elem reflect.Type) (driver.Collection, error) {
+	db, err := c.Database(ctx)
 	if err != nil {
 		return nil, err
 	}

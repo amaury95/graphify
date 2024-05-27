@@ -31,7 +31,7 @@ func List(ctx context.Context, bindVars map[string]interface{}, out any) (int64,
 		return -1, fmt.Errorf("connection not found in context")
 	}
 
-	collection, err := conn.GetCollection(ctx, elemType.Elem())
+	collection, err := conn.Reflect(ctx, elemType.Elem())
 	if err != nil {
 		return -1, fmt.Errorf("failed tp load collection: %w", err)
 	}
@@ -40,7 +40,7 @@ func List(ctx context.Context, bindVars map[string]interface{}, out any) (int64,
 		return -1, err
 	}
 
-	db, err := conn.GetDatabase(ctx)
+	db, err := conn.Database(ctx)
 	if err != nil {
 		return -1, fmt.Errorf("failed to establish connection: %w", err)
 	}
@@ -87,7 +87,7 @@ func ListKeys(ctx context.Context, keys []string, out any) error {
 		return fmt.Errorf("connection not found in context")
 	}
 
-	col, err := conn.GetCollection(ctx, elemType)
+	col, err := conn.Reflect(ctx, elemType)
 	if err != nil {
 		return fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -132,7 +132,7 @@ func Find(ctx context.Context, bindVars map[string]interface{}, out any) error {
 		return fmt.Errorf("connection not found in context")
 	}
 
-	db, err := conn.GetDatabase(ctx)
+	db, err := conn.Database(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to establish connection: %w", err)
 	}
@@ -170,7 +170,7 @@ func Read(ctx context.Context, key string, out any) error {
 		return fmt.Errorf("connection not found in context")
 	}
 
-	col, err := conn.GetCollection(ctx, elemType)
+	col, err := conn.Reflect(ctx, elemType)
 	if err != nil {
 		return fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -213,7 +213,7 @@ func createDocuments(ctx context.Context, items any) (result []string, err error
 		return nil, fmt.Errorf("connection not found in context")
 	}
 
-	col, err := conn.GetCollection(ctx, itemType)
+	col, err := conn.Reflect(ctx, itemType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -253,7 +253,7 @@ func createDocument(ctx context.Context, item any) ([]string, error) {
 		return nil, fmt.Errorf("connection not found in context")
 	}
 
-	col, err := conn.GetCollection(ctx, itemType)
+	col, err := conn.Reflect(ctx, itemType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -288,7 +288,7 @@ func Update(ctx context.Context, key string, item any) error {
 		return fmt.Errorf("connection not found in context")
 	}
 
-	col, err := conn.GetCollection(ctx, reflect.TypeOf(item).Elem())
+	col, err := conn.Reflect(ctx, reflect.TypeOf(item).Elem())
 	if err != nil {
 		return fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -322,7 +322,7 @@ func Replace(ctx context.Context, key string, item any) error {
 		return fmt.Errorf("connection not found in context")
 	}
 
-	col, err := conn.GetCollection(ctx, reflect.TypeOf(item).Elem())
+	col, err := conn.Reflect(ctx, reflect.TypeOf(item).Elem())
 	if err != nil {
 		return fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -366,7 +366,7 @@ func Delete(ctx context.Context, item any) error {
 		return fmt.Errorf("connection not found in context")
 	}
 
-	col, err := conn.GetCollection(ctx, itemVal.Elem().Type())
+	col, err := conn.Reflect(ctx, itemVal.Elem().Type())
 	if err != nil {
 		return fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -425,7 +425,7 @@ func Relations(ctx context.Context, id string, bindVars map[string]interface{}, 
 		return -1, fmt.Errorf("connection not found in context")
 	}
 
-	db, err := conn.GetDatabase(ctx)
+	db, err := conn.Database(ctx)
 	if err != nil {
 		return -1, fmt.Errorf("failed to establish connection: %w", err)
 	}
