@@ -481,7 +481,7 @@ func getLimit(bindVars map[string]interface{}) string {
 func getFilters(bindVars map[string]interface{}) string {
 	var filters []string
 	for key := range bindVars {
-		if len(key) == 0 || key[0] == '@' || key == "count" || key == "offset" {
+		if ignoreKey.Ignore(key) {
 			continue
 		}
 		filters = append(filters, "doc."+key+" == @"+key)
@@ -498,3 +498,23 @@ var (
 	ReplacedTopic Topic = "replaced"
 	DeletedTopic  Topic = "deleted"
 )
+
+// ignoreCollection ...
+type ignoreCollection []func(string) bool
+
+// Ignore ...
+func (col *ignoreCollection) Ignore(key string) bool {
+	for _, ignore := range *col {
+		if ignore(key) {
+			return true
+		}
+	}
+	return false
+}
+
+// ignoreKey ...
+var ignoreKey ignoreCollection = []func(string) bool{
+	func(key string) bool { return key[0] == '@' },                     // prefix
+	func(key string) bool { return len(key) == 0 },                     // unset
+	func(key string) bool { return key == "count" || key == "offset" }, // limit
+}
