@@ -100,7 +100,7 @@ func exposingNode(nodeName string, handlers ...interface{}) bool {
 }
 
 // GraphQLHandler ...
-func (g *graph) GraphQLHandler(ctx context.Context, handlers ...interface{}) *handler.Handler {
+func (g *Graph) GraphQLHandler(ctx context.Context, handlers ...interface{}) *handler.Handler {
 	var queries = graphql.NewObject(graphql.ObjectConfig{
 		Name:   "Query",
 		Fields: graphql.Fields{},

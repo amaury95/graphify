@@ -22,7 +22,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (g *graph) RestHandler(ctx context.Context) http.Handler {
+func (g *Graph) RestHandler(ctx context.Context) http.Handler {
 	Collection(ctx, adminv1.Admin{}, func(ctx context.Context, c driver.Collection) {
 		c.EnsureHashIndex(ctx, []string{"email"}, &driver.EnsureHashIndexOptions{Unique: true})
 	})
@@ -81,7 +81,7 @@ func injectContext(ctx context.Context) fiber.Handler {
 	}
 }
 
-func (g *graph) authorized(c *fiber.Ctx) error {
+func (g *Graph) authorized(c *fiber.Ctx) error {
 	// Read the JWT token from the HTTP-only cookie
 	cookie := c.Cookies("jwt")
 	if cookie == "" {
@@ -115,7 +115,7 @@ func (g *graph) authorized(c *fiber.Ctx) error {
 }
 
 /* Auth Handlers */
-func (g *graph) authAccountHandler(c *fiber.Ctx) error {
+func (g *Graph) authAccountHandler(c *fiber.Ctx) error {
 	admin, found := AdminFromContext(c.UserContext())
 	if !found {
 		return fiber.NewError(fiber.StatusUnauthorized)
@@ -124,7 +124,7 @@ func (g *graph) authAccountHandler(c *fiber.Ctx) error {
 	return c.JSON(&admin)
 }
 
-func (g *graph) authLoginHandler(c *fiber.Ctx) error {
+func (g *Graph) authLoginHandler(c *fiber.Ctx) error {
 	var request struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
@@ -173,7 +173,7 @@ func (g *graph) authLoginHandler(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusOK)
 }
 
-func (g *graph) authLogoutHandler(c *fiber.Ctx) error {
+func (g *Graph) authLogoutHandler(c *fiber.Ctx) error {
 	cookie := fiber.Cookie{
 		Name:     "jwt",
 		Value:    "",
@@ -188,7 +188,7 @@ func (g *graph) authLogoutHandler(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusOK)
 }
 
-func (g *graph) authRegisterHandler(c *fiber.Ctx) error {
+func (g *Graph) authRegisterHandler(c *fiber.Ctx) error {
 	var request struct {
 		Admin    adminv1.Admin `json:"admin"`
 		Password string        `json:"password"`
@@ -204,7 +204,7 @@ func (g *graph) authRegisterHandler(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusCreated)
 }
 
-func (g *graph) createAdmin(ctx context.Context, admin *adminv1.Admin, password string) (err error) {
+func (g *Graph) createAdmin(ctx context.Context, admin *adminv1.Admin, password string) (err error) {
 	if admin.PasswordHash, err = bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost); err != nil {
 		return err
 	}
@@ -217,7 +217,7 @@ func (g *graph) createAdmin(ctx context.Context, admin *adminv1.Admin, password 
 }
 
 /* Resource Handlers */
-func (g *graph) resourcesListHandler(c *fiber.Ctx) error {
+func (g *Graph) resourcesListHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
 
 	elemType, found := g.restElem(resource)
@@ -245,7 +245,7 @@ func (g *graph) resourcesListHandler(c *fiber.Ctx) error {
 	})
 }
 
-func (g *graph) resourcesGetHandler(c *fiber.Ctx) error {
+func (g *Graph) resourcesGetHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
 	key := c.Params("key")
 
@@ -262,7 +262,7 @@ func (g *graph) resourcesGetHandler(c *fiber.Ctx) error {
 	return c.JSON(elem.Interface())
 }
 
-func (g *graph) resourcesCreateHandler(c *fiber.Ctx) error {
+func (g *Graph) resourcesCreateHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
 
 	elemType, found := g.restElem(resource)
@@ -295,7 +295,7 @@ func (g *graph) resourcesCreateHandler(c *fiber.Ctx) error {
 	return c.JSON(keys)
 }
 
-func (g *graph) resourcesReplaceHandler(c *fiber.Ctx) error {
+func (g *Graph) resourcesReplaceHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
 	key := c.Params("key")
 
@@ -327,7 +327,7 @@ func (g *graph) resourcesReplaceHandler(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusOK)
 }
 
-func (g *graph) resourcesDeleteHandler(c *fiber.Ctx) error {
+func (g *Graph) resourcesDeleteHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
 	key := c.Params("key")
 
@@ -354,7 +354,7 @@ func (g *graph) resourcesDeleteHandler(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusOK)
 }
 
-func (g *graph) resourcesRelationHandler(c *fiber.Ctx) error {
+func (g *Graph) resourcesRelationHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
 	key := c.Params("key")
 	collection := c.Params("relation")
@@ -401,7 +401,7 @@ func (g *graph) resourcesRelationHandler(c *fiber.Ctx) error {
 }
 
 /* Specs Handlers */
-func (g *graph) adminSchemaHandler(c *fiber.Ctx) error {
+func (g *Graph) adminSchemaHandler(c *fiber.Ctx) error {
 	// nodes
 	nodes := map[string]interface{}{}
 	for name, nodeType := range g.Nodes {
@@ -431,7 +431,7 @@ func (g *graph) adminSchemaHandler(c *fiber.Ctx) error {
 }
 
 /* Files Handlers */
-func (g *graph) filesUploadHandler(c *fiber.Ctx) error {
+func (g *Graph) filesUploadHandler(c *fiber.Ctx) error {
 	storage, found := StorageFromContext(c.UserContext())
 	if !found {
 		return fmt.Errorf("storage not found in context")
@@ -468,7 +468,7 @@ func (g *graph) filesUploadHandler(c *fiber.Ctx) error {
 	return c.JSON(hashes)
 }
 
-func (g *graph) filesDownloadHandler(c *fiber.Ctx) error {
+func (g *Graph) filesDownloadHandler(c *fiber.Ctx) error {
 	storage, found := StorageFromContext(c.UserContext())
 	if !found {
 		return fmt.Errorf("storage not found in context")
@@ -496,7 +496,7 @@ func (g *graph) filesDownloadHandler(c *fiber.Ctx) error {
 	return c.Send(fileContent)
 }
 
-func (g *graph) restElem(name string) (reflect.Type, bool) {
+func (g *Graph) restElem(name string) (reflect.Type, bool) {
 	exposed := map[string]reflect.Type{
 		"admins": reflect.TypeOf(adminv1.Admin{}),
 	}

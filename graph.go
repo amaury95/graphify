@@ -14,7 +14,7 @@ type relation struct {
 	To   string `json:"_to"`
 }
 
-type graph struct {
+type Graph struct {
 	// Nodes collection => type
 	Nodes map[string]reflect.Type
 
@@ -26,8 +26,8 @@ type graph struct {
 }
 
 // NewGraph ...
-func NewGraph() *graph {
-	return &graph{
+func NewGraph() *Graph {
+	return &Graph{
 		Nodes:     make(map[string]reflect.Type),
 		Edges:     make(map[string]reflect.Type),
 		Relations: make(map[string]relation),
@@ -35,7 +35,7 @@ func NewGraph() *graph {
 }
 
 // Node ...
-func (g *graph) Node(node any) {
+func (g *Graph) Node(node any) {
 	nodeType := reflect.TypeOf(node)
 	if nodeType.Kind() != reflect.Struct || !isNode(nodeType) {
 		panic(errors.New("node must be a struct with valid fields"))
@@ -50,7 +50,7 @@ func (g *graph) Node(node any) {
 }
 
 // Edge ...
-func (g *graph) Edge(from, to, edge any) {
+func (g *Graph) Edge(from, to, edge any) {
 	fromType := reflect.TypeOf(from)
 	toType := reflect.TypeOf(to)
 	edgeType := reflect.TypeOf(edge)
@@ -84,7 +84,7 @@ func (g *graph) Edge(from, to, edge any) {
 }
 
 // AutoMigrate ...
-func (g *graph) AutoMigrate(ctx context.Context) error {
+func (g *Graph) AutoMigrate(ctx context.Context) error {
 	for _, node := range g.Nodes {
 		node := reflect.New(node).Elem()
 		if err := Collection(ctx, node.Interface()); err != nil {
