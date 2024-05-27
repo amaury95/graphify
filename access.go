@@ -484,7 +484,11 @@ func getFilters(bindVars map[string]interface{}) string {
 		if ignoreKey.Ignore(key) {
 			continue
 		}
-		filters = append(filters, "doc."+key+" == @"+key)
+		if strings.Contains(key, ".") {
+			filters = append(filters, key+" == @"+removeUntilFirstDot(key))
+		} else {
+			filters = append(filters, "doc."+key+" == @"+key)
+		}
 	}
 	if len(filters) > 0 {
 		return "FILTER " + strings.Join(filters, " && ")
@@ -517,4 +521,13 @@ var ignoreKey ignoreCollection = []func(string) bool{
 	func(key string) bool { return key[0] == '@' },                     // prefix
 	func(key string) bool { return len(key) == 0 },                     // unset
 	func(key string) bool { return key == "count" || key == "offset" }, // limit
+}
+
+// removeUntilFirstDot ...
+func removeUntilFirstDot(s string) string {
+	index := strings.Index(s, ".")
+	if index == -1 {
+		return s // Return the original string if there's no dot
+	}
+	return s[index+1:]
 }
