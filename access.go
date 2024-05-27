@@ -456,6 +456,7 @@ func Relations(ctx context.Context, id string, bindVars map[string]interface{}, 
 	return 0, nil // TODO: finish return total count
 }
 
+// protoEncode ...
 func protoEncode(item any) ([]byte, bool) {
 	message := reflect.New(reflect.TypeOf(item))
 	message.Elem().Set(reflect.ValueOf(item))
@@ -466,6 +467,7 @@ func protoEncode(item any) ([]byte, bool) {
 	return nil, false
 }
 
+// getLimit ...
 func getLimit(bindVars map[string]interface{}) string {
 	_, hasOffset := bindVars["offset"]
 	_, hasCount := bindVars["count"]
@@ -478,6 +480,7 @@ func getLimit(bindVars map[string]interface{}) string {
 	return ""
 }
 
+// getFilters ...
 func getFilters(bindVars map[string]interface{}) string {
 	var filters []string
 	for key := range bindVars {
