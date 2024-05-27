@@ -78,16 +78,21 @@ func toHandler[Arg interfaces.GraphqlArgument, Out interfaces.GraphqlOutput](fn 
 
 }
 
-// unsafeHandlers ...
-type unsafeHandlers bool
+// exposedNodes ...
+type exposedNodes map[string]bool
 
-func WithUnsafeHandlers() unsafeHandlers {
-	return unsafeHandlers(true)
+// ExposeNodes ...
+func ExposeNodes(nodes ...any) exposedNodes {
+	exposed := make(exposedNodes)
+	for _, node := range nodes {
+		exposed[CollectionFor(reflect.TypeOf(node))] = true
+	}
+	return exposed
 }
 
-func usingUnsafeHandlers(handlers ...interface{}) bool {
+func exposingNode(nodeName string, handlers ...interface{}) bool {
 	for _, handler := range handlers {
-		if useUnsafe, ok := handler.(unsafeHandlers); ok && bool(useUnsafe) {
+		if exposed, ok := handler.(exposedNodes); ok && (len(exposed) == 0 || exposed[nodeName]) {
 			return true
 		}
 	}
@@ -119,17 +124,17 @@ func (g *graph) GraphQLHandler(ctx context.Context, handlers ...interface{}) *ha
 			}
 
 			// expose public handlers (use only for CMS or testing purpose)
-			if usingUnsafeHandlers(handlers...) {
+			if exposingNode(nodeName, handlers...) {
 				queries.AddFieldConfig(nodeName, &graphql.Field{
 					Args:    new(argument.Pagination).Argument(),
 					Type:    graphql.NewList(graphNode.Object()),
-					Resolve: unsafe_ListElements(node),
+					Resolve: expose_ListElements(node),
 				})
 
 				queries.AddFieldConfig(inflect.Singularize(nodeName), &graphql.Field{
 					Args:    new(argument.Key).Argument(),
 					Type:    graphNode.Object(),
-					Resolve: unsafe_GetElement(node),
+					Resolve: expose_GetElement(node),
 				})
 			}
 		}
@@ -212,7 +217,7 @@ func listRelations(relation string, to, edge reflect.Type, direction Direction) 
 	}
 }
 
-func unsafe_ListElements(t reflect.Type) graphql.FieldResolveFn {
+func expose_ListElements(t reflect.Type) graphql.FieldResolveFn {
 	return func(p graphql.ResolveParams) (interface{}, error) {
 		out := reflect.New(reflect.SliceOf(reflect.PointerTo(t)))
 		if _, err := List(p.Context, p.Args, out.Interface()); err != nil {
@@ -222,7 +227,7 @@ func unsafe_ListElements(t reflect.Type) graphql.FieldResolveFn {
 	}
 }
 
-func unsafe_GetElement(t reflect.Type) graphql.FieldResolveFn {
+func expose_GetElement(t reflect.Type) graphql.FieldResolveFn {
 	return func(p graphql.ResolveParams) (interface{}, error) {
 		var args argument.Key
 		args.UnmarshalMap(p.Args)
