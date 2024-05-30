@@ -9,7 +9,7 @@ import (
 	"github.com/arangodb/go-driver"
 )
 
-type relation struct {
+type Relation struct {
 	From string `json:"_from"`
 	To   string `json:"_to"`
 }
@@ -22,7 +22,7 @@ type Graph struct {
 	Edges map[string]reflect.Type
 
 	// from => to => collection
-	Relations map[string]relation
+	Relations map[string]Relation
 }
 
 // NewGraph ...
@@ -30,7 +30,7 @@ func NewGraph() *Graph {
 	return &Graph{
 		Nodes:     make(map[string]reflect.Type),
 		Edges:     make(map[string]reflect.Type),
-		Relations: make(map[string]relation),
+		Relations: make(map[string]Relation),
 	}
 }
 
@@ -79,7 +79,7 @@ func (g *Graph) Edge(from, to, edge any) {
 		panic(errors.New("edge type already exists"))
 	}
 
-	g.Relations[edgeName] = relation{From: fromName, To: toName}
+	g.Relations[edgeName] = Relation{From: fromName, To: toName}
 	g.Edges[edgeName] = edgeType
 }
 
