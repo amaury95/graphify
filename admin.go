@@ -204,7 +204,7 @@ func (g *Graph) authRegisterHandler(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusCreated)
 }
 
-func (g *Graph) createAdmin(ctx context.Context, admin *adminv1.Admin, password string) (err error) {
+func (*Graph) createAdmin(ctx context.Context, admin *adminv1.Admin, password string) (err error) {
 	if admin.PasswordHash, err = bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost); err != nil {
 		return err
 	}
