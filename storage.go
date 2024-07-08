@@ -28,9 +28,17 @@ type filesystemStorage struct {
 	maxMemory int
 }
 
+// FilesystemStorageConfig ...
+type FilesystemStorageConfig struct {
+	// BasePath ...
+	BasePath string
+	// MaxMemory ...
+	MaxMemory int
+}
+
 // NewFilesystemStorage ...
-func NewFilesystemStorage(basePath string, maxMemory int) *filesystemStorage {
-	return &filesystemStorage{basePath: basePath, maxMemory: maxMemory}
+func NewFilesystemStorage(params FilesystemStorageConfig) *filesystemStorage {
+	return &filesystemStorage{basePath: params.BasePath, maxMemory: params.MaxMemory}
 }
 
 func (s *filesystemStorage) StoreFile(name string, file []byte) (err error) {

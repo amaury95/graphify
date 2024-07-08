@@ -85,7 +85,7 @@ type exposedNodes map[string]bool
 func ExposeNodes(nodes ...any) exposedNodes {
 	exposed := make(exposedNodes)
 	for _, node := range nodes {
-		exposed[CollectionFor(reflect.TypeOf(node))] = true
+		exposed[collectionFor(reflect.TypeOf(node))] = true
 	}
 	return exposed
 }
@@ -99,8 +99,19 @@ func exposingNode(nodeName string, handlers ...interface{}) bool {
 	return false
 }
 
-// GraphQLHandler ...
-func (g *Graph) GraphQLHandler(ctx context.Context, handlers ...interface{}) *handler.Handler {
+// GraphqlHandler ...
+type GraphqlHandler struct {
+	access IAccess
+	graph  IGraph
+}
+
+// NewGraphqlHandler ...
+func NewGraphqlHandler(access IAccess, graph IGraph) *GraphqlHandler {
+	return &GraphqlHandler{access: access, graph: graph}
+}
+
+// Handler ...
+func (e *GraphqlHandler) Handler(ctx context.Context, handlers ...interface{}) *handler.Handler {
 	var queries = graphql.NewObject(graphql.ObjectConfig{
 		Name:   "Query",
 		Fields: graphql.Fields{},
@@ -111,30 +122,32 @@ func (g *Graph) GraphQLHandler(ctx context.Context, handlers ...interface{}) *ha
 		Fields: graphql.Fields{},
 	})
 
-	for nodeName, node := range g.Nodes {
+	for _, node := range e.graph.Nodes() {
 		if graphNode, ok := reflect.New(node).Interface().(interfaces.GraphqlObject); ok {
 			// inject relationships to node
-			for edgeName, relation := range g.Relations {
-				if relation.From == nodeName {
-					addRelationship(edgeName, nodeName, node, g.Nodes[relation.To], g.Edges[edgeName], DirectionOutbound)
+			for _, edge := range e.graph.Edges() {
+				relation := e.graph.Relation(edge)
+
+				if relation.From.Name() == node.Name() {
+					e.addRelationship(e.graph.CollectionFor(edge), e.graph.CollectionFor(node), node, relation.To, edge, DirectionOutbound)
 				}
-				if relation.To == nodeName {
-					addRelationship(edgeName, nodeName, node, g.Nodes[relation.From], g.Edges[edgeName], DirectionInbound)
+				if relation.To.Name() == node.Name() {
+					e.addRelationship(e.graph.CollectionFor(edge), e.graph.CollectionFor(node), node, relation.From, edge, DirectionInbound)
 				}
 			}
 
 			// expose public handlers (use only for CMS or testing purpose)
-			if exposingNode(nodeName, handlers...) {
-				queries.AddFieldConfig(nodeName, &graphql.Field{
+			if exposingNode(e.graph.CollectionFor(node), handlers...) {
+				queries.AddFieldConfig(e.graph.CollectionFor(node), &graphql.Field{
 					Args:    new(argument.Pagination).Argument(),
 					Type:    graphql.NewList(graphNode.Object()),
-					Resolve: expose_ListElements(node),
+					Resolve: e.expose_ListElements(node),
 				})
 
-				queries.AddFieldConfig(inflect.Singularize(nodeName), &graphql.Field{
+				queries.AddFieldConfig(inflect.Singularize(e.graph.CollectionFor(node)), &graphql.Field{
 					Args:    new(argument.Key).Argument(),
 					Type:    graphNode.Object(),
-					Resolve: expose_GetElement(node),
+					Resolve: e.expose_GetElement(node),
 				})
 			}
 		}
@@ -171,7 +184,7 @@ func (g *Graph) GraphQLHandler(ctx context.Context, handlers ...interface{}) *ha
 	})
 }
 
-func addRelationship(name, relation string, from, to, edge reflect.Type, direction Direction) {
+func (e *GraphqlHandler) addRelationship(name, relation string, from, to, edge reflect.Type, direction Direction) {
 	fromNode, ok := reflect.New(from).Interface().(interfaces.GraphqlObject)
 	if !ok {
 		return
@@ -194,11 +207,11 @@ func addRelationship(name, relation string, from, to, edge reflect.Type, directi
 				"edge": &graphql.Field{Type: edgeNode.Object()},
 			},
 		})),
-		Resolve: listRelations(relation, to, edge, direction),
+		Resolve: e.listRelations(relation, to, edge, direction),
 	})
 }
 
-func listRelations(relation string, to, edge reflect.Type, direction Direction) graphql.FieldResolveFn {
+func (e *GraphqlHandler) listRelations(relation string, to, edge reflect.Type, direction Direction) graphql.FieldResolveFn {
 	return func(p graphql.ResolveParams) (interface{}, error) {
 		resultType := reflect.StructOf([]reflect.StructField{
 			{Name: "Node", Type: to, Tag: reflect.StructTag("json:\"node\"")},
@@ -209,7 +222,7 @@ func listRelations(relation string, to, edge reflect.Type, direction Direction) 
 			Interface().(string)
 
 		out := reflect.New(reflect.SliceOf(resultType))
-		if _, err := Relations(p.Context, getId(relation, key), p.Args, direction, out.Interface()); err != nil {
+		if _, err := e.access.Relations(p.Context, getId(relation, key), p.Args, direction, out.Interface()); err != nil {
 			return nil, err
 		}
 
@@ -217,23 +230,23 @@ func listRelations(relation string, to, edge reflect.Type, direction Direction) 
 	}
 }
 
-func expose_ListElements(t reflect.Type) graphql.FieldResolveFn {
+func (e *GraphqlHandler) expose_ListElements(t reflect.Type) graphql.FieldResolveFn {
 	return func(p graphql.ResolveParams) (interface{}, error) {
 		out := reflect.New(reflect.SliceOf(reflect.PointerTo(t)))
-		if _, err := List(p.Context, p.Args, out.Interface()); err != nil {
+		if _, err := e.access.List(p.Context, p.Args, out.Interface()); err != nil {
 			return nil, err
 		}
 		return out.Elem().Interface(), nil
 	}
 }
 
-func expose_GetElement(t reflect.Type) graphql.FieldResolveFn {
+func (e *GraphqlHandler) expose_GetElement(t reflect.Type) graphql.FieldResolveFn {
 	return func(p graphql.ResolveParams) (interface{}, error) {
 		var args argument.Key
 		args.UnmarshalMap(p.Args)
 
 		out := reflect.New(t)
-		if err := Read(p.Context, args.Key, out.Interface()); err != nil {
+		if err := e.access.Read(p.Context, args.Key, out.Interface()); err != nil {
 			return nil, err
 		}
 		return out.Interface(), nil

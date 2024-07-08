@@ -2,6 +2,7 @@ package graphify
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -14,8 +15,117 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
+// CollectionCallback ...
+type CollectionCallback func(context.Context, driver.Collection)
+
+// IAccess ...
+type IAccess interface {
+	AutoMigrate(ctx context.Context, graph IGraph) error
+	Collection(ctx context.Context, elem any, callbacks ...CollectionCallback) (err error)
+	List(ctx context.Context, bindVars map[string]interface{}, out any) (int64, error)
+	ListKeys(ctx context.Context, keys []string, out any) error
+	Find(ctx context.Context, bindVars map[string]interface{}, out any) error
+	Read(ctx context.Context, key string, out any) error
+	Create(ctx context.Context, val any) ([]string, error)
+	Update(ctx context.Context, key string, item any) error
+	Replace(ctx context.Context, key string, item any) error
+	Delete(ctx context.Context, item any) error
+	Relations(ctx context.Context, id string, bindVars map[string]interface{}, direction Direction, out any) (int, error)
+}
+
+type ArangoAccess struct {
+	conn     IConnection
+	observer IObserver[Topic]
+}
+
+func NewArangoAccess(conn IConnection, observer IObserver[Topic]) *ArangoAccess {
+	return &ArangoAccess{conn: conn, observer: observer}
+}
+
+// typecheck for arango access
+var _ IAccess = new(ArangoAccess)
+
+// AutoMigrate ...
+func (e *ArangoAccess) AutoMigrate(ctx context.Context, graph IGraph) error {
+	for _, node := range graph.Nodes() {
+		node := reflect.New(node).Elem()
+		if err := e.Collection(ctx, node.Interface()); err != nil {
+			return err
+		}
+	}
+	for _, edge := range graph.Edges() {
+		edge := reflect.New(edge).Elem()
+		if err := e.Collection(ctx, edge.Interface()); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Collection ...
+func (e *ArangoAccess) Collection(ctx context.Context, elem any, callbacks ...CollectionCallback) (err error) {
+	elemType := reflect.TypeOf(elem)
+	elemName := collectionFor(elemType)
+
+	db, err := e.conn.Database(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to establish connection: %w", err)
+	}
+
+	var col driver.Collection
+	if isEdge(elemType) {
+		if col, err = createEdgeCollection(ctx, elemName, db); err != nil {
+			return err
+		}
+	} else if isNode(elemType) {
+		if col, err = createNodeCollection(ctx, elemName, db); err != nil {
+			return err
+		}
+	} else {
+		return errors.New("migrate only nodes or edges")
+	}
+
+	for _, callback := range callbacks {
+		callback(ctx, col)
+	}
+
+	return nil
+}
+
+func createNodeCollection(ctx context.Context, name string, db driver.Database) (col driver.Collection, err error) {
+	exists, err := db.CollectionExists(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check collection existence: %w", err)
+	}
+
+	if !exists {
+		if col, err = db.CreateCollection(ctx, name, nil); err != nil {
+			return nil, fmt.Errorf("failed to create collection: %w", err)
+		}
+		return
+	}
+
+	return db.Collection(ctx, name)
+}
+
+func createEdgeCollection(ctx context.Context, name string, db driver.Database) (col driver.Collection, err error) {
+	exists, err := db.CollectionExists(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check collection existence: %w", err)
+	}
+
+	if !exists {
+		if col, err = db.CreateCollection(ctx, name, &driver.CreateCollectionOptions{Type: driver.CollectionTypeEdge}); err != nil {
+			return nil, fmt.Errorf("failed to create collection: %w", err)
+		}
+		return
+	}
+
+	return db.Collection(ctx, name)
+}
+
 // List ...
-func List(ctx context.Context, bindVars map[string]interface{}, out any) (int64, error) {
+func (e *ArangoAccess) List(ctx context.Context, bindVars map[string]interface{}, out any) (int64, error) {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return -1, fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -26,12 +136,7 @@ func List(ctx context.Context, bindVars map[string]interface{}, out any) (int64,
 		return -1, fmt.Errorf("out elements must be pointers to struct")
 	}
 
-	conn, found := ConnectionFromContext(ctx)
-	if !found {
-		return -1, fmt.Errorf("connection not found in context")
-	}
-
-	collection, err := conn.Reflect(ctx, elemType.Elem())
+	collection, err := e.conn.Reflect(ctx, elemType.Elem())
 	if err != nil {
 		return -1, fmt.Errorf("failed tp load collection: %w", err)
 	}
@@ -40,13 +145,13 @@ func List(ctx context.Context, bindVars map[string]interface{}, out any) (int64,
 		return -1, err
 	}
 
-	db, err := conn.Database(ctx)
+	db, err := e.conn.Database(ctx)
 	if err != nil {
 		return -1, fmt.Errorf("failed to establish connection: %w", err)
 	}
 
 	query := fmt.Sprintf(`FOR doc IN %s %s %s RETURN doc`,
-		CollectionFor(elemType.Elem()), getFilters(bindVars), getLimit(bindVars))
+		collectionFor(elemType.Elem()), getFilters(bindVars), getLimit(bindVars))
 
 	cursor, err := db.Query(ctx, query, bindVars)
 	if err != nil {
@@ -71,7 +176,7 @@ func List(ctx context.Context, bindVars map[string]interface{}, out any) (int64,
 }
 
 // ListKeys ...
-func ListKeys(ctx context.Context, keys []string, out any) error {
+func (e *ArangoAccess) ListKeys(ctx context.Context, keys []string, out any) error {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -82,12 +187,7 @@ func ListKeys(ctx context.Context, keys []string, out any) error {
 		return fmt.Errorf("out elements must be struct")
 	}
 
-	conn, found := ConnectionFromContext(ctx)
-	if !found {
-		return fmt.Errorf("connection not found in context")
-	}
-
-	col, err := conn.Reflect(ctx, elemType)
+	col, err := e.conn.Reflect(ctx, elemType)
 	if err != nil {
 		return fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -116,7 +216,7 @@ func ListKeys(ctx context.Context, keys []string, out any) error {
 }
 
 // Find ...
-func Find(ctx context.Context, bindVars map[string]interface{}, out any) error {
+func (e *ArangoAccess) Find(ctx context.Context, bindVars map[string]interface{}, out any) error {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer {
 		return fmt.Errorf("out must be a pointer to return the element")
@@ -127,18 +227,13 @@ func Find(ctx context.Context, bindVars map[string]interface{}, out any) error {
 		return fmt.Errorf("out element must be struct")
 	}
 
-	conn, found := ConnectionFromContext(ctx)
-	if !found {
-		return fmt.Errorf("connection not found in context")
-	}
-
-	db, err := conn.Database(ctx)
+	db, err := e.conn.Database(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to establish connection: %w", err)
 	}
 
 	query := fmt.Sprintf(`FOR doc IN %s %s LIMIT 1 RETURN doc`,
-		CollectionFor(elemType), getFilters(bindVars))
+		collectionFor(elemType), getFilters(bindVars))
 
 	cursor, err := db.Query(ctx, query, bindVars)
 	if err != nil {
@@ -154,7 +249,7 @@ func Find(ctx context.Context, bindVars map[string]interface{}, out any) error {
 }
 
 // Read ...
-func Read(ctx context.Context, key string, out any) error {
+func (e *ArangoAccess) Read(ctx context.Context, key string, out any) error {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer {
 		return fmt.Errorf("out must be a pointer to return the element")
@@ -165,12 +260,7 @@ func Read(ctx context.Context, key string, out any) error {
 		return fmt.Errorf("out element must be struct")
 	}
 
-	conn, found := ConnectionFromContext(ctx)
-	if !found {
-		return fmt.Errorf("connection not found in context")
-	}
-
-	col, err := conn.Reflect(ctx, elemType)
+	col, err := e.conn.Reflect(ctx, elemType)
 	if err != nil {
 		return fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -192,28 +282,23 @@ func Read(ctx context.Context, key string, out any) error {
 }
 
 // Create ...
-func Create(ctx context.Context, val any) ([]string, error) {
+func (e *ArangoAccess) Create(ctx context.Context, val any) ([]string, error) {
 	valType := reflect.TypeOf(val)
 
 	if valType.Kind() == reflect.Slice && valType.Elem().Kind() == reflect.Struct {
-		return createDocuments(ctx, val)
+		return e.createDocuments(ctx, val)
 	}
 
 	if valType.Kind() == reflect.Pointer && valType.Elem().Kind() == reflect.Struct {
-		return createDocument(ctx, val)
+		return e.createDocument(ctx, val)
 	}
 
 	return nil, fmt.Errorf("val must be struct or list of struct")
 }
-func createDocuments(ctx context.Context, items any) (result []string, err error) {
+func (e *ArangoAccess) createDocuments(ctx context.Context, items any) (result []string, err error) {
 	itemType := reflect.TypeOf(items).Elem()
 
-	conn, found := ConnectionFromContext(ctx)
-	if !found {
-		return nil, fmt.Errorf("connection not found in context")
-	}
-
-	col, err := conn.Reflect(ctx, itemType)
+	col, err := e.conn.Reflect(ctx, itemType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -231,29 +316,24 @@ func createDocuments(ctx context.Context, items any) (result []string, err error
 	for index, meta := range meta {
 		result = append(result, meta.Key)
 
-		if observer, found := ObserverFromContext(ctx); found {
-			item := itemsVal.Index(index).Interface()
-			if bytes, ok := protoEncode(item); ok {
-				go observer.Emit(&Event[Topic]{
-					Topic:     CreatedTopic.For(item),
-					Payload:   &observerv1.CreatedPayload{Key: meta.Key, Element: bytes},
-					Timestamp: time.Now(),
-				})
-			}
+		// emit events
+		item := itemsVal.Index(index).Interface()
+		if bytes, ok := protoEncode(item); ok {
+			go e.observer.Emit(&Event[Topic]{
+				Topic:     CreatedTopic.For(item),
+				Payload:   &observerv1.CreatedPayload{Key: meta.Key, Element: bytes},
+				Timestamp: time.Now(),
+			})
 		}
+
 	}
 
 	return result, nil
 }
-func createDocument(ctx context.Context, item any) ([]string, error) {
+func (e *ArangoAccess) createDocument(ctx context.Context, item any) ([]string, error) {
 	itemType := reflect.TypeOf(item).Elem()
 
-	conn, found := ConnectionFromContext(ctx)
-	if !found {
-		return nil, fmt.Errorf("connection not found in context")
-	}
-
-	col, err := conn.Reflect(ctx, itemType)
+	col, err := e.conn.Reflect(ctx, itemType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -263,32 +343,26 @@ func createDocument(ctx context.Context, item any) ([]string, error) {
 		return nil, fmt.Errorf("failed to insert document: %w", err)
 	}
 
-	if observer, found := ObserverFromContext(ctx); found {
-		if bytes, ok := protoEncode(item); ok {
-			go observer.Emit(&Event[Topic]{
-				Topic:     CreatedTopic.For(item),
-				Payload:   &observerv1.CreatedPayload{Key: meta.Key, Element: bytes},
-				Timestamp: time.Now(),
-			})
-		}
+	// emit event
+	if bytes, ok := protoEncode(item); ok {
+		go e.observer.Emit(&Event[Topic]{
+			Topic:     CreatedTopic.For(item),
+			Payload:   &observerv1.CreatedPayload{Key: meta.Key, Element: bytes},
+			Timestamp: time.Now(),
+		})
 	}
 
 	return []string{meta.Key}, nil
 }
 
 // Update ...
-func Update(ctx context.Context, key string, item any) error {
+func (e *ArangoAccess) Update(ctx context.Context, key string, item any) error {
 	itemVal := reflect.ValueOf(item)
 	if itemVal.Kind() != reflect.Pointer || itemVal.Elem().Kind() != reflect.Struct {
 		return fmt.Errorf("item should be a pointer to struct")
 	}
 
-	conn, found := ConnectionFromContext(ctx)
-	if !found {
-		return fmt.Errorf("connection not found in context")
-	}
-
-	col, err := conn.Reflect(ctx, reflect.TypeOf(item).Elem())
+	col, err := e.conn.Reflect(ctx, reflect.TypeOf(item).Elem())
 	if err != nil {
 		return fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -297,32 +371,26 @@ func Update(ctx context.Context, key string, item any) error {
 		return fmt.Errorf("failed to update the document")
 	}
 
-	if observer, found := ObserverFromContext(ctx); found {
-		if bytes, ok := protoEncode(item); ok {
-			go observer.Emit(&Event[Topic]{
-				Topic:     UpdatedTopic.For(item),
-				Payload:   &observerv1.UpdatedPayload{Element: bytes},
-				Timestamp: time.Now(),
-			})
-		}
+	// emit event
+	if bytes, ok := protoEncode(item); ok {
+		go e.observer.Emit(&Event[Topic]{
+			Topic:     UpdatedTopic.For(item),
+			Payload:   &observerv1.UpdatedPayload{Element: bytes},
+			Timestamp: time.Now(),
+		})
 	}
 
 	return nil
 }
 
 // Replace ...
-func Replace(ctx context.Context, key string, item any) error {
+func (e *ArangoAccess) Replace(ctx context.Context, key string, item any) error {
 	itemVal := reflect.ValueOf(item)
 	if itemVal.Kind() != reflect.Pointer || itemVal.Elem().Kind() != reflect.Struct {
 		return fmt.Errorf("item should be a pointer to struct")
 	}
 
-	conn, found := ConnectionFromContext(ctx)
-	if !found {
-		return fmt.Errorf("connection not found in context")
-	}
-
-	col, err := conn.Reflect(ctx, reflect.TypeOf(item).Elem())
+	col, err := e.conn.Reflect(ctx, reflect.TypeOf(item).Elem())
 	if err != nil {
 		return fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -331,21 +399,20 @@ func Replace(ctx context.Context, key string, item any) error {
 		return fmt.Errorf("failed to replace the document")
 	}
 
-	if observer, found := ObserverFromContext(ctx); found {
-		if bytes, ok := protoEncode(item); ok {
-			go observer.Emit(&Event[Topic]{
-				Topic:     ReplacedTopic.For(item),
-				Payload:   &observerv1.ReplacedPayload{Element: bytes},
-				Timestamp: time.Now(),
-			})
-		}
+	// emit event
+	if bytes, ok := protoEncode(item); ok {
+		go e.observer.Emit(&Event[Topic]{
+			Topic:     ReplacedTopic.For(item),
+			Payload:   &observerv1.ReplacedPayload{Element: bytes},
+			Timestamp: time.Now(),
+		})
 	}
 
 	return nil
 }
 
 // Delete ...
-func Delete(ctx context.Context, item any) error {
+func (e *ArangoAccess) Delete(ctx context.Context, item any) error {
 	itemVal := reflect.ValueOf(item)
 	if itemVal.Kind() != reflect.Pointer || itemVal.Elem().Kind() != reflect.Struct {
 		return fmt.Errorf("item should be a pointer to struct")
@@ -361,12 +428,7 @@ func Delete(ctx context.Context, item any) error {
 		return fmt.Errorf("item field Key should be string")
 	}
 
-	conn, found := ConnectionFromContext(ctx)
-	if !found {
-		return fmt.Errorf("connection not found in context")
-	}
-
-	col, err := conn.Reflect(ctx, itemVal.Elem().Type())
+	col, err := e.conn.Reflect(ctx, itemVal.Elem().Type())
 	if err != nil {
 		return fmt.Errorf("failed to load collection: %w", err)
 	}
@@ -375,13 +437,12 @@ func Delete(ctx context.Context, item any) error {
 		return fmt.Errorf("failed to remove the document")
 	}
 
-	if observer, found := ObserverFromContext(ctx); found {
-		go observer.Emit(&Event[Topic]{
-			Topic:     DeletedTopic.For(item),
-			Payload:   &observerv1.DeletedPayload{Key: key},
-			Timestamp: time.Now(),
-		})
-	}
+	// emit event
+	go e.observer.Emit(&Event[Topic]{
+		Topic:     DeletedTopic.For(item),
+		Payload:   &observerv1.DeletedPayload{Key: key},
+		Timestamp: time.Now(),
+	})
 
 	return nil
 }
@@ -395,7 +456,7 @@ const (
 )
 
 // Relations ...
-func Relations(ctx context.Context, id string, bindVars map[string]interface{}, direction Direction, out any) (int, error) {
+func (e *ArangoAccess) Relations(ctx context.Context, id string, bindVars map[string]interface{}, direction Direction, out any) (int, error) {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return -1, fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -420,18 +481,13 @@ func Relations(ctx context.Context, id string, bindVars map[string]interface{}, 
 		return -1, fmt.Errorf("edge not present in result or is invalid")
 	}
 
-	conn, found := ConnectionFromContext(ctx)
-	if !found {
-		return -1, fmt.Errorf("connection not found in context")
-	}
-
-	db, err := conn.Database(ctx)
+	db, err := e.conn.Database(ctx)
 	if err != nil {
 		return -1, fmt.Errorf("failed to establish connection: %w", err)
 	}
 
 	query := fmt.Sprintf(`FOR node, edge IN 1..1 %s '%s' %s %s %s RETURN {node, edge}`,
-		string(direction), id, CollectionFor(edgeField.Type), getFilters(bindVars), getLimit(bindVars))
+		string(direction), id, collectionFor(edgeField.Type), getFilters(bindVars), getLimit(bindVars))
 
 	cursor, err := db.Query(ctx, query, bindVars)
 	if err != nil {

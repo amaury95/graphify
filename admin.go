@@ -3,7 +3,6 @@ package graphify
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"reflect"
@@ -19,11 +18,50 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/golang-jwt/jwt/v4"
+	"go.uber.org/fx"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (g *Graph) RestHandler(ctx context.Context) http.Handler {
-	Collection(ctx, adminv1.Admin{}, func(ctx context.Context, c driver.Collection) {
+// AdminHandler ...
+type AdminHandler struct {
+	config AdminHandlerConfig
+
+	access   IAccess
+	graph    IGraph
+	storage  IFileStorage
+	observer IObserver[Topic]
+}
+
+// AdminHandlerConfig ...
+type AdminHandlerConfig struct {
+	Secret []byte
+}
+
+// AdminHandlerParams ...
+type AdminHandlerParams struct {
+	fx.In
+
+	Access   IAccess
+	Graph    IGraph
+	Storage  IFileStorage
+	Observer IObserver[Topic]
+}
+
+// NewAdminHandler ...
+func NewAdminHandler(config AdminHandlerConfig, params AdminHandlerParams) *AdminHandler {
+	return &AdminHandler{
+		config: config,
+
+		access:   params.Access,
+		graph:    params.Graph,
+		storage:  params.Storage,
+		observer: params.Observer,
+	}
+}
+
+// Handler ...
+func (e *AdminHandler) Handler(ctx context.Context) http.Handler {
+	e.access.Collection(ctx, adminv1.Admin{}, func(ctx context.Context, c driver.Collection) {
 		c.EnsureHashIndex(ctx, []string{"email"}, &driver.EnsureHashIndexOptions{Unique: true})
 	})
 
@@ -39,7 +77,7 @@ func (g *Graph) RestHandler(ctx context.Context) http.Handler {
 	router.Use(injectContext(ctx))
 
 	admin := router.Group("/admin")
-	admin.Get("/schema", g.adminSchemaHandler)
+	admin.Get("/schema", e.adminSchemaHandler)
 	admin.Use("/dashboard", filesystem.New(filesystem.Config{
 		Root:       http.FS(client.Build),
 		PathPrefix: "build",
@@ -47,25 +85,23 @@ func (g *Graph) RestHandler(ctx context.Context) http.Handler {
 	}))
 
 	auth := admin.Group("/auth")
-	auth.Post("/login", g.authLoginHandler)
-	auth.Post("/account", g.authRegisterHandler)
-	auth.Use(g.authorized)
-	auth.Post("/logout", g.authLogoutHandler)
-	auth.Get("/account", g.authAccountHandler)
+	auth.Post("/login", e.authLoginHandler)
+	auth.Post("/account", e.authRegisterHandler)
+	auth.Use(e.authorized)
+	auth.Post("/logout", e.authLogoutHandler)
+	auth.Get("/account", e.authAccountHandler)
 
-	if _, found := StorageFromContext(ctx); found {
-		files := admin.Group("/files", g.authorized)
-		files.Post("/upload", g.filesUploadHandler)
-		files.Get("/download/:name", g.filesDownloadHandler)
-	}
+	files := admin.Group("/files", e.authorized)
+	files.Post("/upload", e.filesUploadHandler)
+	files.Get("/download/:name", e.filesDownloadHandler)
 
-	resources := admin.Group("/:resource", g.authorized)
-	resources.Get("", g.resourcesListHandler)
-	resources.Post("", g.resourcesCreateHandler)
-	resources.Get("/:key", g.resourcesGetHandler)
-	resources.Put("/:key", g.resourcesReplaceHandler)
-	resources.Delete("/:key", g.resourcesDeleteHandler)
-	resources.Get("/:key/:relation", g.resourcesRelationHandler)
+	resources := admin.Group("/:resource", e.authorized)
+	resources.Get("", e.resourcesListHandler)
+	resources.Post("", e.resourcesCreateHandler)
+	resources.Get("/:key", e.resourcesGetHandler)
+	resources.Put("/:key", e.resourcesReplaceHandler)
+	resources.Delete("/:key", e.resourcesDeleteHandler)
+	resources.Get("/:key/:relation", e.resourcesRelationHandler)
 
 	// Redirect to Dashboard on NotFound
 	admin.Get("/", func(c *fiber.Ctx) error {
@@ -81,7 +117,7 @@ func injectContext(ctx context.Context) fiber.Handler {
 	}
 }
 
-func (g *Graph) authorized(c *fiber.Ctx) error {
+func (e *AdminHandler) authorized(c *fiber.Ctx) error {
 	// Read the JWT token from the HTTP-only cookie
 	cookie := c.Cookies("jwt")
 	if cookie == "" {
@@ -89,11 +125,7 @@ func (g *Graph) authorized(c *fiber.Ctx) error {
 	}
 
 	token, err := jwt.ParseWithClaims(cookie, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
-		secret, found := SecretFromContext(c.UserContext())
-		if !found {
-			return nil, fmt.Errorf("secret not found")
-		}
-		return secret, nil
+		return e.config.Secret, nil
 	})
 	if err != nil || !token.Valid {
 		return fiber.NewError(fiber.StatusUnauthorized)
@@ -105,7 +137,7 @@ func (g *Graph) authorized(c *fiber.Ctx) error {
 	}
 
 	var admin adminv1.Admin
-	if err := Read(c.UserContext(), claims.Subject, &admin); err != nil {
+	if err := e.access.Read(c.UserContext(), claims.Subject, &admin); err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
 
@@ -115,7 +147,7 @@ func (g *Graph) authorized(c *fiber.Ctx) error {
 }
 
 /* Auth Handlers */
-func (g *Graph) authAccountHandler(c *fiber.Ctx) error {
+func (e *AdminHandler) authAccountHandler(c *fiber.Ctx) error {
 	admin, found := AdminFromContext(c.UserContext())
 	if !found {
 		return fiber.NewError(fiber.StatusUnauthorized)
@@ -124,7 +156,7 @@ func (g *Graph) authAccountHandler(c *fiber.Ctx) error {
 	return c.JSON(&admin)
 }
 
-func (g *Graph) authLoginHandler(c *fiber.Ctx) error {
+func (e *AdminHandler) authLoginHandler(c *fiber.Ctx) error {
 	var request struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
@@ -134,7 +166,7 @@ func (g *Graph) authLoginHandler(c *fiber.Ctx) error {
 	}
 
 	var admin adminv1.Admin
-	if err := Find(c.UserContext(), map[string]interface{}{"email": request.Email}, &admin); err != nil {
+	if err := e.access.Find(c.UserContext(), map[string]interface{}{"email": request.Email}, &admin); err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
 
@@ -149,11 +181,7 @@ func (g *Graph) authLoginHandler(c *fiber.Ctx) error {
 		Subject:   admin.Key,
 	})
 
-	secret, found := SecretFromContext(c.UserContext())
-	if !found {
-		return fmt.Errorf("secret not found")
-	}
-	token, err := claims.SignedString(secret)
+	token, err := claims.SignedString(e.config.Secret)
 	if err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
@@ -173,7 +201,7 @@ func (g *Graph) authLoginHandler(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusOK)
 }
 
-func (g *Graph) authLogoutHandler(c *fiber.Ctx) error {
+func (e *AdminHandler) authLogoutHandler(c *fiber.Ctx) error {
 	cookie := fiber.Cookie{
 		Name:     "jwt",
 		Value:    "",
@@ -188,7 +216,7 @@ func (g *Graph) authLogoutHandler(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusOK)
 }
 
-func (g *Graph) authRegisterHandler(c *fiber.Ctx) error {
+func (e *AdminHandler) authRegisterHandler(c *fiber.Ctx) error {
 	var request struct {
 		Admin    adminv1.Admin `json:"admin"`
 		Password string        `json:"password"`
@@ -197,19 +225,19 @@ func (g *Graph) authRegisterHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	if err := g.createAdmin(c.UserContext(), &request.Admin, request.Password); err != nil {
+	if err := e.createAdmin(c.UserContext(), &request.Admin, request.Password); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	return c.SendStatus(fiber.StatusCreated)
 }
 
-func (*Graph) createAdmin(ctx context.Context, admin *adminv1.Admin, password string) (err error) {
+func (e *AdminHandler) createAdmin(ctx context.Context, admin *adminv1.Admin, password string) (err error) {
 	if admin.PasswordHash, err = bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost); err != nil {
 		return err
 	}
 
-	if _, err := Create(ctx, admin); err != nil {
+	if _, err := e.access.Create(ctx, admin); err != nil {
 		return err
 	}
 
@@ -217,10 +245,10 @@ func (*Graph) createAdmin(ctx context.Context, admin *adminv1.Admin, password st
 }
 
 /* Resource Handlers */
-func (g *Graph) resourcesListHandler(c *fiber.Ctx) error {
+func (e *AdminHandler) resourcesListHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
 
-	elemType, found := g.restElem(resource)
+	elemType, found := e.restElem(resource)
 	if !found {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
@@ -234,7 +262,7 @@ func (g *Graph) resourcesListHandler(c *fiber.Ctx) error {
 	}
 
 	elems := reflect.New(reflect.SliceOf(reflect.PointerTo(elemType)))
-	count, err := List(c.UserContext(), bindVars, elems.Interface())
+	count, err := e.access.List(c.UserContext(), bindVars, elems.Interface())
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
@@ -245,27 +273,27 @@ func (g *Graph) resourcesListHandler(c *fiber.Ctx) error {
 	})
 }
 
-func (g *Graph) resourcesGetHandler(c *fiber.Ctx) error {
+func (e *AdminHandler) resourcesGetHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
 	key := c.Params("key")
 
-	elemType, found := g.restElem(resource)
+	elemType, found := e.restElem(resource)
 	if !found {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
 	elem := reflect.New(elemType)
-	if err := Read(c.UserContext(), key, elem.Interface()); err != nil {
+	if err := e.access.Read(c.UserContext(), key, elem.Interface()); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(elem.Interface())
 }
 
-func (g *Graph) resourcesCreateHandler(c *fiber.Ctx) error {
+func (e *AdminHandler) resourcesCreateHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
 
-	elemType, found := g.restElem(resource)
+	elemType, found := e.restElem(resource)
 	if !found {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
@@ -275,31 +303,30 @@ func (g *Graph) resourcesCreateHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	keys, err := Create(c.UserContext(), elem.Interface())
+	keys, err := e.access.Create(c.UserContext(), elem.Interface())
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	if observer, found := ObserverFromContext(c.UserContext()); found {
-		if bytes, ok := protoEncode(elem.Interface()); ok {
-			admin, _ := AdminFromContext(c.UserContext())
-			go observer.Emit(&Event[Topic]{
-				Topic:     AdminCreatedTopic.For(elem.Elem().Interface()),
-				Payload:   &adminv1.AdminCreatedPayload{Element: bytes, Admin: admin, Key: keys[0]},
-				Timestamp: time.Now(),
-			})
-		}
+	// emit event
+	if bytes, ok := protoEncode(elem.Interface()); ok {
+		admin, _ := AdminFromContext(c.UserContext())
+		go e.observer.Emit(&Event[Topic]{
+			Topic:     AdminCreatedTopic.For(elem.Elem().Interface()),
+			Payload:   &adminv1.AdminCreatedPayload{Element: bytes, Admin: admin, Key: keys[0]},
+			Timestamp: time.Now(),
+		})
 	}
 
 	c.Status(fiber.StatusCreated)
 	return c.JSON(keys)
 }
 
-func (g *Graph) resourcesReplaceHandler(c *fiber.Ctx) error {
+func (e *AdminHandler) resourcesReplaceHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
 	key := c.Params("key")
 
-	elemType, found := g.restElem(resource)
+	elemType, found := e.restElem(resource)
 	if !found {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
@@ -309,44 +336,16 @@ func (g *Graph) resourcesReplaceHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	if err := Replace(c.UserContext(), key, elem.Interface()); err != nil {
+	if err := e.access.Replace(c.UserContext(), key, elem.Interface()); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	if observer, found := ObserverFromContext(c.UserContext()); found {
-		if bytes, ok := protoEncode(elem.Interface()); ok {
-			admin, _ := AdminFromContext(c.UserContext())
-			go observer.Emit(&Event[Topic]{
-				Topic:     AdminReplacedTopic.For(elem.Elem().Interface()),
-				Payload:   &adminv1.AdminReplacedPayload{Element: bytes, Admin: admin},
-				Timestamp: time.Now(),
-			})
-		}
-	}
-
-	return c.SendStatus(fiber.StatusOK)
-}
-
-func (g *Graph) resourcesDeleteHandler(c *fiber.Ctx) error {
-	resource := c.Params("resource")
-	key := c.Params("key")
-
-	elemType, found := g.restElem(resource)
-	if !found {
-		return fiber.NewError(fiber.StatusNotFound)
-	}
-
-	elem := reflect.New(elemType)
-	elem.Elem().FieldByName("Key").Set(reflect.ValueOf(key))
-	if err := Delete(c.UserContext(), elem.Interface()); err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-	}
-
-	if observer, found := ObserverFromContext(c.UserContext()); found {
+	// emit event
+	if bytes, ok := protoEncode(elem.Interface()); ok {
 		admin, _ := AdminFromContext(c.UserContext())
-		go observer.Emit(&Event[Topic]{
-			Topic:     AdminDeletedTopic.For(elem.Elem().Interface()),
-			Payload:   &adminv1.AdminDeletedPayload{Admin: admin, Key: key},
+		go e.observer.Emit(&Event[Topic]{
+			Topic:     AdminReplacedTopic.For(elem.Elem().Interface()),
+			Payload:   &adminv1.AdminReplacedPayload{Element: bytes, Admin: admin},
 			Timestamp: time.Now(),
 		})
 	}
@@ -354,18 +353,44 @@ func (g *Graph) resourcesDeleteHandler(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusOK)
 }
 
-func (g *Graph) resourcesRelationHandler(c *fiber.Ctx) error {
+func (e *AdminHandler) resourcesDeleteHandler(c *fiber.Ctx) error {
+	resource := c.Params("resource")
+	key := c.Params("key")
+
+	elemType, found := e.restElem(resource)
+	if !found {
+		return fiber.NewError(fiber.StatusNotFound)
+	}
+
+	elem := reflect.New(elemType)
+	elem.Elem().FieldByName("Key").Set(reflect.ValueOf(key))
+	if err := e.access.Delete(c.UserContext(), elem.Interface()); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	// emit event
+	admin, _ := AdminFromContext(c.UserContext())
+	go e.observer.Emit(&Event[Topic]{
+		Topic:     AdminDeletedTopic.For(elem.Elem().Interface()),
+		Payload:   &adminv1.AdminDeletedPayload{Admin: admin, Key: key},
+		Timestamp: time.Now(),
+	})
+
+	return c.SendStatus(fiber.StatusOK)
+}
+
+func (e *AdminHandler) resourcesRelationHandler(c *fiber.Ctx) error {
 	resource := c.Params("resource")
 	key := c.Params("key")
 	collection := c.Params("relation")
 
-	relation, ok := g.Relations[collection]
-	if !ok {
+	relation := e.graph.Relation(e.graph.TypeOf(collection))
+	if relation == nil {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
-	edge, from, to := g.Edges[collection], g.Nodes[relation.From], g.Nodes[relation.To]
-	if resource != CollectionFor(from) && resource != CollectionFor(to) {
+	edge, from, to := e.graph.TypeOf(collection), relation.From, relation.To
+	if resource != e.graph.CollectionFor(from) && resource != e.graph.CollectionFor(to) {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
@@ -375,7 +400,7 @@ func (g *Graph) resourcesRelationHandler(c *fiber.Ctx) error {
 		direction  Direction
 	)
 
-	if resource == CollectionFor(from) {
+	if resource == e.graph.CollectionFor(from) {
 		resultType = reflect.StructOf([]reflect.StructField{
 			{Name: "Node", Type: to, Tag: reflect.StructTag("json:\"node\"")},
 			{Name: "Edge", Type: edge, Tag: reflect.StructTag("json:\"edge\"")},
@@ -383,7 +408,7 @@ func (g *Graph) resourcesRelationHandler(c *fiber.Ctx) error {
 		direction = DirectionOutbound
 	}
 
-	if resource == CollectionFor(to) {
+	if resource == e.graph.CollectionFor(to) {
 		resultType = reflect.StructOf([]reflect.StructField{
 			{Name: "Node", Type: from, Tag: reflect.StructTag("json:\"node\"")},
 			{Name: "Edge", Type: edge, Tag: reflect.StructTag("json:\"edge\"")},
@@ -392,7 +417,7 @@ func (g *Graph) resourcesRelationHandler(c *fiber.Ctx) error {
 	}
 
 	elems := reflect.New(reflect.SliceOf(resultType))
-	if _, err := Relations(c.UserContext(), getId(resource, key), map[string]interface{}{}, direction, elems.Interface()); err != nil {
+	if _, err := e.access.Relations(c.UserContext(), getId(resource, key), map[string]interface{}{}, direction, elems.Interface()); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
@@ -401,22 +426,32 @@ func (g *Graph) resourcesRelationHandler(c *fiber.Ctx) error {
 }
 
 /* Specs Handlers */
-func (g *Graph) adminSchemaHandler(c *fiber.Ctx) error {
+func (e *AdminHandler) adminSchemaHandler(c *fiber.Ctx) error {
 	// nodes
 	nodes := map[string]interface{}{}
-	for name, nodeType := range g.Nodes {
+	for _, nodeType := range e.graph.Nodes() {
 		node := reflect.New(nodeType).Interface()
 		if spec, ok := node.(interfaces.Message); ok {
-			nodes[name] = spec.Schema()
+			nodes[e.graph.CollectionFor(nodeType)] = spec.Schema()
 		}
 	}
 
 	// edges
 	edges := map[string]interface{}{}
-	for name, edgeType := range g.Edges {
+	for _, edgeType := range e.graph.Edges() {
 		edge := reflect.New(edgeType).Interface()
 		if spec, ok := edge.(interfaces.Message); ok {
-			edges[name] = spec.Schema()
+			edges[e.graph.CollectionFor(edgeType)] = spec.Schema()
+		}
+	}
+
+	// relations
+	relations := map[string]map[string]string{}
+	for _, edge := range e.graph.Edges() {
+		relation := e.graph.Relation(edge)
+		relations[e.graph.CollectionFor(edge)] = map[string]string{
+			"_from": e.graph.CollectionFor(relation.From),
+			"_to":   e.graph.CollectionFor(relation.To),
 		}
 	}
 
@@ -424,18 +459,14 @@ func (g *Graph) adminSchemaHandler(c *fiber.Ctx) error {
 	result := map[string]interface{}{
 		"nodes":     nodes,
 		"edges":     edges,
-		"relations": g.Relations,
+		"relations": relations,
 	}
 
 	return c.JSON(result)
 }
 
 /* Files Handlers */
-func (g *Graph) filesUploadHandler(c *fiber.Ctx) error {
-	storage, found := StorageFromContext(c.UserContext())
-	if !found {
-		return fmt.Errorf("storage not found in context")
-	}
+func (e *AdminHandler) filesUploadHandler(c *fiber.Ctx) error {
 
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -458,7 +489,7 @@ func (g *Graph) filesUploadHandler(c *fiber.Ctx) error {
 		if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
-		hash, err := storage.StoreByHash(data)
+		hash, err := e.storage.StoreByHash(data)
 		if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
@@ -468,15 +499,10 @@ func (g *Graph) filesUploadHandler(c *fiber.Ctx) error {
 	return c.JSON(hashes)
 }
 
-func (g *Graph) filesDownloadHandler(c *fiber.Ctx) error {
-	storage, found := StorageFromContext(c.UserContext())
-	if !found {
-		return fmt.Errorf("storage not found in context")
-	}
-
+func (e *AdminHandler) filesDownloadHandler(c *fiber.Ctx) error {
 	name := c.Params("name")
 
-	fileContent, err := storage.ReadFile(name)
+	fileContent, err := e.storage.ReadFile(name)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
@@ -496,20 +522,16 @@ func (g *Graph) filesDownloadHandler(c *fiber.Ctx) error {
 	return c.Send(fileContent)
 }
 
-func (g *Graph) restElem(name string) (reflect.Type, bool) {
+func (e *AdminHandler) restElem(coll string) (reflect.Type, bool) {
 	exposed := map[string]reflect.Type{
 		"admins": reflect.TypeOf(adminv1.Admin{}),
 	}
 
-	if elem, found := exposed[name]; found {
+	if elem, found := exposed[coll]; found {
 		return elem, true
 	}
 
-	if elem, found := g.Nodes[name]; found {
-		return elem, true
-	}
-
-	if elem, found := g.Edges[name]; found {
+	if elem := e.graph.TypeOf(coll); elem != nil {
 		return elem, true
 	}
 

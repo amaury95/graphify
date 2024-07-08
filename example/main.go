@@ -11,81 +11,141 @@ import (
 	relationv1 "github.com/amaury95/graphify/example/domain/relation/v1"
 	observerv1 "github.com/amaury95/graphify/models/domain/observer/v1"
 	"github.com/arangodb/go-driver"
-	config "github.com/arangodb/go-driver/http"
 	"github.com/gorilla/mux"
+
+	config "github.com/arangodb/go-driver/http"
+	"go.uber.org/fx"
 	"google.golang.org/protobuf/proto"
 )
 
 func main() {
-	// Define app context
-	ctx := graphify.DevelopmentContext(context.Background())
+	fx.New(
+		// Context
+		fx.Provide(func() context.Context {
+			return graphify.DevelopmentContext(context.Background())
+		}),
 
-	// Configure app context
-	ctx = graphify.ContextWithConnection(ctx,
-		graphify.NewConnection(ctx,
-			graphify.DatabaseConfig{
+		// Storage
+		fx.Supply(graphify.FilesystemStorageConfig{
+			BasePath:  "./uploads",
+			MaxMemory: 10 << 20, // 10 MB limit
+		}),
+		fx.Provide(
+			fx.Annotate(
+				graphify.NewFilesystemStorage,
+				fx.As(new(graphify.IFileStorage)),
+			),
+		),
+
+		// Observer
+		fx.Provide(func() graphify.IObserver[graphify.Topic] {
+			observer := graphify.NewObserver[graphify.Topic]()
+			observer.Subscribe(
+				graphify.CreatedTopic.For(libraryv1.Book{}), logCreatedBook)
+
+			return observer
+		}),
+
+		// Connection
+		fx.Supply(
+			graphify.ConnectionConfig{
 				DBName:     "library",
 				UserName:   "library",
 				Password:   "0Jt8Vsyp",
 				Connection: config.ConnectionConfig{Endpoints: []string{"http://localhost:8529"}},
+			}),
+		fx.Provide(
+			fx.Annotate(
+				graphify.NewConnection,
+				fx.As(new(graphify.IConnection)),
+			),
+		),
+
+		// Access
+		fx.Provide(
+			fx.Annotate(
+				graphify.NewArangoAccess,
+				fx.As(new(graphify.IAccess)),
+			),
+		),
+
+		// Graph
+		fx.Provide(
+			func(ctx context.Context, access graphify.IAccess) graphify.IGraph {
+				graph := graphify.NewGraph()
+
+				graph.Node(libraryv1.Book{})
+				graph.Node(libraryv1.Client{})
+				graph.Node(libraryv1.Library{})
+				graph.Edge(libraryv1.Client{}, libraryv1.Book{}, relationv1.Borrow{})
+
+				access.Collection(ctx, libraryv1.Library{}, func(ctx context.Context, c driver.Collection) {
+					c.EnsureGeoIndex(ctx, []string{"location"}, &driver.EnsureGeoIndexOptions{})
+				})
+				access.AutoMigrate(ctx, graph)
+				return graph
 			},
-		))
+		),
 
-	ctx = graphify.ContextWithSecret(ctx,
-		[]byte("secret"))
+		// Admin
+		fx.Supply(graphify.AdminHandlerConfig{
+			Secret: []byte("secret"),
+		}),
+		fx.Provide(
+			graphify.NewAdminHandler,
+		),
 
-	ctx = graphify.ContextWithObserver(ctx,
-		graphify.NewObserver[graphify.Topic]())
+		// Graphql
+		fx.Provide(graphify.NewGraphqlHandler, NewHandlers),
 
-	ctx = graphify.ContextWithStorage(ctx,
-		graphify.NewFilesystemStorage("./uploads", 10<<20)) // 10 MB limit
+		/* setup router */
+		fx.Provide(func(ctx context.Context, admin *graphify.AdminHandler, graphql *graphify.GraphqlHandler, handlers *handlers) *mux.Router {
+			router := mux.NewRouter()
 
-	// Create and define graph
-	graph := graphify.NewGraph()
+			router.PathPrefix("/admin").
+				Handler(admin.Handler(ctx))
 
-	graph.Node(libraryv1.Book{})
-	graph.Node(libraryv1.Client{})
-	graph.Node(libraryv1.Library{})
-	graph.Edge(libraryv1.Client{}, libraryv1.Book{}, relationv1.Borrow{})
+			router.PathPrefix("/graphql").Handler(
+				graphql.Handler(ctx,
+					// graphify.ExposeNodes(libraryv1.Book{}, libraryv1.Library{}),
+					graphify.ExposeNodes(),
+					graphify.Query(handlers.fitzgeraldBooks),
+					graphify.Mutation(handlers.createBook),
+				))
 
-	graphify.Collection(ctx, libraryv1.Library{}, func(ctx context.Context, c driver.Collection) {
-		c.EnsureGeoIndex(ctx, []string{"location"}, &driver.EnsureGeoIndexOptions{})
-	})
-	graph.AutoMigrate(ctx)
+			return router
+		}),
 
-	// Add observer events
-	if observer, found := graphify.ObserverFromContext(ctx); found {
-		observer.Subscribe(
-			graphify.CreatedTopic.For(libraryv1.Book{}), logCreatedBook)
-	}
+		/* run http server */
+		fx.Provide(NewHTTPServer),
+		fx.Invoke(func(*http.Server) {}),
+	).Run()
+}
 
-	// Create and define routes
-	router := mux.NewRouter()
-
-	// Define routes using PathPrefix to match URL prefixes
-	router.PathPrefix("/admin").Handler(
-		graph.RestHandler(ctx))
-
-	router.PathPrefix("/graphql").Handler(
-		graph.GraphQLHandler(ctx,
-			// graphify.ExposeNodes(libraryv1.Book{}, libraryv1.Library{}),
-			graphify.ExposeNodes(),
-			graphify.Query(fitzgeraldBooks),
-			graphify.Mutation(createBook),
-		))
-
-	// Create a server with the given multiplexer
-	server := &http.Server{
+// NewHTTPServer ...
+func NewHTTPServer(ctx context.Context, lc fx.Lifecycle, router *mux.Router) *http.Server {
+	srv := &http.Server{
 		Addr:        ":8080",
 		Handler:     router,
 		BaseContext: func(net.Listener) context.Context { return ctx }, // Inject app context to requests
 	}
 
-	// Serve handlers
-	fmt.Println("\nServer is listening on :8080")
-	if err := server.ListenAndServe(); err != nil {
-		fmt.Println("Error:", err)
-	}
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			ln, err := net.Listen("tcp", srv.Addr)
+			if err != nil {
+				return err
+			}
+			fmt.Println("Starting HTTP server at", srv.Addr)
+			go srv.Serve(ln)
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			return srv.Shutdown(ctx)
+		},
+	})
+
+	return srv
 }
 
 // logCreatedBook ...
@@ -102,16 +162,23 @@ func logCreatedBook(e *graphify.Event[graphify.Topic]) error {
 	return nil
 }
 
+/* Define new handlers */
+type handlers struct{ access graphify.IAccess }
+
+func NewHandlers(access graphify.IAccess) *handlers {
+	return &handlers{access: access}
+}
+
 // fitzgeraldBooks is an example of query without arguments
-func fitzgeraldBooks(ctx context.Context, _ *graphify.Empty) (resp *libraryv1.ListBooksResponse, err error) {
+func (h *handlers) fitzgeraldBooks(ctx context.Context, _ *graphify.Empty) (resp *libraryv1.ListBooksResponse, err error) {
 	var books []*libraryv1.Book
-	_, err = graphify.List(ctx, map[string]interface{}{"author": "F. Scott Fitzgerald"}, &books)
+	_, err = h.access.List(ctx, map[string]interface{}{"author": "F. Scott Fitzgerald"}, &books)
 	return &libraryv1.ListBooksResponse{Books: books}, err
 }
 
 // createBook is an example of mutation with arguments
-func createBook(ctx context.Context, req *libraryv1.Book) (*libraryv1.Book, error) {
-	keys, err := graphify.Create(ctx, req)
+func (h *handlers) createBook(ctx context.Context, req *libraryv1.Book) (*libraryv1.Book, error) {
+	keys, err := h.access.Create(ctx, req)
 	if err != nil {
 		return nil, err
 	}

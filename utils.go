@@ -11,8 +11,8 @@ import (
 
 /* NODE HELPERS */
 
-// CollectionFor ...
-func CollectionFor(t reflect.Type) string {
+// collectionFor ...
+func collectionFor(t reflect.Type) string {
 	return strcase.SnakeCase(inflect.Pluralize(t.Name()))
 }
 
@@ -40,6 +40,10 @@ func funcName(v reflect.Value) string {
 	dotIndex := strings.LastIndex(name, ".")
 	if dotIndex != -1 {
 		name = name[dotIndex+1:]
+	}
+	dashIndex := strings.Index(name, "-")
+	if dashIndex != -1 {
+		name = name[:dashIndex]
 	}
 	return name
 }

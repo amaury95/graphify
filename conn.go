@@ -23,7 +23,7 @@ type connection struct {
 }
 
 // NewConnection ...
-func NewConnection(ctx context.Context, conf DatabaseConfig) *connection {
+func NewConnection(ctx context.Context, conf ConnectionConfig) *connection {
 	conn, err := http.NewConnection(conf.Connection)
 	if err != nil {
 		panic(err)
@@ -69,5 +69,5 @@ func (c *connection) Reflect(ctx context.Context, elem reflect.Type) (driver.Col
 	if err != nil {
 		return nil, err
 	}
-	return db.Collection(ctx, CollectionFor(elem))
+	return db.Collection(ctx, collectionFor(elem))
 }
