@@ -91,9 +91,7 @@ func main() {
 		fx.Supply(graphify.AdminHandlerConfig{
 			Secret: []byte("secret"),
 		}),
-		fx.Provide(
-			graphify.NewAdminHandler,
-		),
+		fx.Provide(graphify.NewAdminHandler),
 
 		// Graphql
 		fx.Provide(graphify.NewGraphqlHandler, NewHandlers),
