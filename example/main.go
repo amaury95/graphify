@@ -123,7 +123,7 @@ func main() {
 // NewHTTPServer ...
 func NewHTTPServer(ctx context.Context, lc fx.Lifecycle, router *mux.Router) *http.Server {
 	srv := &http.Server{
-		Addr:        ":8080",
+		Addr:        ":6431",
 		Handler:     router,
 		BaseContext: func(net.Listener) context.Context { return ctx }, // Inject app context to requests
 	}

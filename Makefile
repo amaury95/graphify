@@ -1,12 +1,9 @@
 # Release new version
 
-GIT_VERSION=$(shell git describe --tags)
+GIT_VERSION=$(shell git tag --list | sort -V | tail -n 1)
 GIT_NEXT_PATCH=$(shell echo $(GIT_VERSION) | awk -F. '{print $$1"."$$2"."$$3+1}')
 GIT_NEXT_MINOR=$(shell echo $(GIT_VERSION) | awk -F. '{print $$1"."$$2+1".0"}')
-GIT_NEXT_MAJOR=v$(shell echo $(GIT_VERSION) | awk -F. '{print $$1+1".0.0"}')
-
-commit:
-	@git commit -am "Release $(version)"
+GIT_NEXT_MAJOR=$(shell echo $(GIT_VERSION) | awk -F. '{print $$1+1".0.0"}')
 
 tag:
 	@git tag $(version)
@@ -14,7 +11,7 @@ tag:
 push:
 	@git push origin main $(version)
 
-release: commit tag push
+release: tag push
 
 # Bug fixes
 patch:
@@ -28,10 +25,3 @@ minor:
 major:
 	@make release version=${GIT_NEXT_MAJOR}
 
-# Commands to run example
-
-example-docker-up:
-	docker compose -f example/docker-compose.yaml up -d
-
-example: example-docker-up
-	go run example/main.go

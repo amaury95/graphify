@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-openapi/inflect"
 	"github.com/stoewer/go-strcase"
+	"golang.org/x/exp/rand"
 )
 
 /* NODE HELPERS */
@@ -46,4 +47,31 @@ func funcName(v reflect.Value) string {
 		name = name[:dashIndex]
 	}
 	return name
+}
+
+// generateRandomPassword generates a random password with the following requirements:
+// Password Length: 16
+// Include Alpha Upper (A-Z): true
+// Include Alpha Lower (a-z): true
+// Include Number (0-9): true
+func generateRandomPassword() string {
+	const (
+		length        = 16
+		upperLetters  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		lowerLetters  = "abcdefghijklmnopqrstuvwxyz"
+		numbers       = "0123456789"
+		allCharacters = upperLetters + lowerLetters + numbers
+	)
+
+	password := make([]byte, length)
+	for i := 0; i < length; i++ {
+		password[i] = allCharacters[rand.Intn(len(allCharacters))]
+	}
+
+	// Ensure at least one character from each category
+	password[rand.Intn(length)] = upperLetters[rand.Intn(len(upperLetters))]
+	password[rand.Intn(length)] = lowerLetters[rand.Intn(len(lowerLetters))]
+	password[rand.Intn(length)] = numbers[rand.Intn(len(numbers))]
+
+	return string(password)
 }

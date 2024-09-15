@@ -1,6 +1,8 @@
 module github.com/amaury95/graphify
 
-go 1.20
+go 1.22.0
+
+toolchain go1.23.1
 
 require (
 	github.com/amaury95/protoc-gen-graphify v0.7.7
@@ -15,6 +17,7 @@ require (
 	github.com/stoewer/go-strcase v1.3.0
 	go.uber.org/fx v1.22.1
 	golang.org/x/crypto v0.21.0
+	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
 	google.golang.org/protobuf v1.34.1
 )
 
