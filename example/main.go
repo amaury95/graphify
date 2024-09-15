@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 
 	"github.com/amaury95/graphify"
 	libraryv1 "github.com/amaury95/graphify/example/domain/library/v1"
@@ -19,6 +20,10 @@ import (
 )
 
 func main() {
+	dbUrl := os.Getenv("DB_URL")
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASS")
+
 	fx.New(
 		// Context
 		fx.Provide(func() context.Context {
@@ -50,9 +55,9 @@ func main() {
 		fx.Supply(
 			graphify.ConnectionConfig{
 				DBName:     "library",
-				UserName:   "library",
-				Password:   "0Jt8Vsyp",
-				Connection: config.ConnectionConfig{Endpoints: []string{"http://localhost:8529"}},
+				UserName:   dbUser,
+				Password:   dbPass,
+				Connection: config.ConnectionConfig{Endpoints: []string{dbUrl}},
 			}),
 		fx.Provide(
 			fx.Annotate(
