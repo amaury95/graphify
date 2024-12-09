@@ -27,7 +27,7 @@ major:
 
 # Create database
 db:
-	@docker run -d --name graphify-db -p 9630:8529 -e ARANGO_ROOT_PASSWORD="0Jt8Vsyp" arangodb:3.11.8 \
+	@docker run -d --name graphify-db -p 9630:8529 -e ARANGO_ROOT_PASSWORD="0Jt8Vsyp" arangodb:3.11.8
 
 # Generate TLS certificate and key
 tls:
