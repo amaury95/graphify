@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"flag"
 	"fmt"
 	"net"
 	"net/http"
@@ -20,9 +22,10 @@ import (
 )
 
 func main() {
-	dbUrl := os.Getenv("DB_URL")
-	dbUser := os.Getenv("DB_USER")
-	dbPass := os.Getenv("DB_PASS")
+	dbUrl := flag.String("db", os.Getenv("DB_URL"), "Database URL")
+	dbUser := flag.String("user", os.Getenv("DB_USER"), "Database user")
+	dbPass := flag.String("pass", os.Getenv("DB_PASS"), "Database password")
+	flag.Parse()
 
 	fx.New(
 		// Context
@@ -55,9 +58,9 @@ func main() {
 		fx.Supply(
 			graphify.ConnectionConfig{
 				DBName:     "library",
-				UserName:   dbUser,
-				Password:   dbPass,
-				Connection: config.ConnectionConfig{Endpoints: []string{dbUrl}},
+				UserName:   *dbUser,
+				Password:   *dbPass,
+				Connection: config.ConnectionConfig{Endpoints: []string{*dbUrl}},
 			}),
 		fx.Provide(
 			fx.Annotate(
@@ -120,35 +123,43 @@ func main() {
 		}),
 
 		/* run http server */
-		fx.Provide(NewHTTPServer),
-		fx.Invoke(func(*http.Server) {}),
-	).Run()
-}
-
-// NewHTTPServer ...
-func NewHTTPServer(ctx context.Context, lc fx.Lifecycle, router *mux.Router) *http.Server {
-	srv := &http.Server{
-		Addr:        ":6431",
-		Handler:     router,
-		BaseContext: func(net.Listener) context.Context { return ctx }, // Inject app context to requests
-	}
-
-	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
-			ln, err := net.Listen("tcp", srv.Addr)
-			if err != nil {
-				return err
+		fx.Invoke(func(ctx context.Context, lc fx.Lifecycle, router *mux.Router) *http.Server {
+			srv := &http.Server{
+				Addr:        ":6431",
+				Handler:     router,
+				BaseContext: func(net.Listener) context.Context { return ctx }, // Inject app context to requests
 			}
-			fmt.Println("Starting HTTP server at", srv.Addr)
-			go srv.Serve(ln)
-			return nil
-		},
-		OnStop: func(ctx context.Context) error {
-			return srv.Shutdown(ctx)
-		},
-	})
 
-	return srv
+			lc.Append(fx.Hook{
+				OnStart: func(ctx context.Context) error {
+					ln, err := net.Listen("tcp", srv.Addr)
+					if err != nil {
+						return err
+					}
+
+					// Load TLS certificate and key
+					cert, err := tls.LoadX509KeyPair("server.crt", "server.key")
+					if err != nil {
+						return fmt.Errorf("error loading TLS cert: %v", err)
+					}
+
+					srv.TLSConfig = &tls.Config{
+						Certificates: []tls.Certificate{cert},
+						MinVersion:   tls.VersionTLS12,
+					}
+
+					fmt.Println("Starting HTTPS server at", srv.Addr)
+					go srv.ServeTLS(ln, "", "") // Empty strings since we configured TLS above
+					return nil
+				},
+				OnStop: func(ctx context.Context) error {
+					return srv.Shutdown(ctx)
+				},
+			})
+
+			return srv
+		}),
+	).Run()
 }
 
 // logCreatedBook ...

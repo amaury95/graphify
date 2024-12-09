@@ -59,17 +59,28 @@ func NewAdminHandler(ctx context.Context, config AdminHandlerConfig, params Admi
 		observer: params.Observer,
 	}
 
-	// create a default admin if no admin is found
-	handler.setupDefaultAdmin(ctx)
-
 	return handler
 }
 
 // Handler ...
 func (e *AdminHandler) Handler(ctx context.Context) http.Handler {
+	// ensure email index
 	e.access.Collection(ctx, adminv1.Admin{}, func(ctx context.Context, c driver.Collection) {
 		c.EnsureHashIndex(ctx, []string{"email"}, &driver.EnsureHashIndexOptions{Unique: true})
 	})
+
+	// create a default admin if no admin is found
+	if count, _ := e.access.List(ctx, Vars{"count": 1}, &[]*adminv1.Admin{}); count == 0 {
+		admin := adminv1.Admin{
+			Email:     "admin@example.com",
+			FirstName: "Admin",
+			LastName:  "Admin",
+		}
+		password := generateRandomPassword()
+		fmt.Println("New admin password:", password)
+
+		e.createAdmin(ctx, &admin, password)
+	}
 
 	router := fiber.New(fiber.Config{
 		BodyLimit: 10 << 20,
@@ -198,11 +209,6 @@ func (e *AdminHandler) authLoginHandler(c *fiber.Ctx) error {
 		Expires:  expiresAt,
 		HTTPOnly: true,
 	}
-	if IsDevelopmentContext(c.UserContext()) {
-		cookie.Domain = "localhost"
-		cookie.SameSite = "None"
-		cookie.Secure = false
-	}
 	c.Cookie(&cookie)
 
 	return c.SendStatus(fiber.StatusOK)
@@ -211,13 +217,8 @@ func (e *AdminHandler) authLoginHandler(c *fiber.Ctx) error {
 func (e *AdminHandler) authLogoutHandler(c *fiber.Ctx) error {
 	cookie := fiber.Cookie{
 		Name:     "jwt",
-		Value:    "",
 		Expires:  time.Now().Add(-time.Hour),
 		HTTPOnly: true,
-	}
-	if IsDevelopmentContext(c.UserContext()) {
-		cookie.SameSite = "None"
-		cookie.Secure = false
 	}
 	c.Cookie(&cookie)
 	return c.SendStatus(fiber.StatusOK)
@@ -237,29 +238,6 @@ func (e *AdminHandler) authRegisterHandler(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(fiber.StatusCreated)
-}
-
-func (e *AdminHandler) setupDefaultAdmin(ctx context.Context) {
-	var admins []*adminv1.Admin
-	if _, err := e.access.List(ctx, nil, &admins); err != nil {
-		panic(err)
-	}
-
-	if len(admins) > 0 {
-		return
-	}
-
-	newAdminPassword := generateRandomPassword()
-
-	fmt.Println("New admin password:", newAdminPassword)
-
-	if err := e.createAdmin(ctx, &adminv1.Admin{
-		Email:     "admin@example.com",
-		FirstName: "Admin",
-		LastName:  "Admin",
-	}, newAdminPassword); err != nil {
-		panic(err)
-	}
 }
 
 func (e *AdminHandler) createAdmin(ctx context.Context, admin *adminv1.Admin, password string) (err error) {

@@ -18,6 +18,8 @@ import (
 // CollectionCallback ...
 type CollectionCallback func(context.Context, driver.Collection)
 
+type Vars map[string]interface{}
+
 // IAccess ...
 type IAccess interface {
 	// AutoMigrate ...
@@ -27,13 +29,13 @@ type IAccess interface {
 	Collection(ctx context.Context, elem any, callbacks ...CollectionCallback) (err error)
 
 	// List ...
-	List(ctx context.Context, bindVars map[string]interface{}, out any) (int64, error)
+	List(ctx context.Context, bindVars Vars, out any) (int64, error)
 
 	// ListKeys ...
 	ListKeys(ctx context.Context, keys []string, out any) error
 
 	// Find ...
-	Find(ctx context.Context, bindVars map[string]interface{}, out any) error
+	Find(ctx context.Context, bindVars Vars, out any) error
 
 	// Read ...
 	Read(ctx context.Context, key string, out any) error
@@ -51,7 +53,7 @@ type IAccess interface {
 	Delete(ctx context.Context, item any) error
 
 	// Relations ...
-	Relations(ctx context.Context, id string, bindVars map[string]interface{}, direction Direction, out any) (int, error)
+	Relations(ctx context.Context, id string, bindVars Vars, direction Direction, out any) (int, error)
 }
 
 type ArangoAccess struct {
@@ -146,7 +148,7 @@ func createEdgeCollection(ctx context.Context, name string, db driver.Database) 
 }
 
 // List ...
-func (e *ArangoAccess) List(ctx context.Context, bindVars map[string]interface{}, out any) (int64, error) {
+func (e *ArangoAccess) List(ctx context.Context, bindVars Vars, out any) (int64, error) {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return -1, fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -172,7 +174,7 @@ func (e *ArangoAccess) List(ctx context.Context, bindVars map[string]interface{}
 	}
 
 	query := fmt.Sprintf(`FOR doc IN %s %s %s RETURN doc`,
-		collectionFor(elemType.Elem()), getFilters(bindVars), getLimit(bindVars))
+		collectionFor(elemType.Elem()), filters(bindVars), limit(bindVars))
 
 	cursor, err := db.Query(ctx, query, bindVars)
 	if err != nil {
@@ -237,7 +239,7 @@ func (e *ArangoAccess) ListKeys(ctx context.Context, keys []string, out any) err
 }
 
 // Find ...
-func (e *ArangoAccess) Find(ctx context.Context, bindVars map[string]interface{}, out any) error {
+func (e *ArangoAccess) Find(ctx context.Context, bindVars Vars, out any) error {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer {
 		return fmt.Errorf("out must be a pointer to return the element")
@@ -254,7 +256,7 @@ func (e *ArangoAccess) Find(ctx context.Context, bindVars map[string]interface{}
 	}
 
 	query := fmt.Sprintf(`FOR doc IN %s %s LIMIT 1 RETURN doc`,
-		collectionFor(elemType), getFilters(bindVars))
+		collectionFor(elemType), filters(bindVars))
 
 	cursor, err := db.Query(ctx, query, bindVars)
 	if err != nil {
@@ -477,7 +479,7 @@ const (
 )
 
 // Relations ...
-func (e *ArangoAccess) Relations(ctx context.Context, id string, bindVars map[string]interface{}, direction Direction, out any) (int, error) {
+func (e *ArangoAccess) Relations(ctx context.Context, id string, bindVars Vars, direction Direction, out any) (int, error) {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return -1, fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -508,7 +510,7 @@ func (e *ArangoAccess) Relations(ctx context.Context, id string, bindVars map[st
 	}
 
 	query := fmt.Sprintf(`FOR node, edge IN 1..1 %s '%s' %s %s %s RETURN {node, edge}`,
-		string(direction), id, collectionFor(edgeField.Type), getFilters(bindVars), getLimit(bindVars))
+		string(direction), id, collectionFor(edgeField.Type), filters(bindVars), limit(bindVars))
 
 	cursor, err := db.Query(ctx, query, bindVars)
 	if err != nil {
@@ -544,8 +546,8 @@ func protoEncode(item any) ([]byte, bool) {
 	return nil, false
 }
 
-// getLimit ...
-func getLimit(bindVars map[string]interface{}) string {
+// limit generates the limit clause for the query
+func limit(bindVars map[string]interface{}) string {
 	_, hasOffset := bindVars["offset"]
 	_, hasCount := bindVars["count"]
 	if hasOffset && hasCount {
@@ -557,8 +559,8 @@ func getLimit(bindVars map[string]interface{}) string {
 	return ""
 }
 
-// getFilters ...
-func getFilters(bindVars map[string]interface{}) string {
+// filters generates the filter clause for the query
+func filters(bindVars map[string]interface{}) string {
 	var filters []string
 	for key := range bindVars {
 		if ignoreKey.Ignore(key) {
