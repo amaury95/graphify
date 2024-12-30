@@ -25,6 +25,7 @@ func main() {
 	dbUrl := flag.String("db", os.Getenv("DB_URL"), "Database URL")
 	dbUser := flag.String("user", os.Getenv("DB_USER"), "Database user")
 	dbPass := flag.String("pass", os.Getenv("DB_PASS"), "Database password")
+	useTLS := flag.Bool("tls", os.Getenv("USE_TLS") == "true", "Use TLS")
 	flag.Parse()
 
 	fx.New(
@@ -137,19 +138,25 @@ func main() {
 						return err
 					}
 
-					// Load TLS certificate and key
-					cert, err := tls.LoadX509KeyPair("server.crt", "server.key")
-					if err != nil {
-						return fmt.Errorf("error loading TLS cert: %v", err)
-					}
+					if *useTLS {
+						// Load TLS certificate and key
+						cert, err := tls.LoadX509KeyPair("server.crt", "server.key")
+						if err != nil {
+							return fmt.Errorf("error loading TLS cert: %v", err)
+						}
 
-					srv.TLSConfig = &tls.Config{
-						Certificates: []tls.Certificate{cert},
-						MinVersion:   tls.VersionTLS12,
-					}
+						srv.TLSConfig = &tls.Config{
+							Certificates: []tls.Certificate{cert},
+							MinVersion:   tls.VersionTLS12,
+						}
 
-					fmt.Println("Starting HTTPS server at", srv.Addr)
-					go srv.ServeTLS(ln, "", "") // Empty strings since we configured TLS above
+						fmt.Println("Starting HTTPS server at", srv.Addr)
+						go srv.ServeTLS(ln, "", "") // Empty strings since we configured TLS above
+					} else {
+						fmt.Println("Starting HTTP server at", srv.Addr)
+						go srv.Serve(ln)
+					}
+					
 					return nil
 				},
 				OnStop: func(ctx context.Context) error {
