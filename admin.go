@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/amaury95/graphify/client"
-	adminv1 "github.com/amaury95/graphify/models/domain/admin/v1"
+	adminv1 "github.com/amaury95/graphify/pkg/models/domain/admin/v1"
 	"github.com/amaury95/protoc-gen-graphify/interfaces"
 	"github.com/arangodb/go-driver"
 	"github.com/gofiber/fiber/v2"

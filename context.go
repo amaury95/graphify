@@ -3,7 +3,7 @@ package graphify
 import (
 	"context"
 
-	adminv1 "github.com/amaury95/graphify/models/domain/admin/v1"
+	adminv1 "github.com/amaury95/graphify/pkg/models/domain/admin/v1"
 )
 
 /* Admin */

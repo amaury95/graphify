@@ -4,7 +4,7 @@ import (
 	"context"
 	"reflect"
 
-	argument "github.com/amaury95/graphify/models/domain/argument/v1"
+	argument "github.com/amaury95/graphify/pkg/models/domain/argument/v1"
 	"github.com/amaury95/protoc-gen-graphify/interfaces"
 	"github.com/go-openapi/inflect"
 	"github.com/graphql-go/graphql"

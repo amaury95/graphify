@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"time"
 
-	observerv1 "github.com/amaury95/graphify/models/domain/observer/v1"
+	observerv1 "github.com/amaury95/graphify/pkg/models/domain/observer/v1"
 	"github.com/amaury95/protoc-gen-graphify/interfaces"
 	"github.com/arangodb/go-driver"
 	"google.golang.org/protobuf/proto"

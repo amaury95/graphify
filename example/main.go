@@ -12,7 +12,7 @@ import (
 	"github.com/amaury95/graphify"
 	libraryv1 "github.com/amaury95/graphify/example/domain/library/v1"
 	relationv1 "github.com/amaury95/graphify/example/domain/relation/v1"
-	observerv1 "github.com/amaury95/graphify/models/domain/observer/v1"
+	observerv1 "github.com/amaury95/graphify/pkg/models/domain/observer/v1"
 	"github.com/arangodb/go-driver"
 	"github.com/gorilla/mux"
 
