@@ -2,7 +2,7 @@ version: v1
 managed:
   enabled: true
   go_package_prefix:
-    default: github.com/amaury95/graphify/models/domain
+    default: github.com/amaury95/graphify/pkg/models/domain
 plugins:
   - plugin: graphify
     out: domain
