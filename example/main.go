@@ -126,7 +126,7 @@ func main() {
 		/* run http server */
 		fx.Invoke(func(ctx context.Context, lc fx.Lifecycle, router *mux.Router) *http.Server {
 			srv := &http.Server{
-				Addr:        ":6431",
+				Addr:        ":9090",
 				Handler:     router,
 				BaseContext: func(net.Listener) context.Context { return ctx }, // Inject app context to requests
 			}
@@ -156,7 +156,7 @@ func main() {
 						fmt.Println("Starting HTTP server at", srv.Addr)
 						go srv.Serve(ln)
 					}
-					
+
 					return nil
 				},
 				OnStop: func(ctx context.Context) error {
@@ -193,7 +193,7 @@ func NewHandlers(access graphify.IAccess) *handlers {
 // fitzgeraldBooks is an example of query without arguments
 func (h *handlers) fitzgeraldBooks(ctx context.Context, _ *graphify.Empty) (resp *libraryv1.ListBooksResponse, err error) {
 	var books []*libraryv1.Book
-	_, err = h.access.List(ctx, map[string]interface{}{"author": "F. Scott Fitzgerald"}, &books)
+	_, err = h.access.List(ctx, graphify.Filter("author", "F. Scott Fitzgerald"), &books)
 	return &libraryv1.ListBooksResponse{Books: books}, err
 }
 

@@ -70,7 +70,7 @@ func (e *AdminHandler) Handler(ctx context.Context) http.Handler {
 	})
 
 	// create a default admin if no admin is found
-	if count, _ := e.access.List(ctx, Vars{"count": 1}, &[]*adminv1.Admin{}); count == 0 {
+	if count, _ := e.access.List(ctx, Filter().WithCount(1), &[]*adminv1.Admin{}); count == 0 {
 		admin := adminv1.Admin{
 			Email:     "admin@example.com",
 			FirstName: "Admin",
@@ -183,7 +183,7 @@ func (e *AdminHandler) authLoginHandler(c *fiber.Ctx) error {
 	}
 
 	var admin adminv1.Admin
-	if err := e.access.Find(c.UserContext(), map[string]interface{}{"email": request.Email}, &admin); err != nil {
+	if err := e.access.Find(c.UserContext(), Filter().WithFilter("email", request.Email), &admin); err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
 
@@ -261,12 +261,12 @@ func (e *AdminHandler) resourcesListHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
-	bindVars := make(map[string]interface{})
+	bindVars := Filter()
 	if offset, err := strconv.ParseInt(c.Query("offset"), 10, 64); err == nil {
-		bindVars["offset"] = offset
+		bindVars = bindVars.WithOffset(offset)
 	}
 	if count, err := strconv.ParseInt(c.Query("count"), 10, 64); err == nil {
-		bindVars["count"] = count
+		bindVars = bindVars.WithCount(count)
 	}
 
 	elems := reflect.New(reflect.SliceOf(reflect.PointerTo(elemType)))
@@ -425,7 +425,7 @@ func (e *AdminHandler) resourcesRelationHandler(c *fiber.Ctx) error {
 	}
 
 	elems := reflect.New(reflect.SliceOf(resultType))
-	if _, err := e.access.Relations(c.UserContext(), getId(resource, key), map[string]interface{}{}, direction, elems.Interface()); err != nil {
+	if _, err := e.access.Relations(c.UserContext(), getId(resource, key), Filter(), direction, elems.Interface()); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 

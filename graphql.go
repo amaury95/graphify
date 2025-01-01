@@ -222,7 +222,7 @@ func (e *GraphqlHandler) listRelations(relation string, to, edge reflect.Type, d
 			Interface().(string)
 
 		out := reflect.New(reflect.SliceOf(resultType))
-		if _, err := e.access.Relations(p.Context, getId(relation, key), p.Args, direction, out.Interface()); err != nil {
+		if _, err := e.access.Relations(p.Context, getId(relation, key), Filter().From(p.Args), direction, out.Interface()); err != nil {
 			return nil, err
 		}
 
@@ -233,7 +233,7 @@ func (e *GraphqlHandler) listRelations(relation string, to, edge reflect.Type, d
 func (e *GraphqlHandler) expose_ListElements(t reflect.Type) graphql.FieldResolveFn {
 	return func(p graphql.ResolveParams) (interface{}, error) {
 		out := reflect.New(reflect.SliceOf(reflect.PointerTo(t)))
-		if _, err := e.access.List(p.Context, p.Args, out.Interface()); err != nil {
+		if _, err := e.access.List(p.Context, Filter().From(p.Args), out.Interface()); err != nil {
 			return nil, err
 		}
 		return out.Elem().Interface(), nil

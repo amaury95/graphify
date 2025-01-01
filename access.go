@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"strings"
 	"time"
 
 	observerv1 "github.com/amaury95/graphify/models/domain/observer/v1"
@@ -18,8 +17,6 @@ import (
 // CollectionCallback ...
 type CollectionCallback func(context.Context, driver.Collection)
 
-type Vars map[string]interface{}
-
 // IAccess ...
 type IAccess interface {
 	// AutoMigrate ...
@@ -29,13 +26,13 @@ type IAccess interface {
 	Collection(ctx context.Context, elem any, callbacks ...CollectionCallback) (err error)
 
 	// List ...
-	List(ctx context.Context, bindVars Vars, out any) (int64, error)
+	List(ctx context.Context, bindVars IVars, out any) (int64, error)
 
 	// ListKeys ...
 	ListKeys(ctx context.Context, keys []string, out any) error
 
 	// Find ...
-	Find(ctx context.Context, bindVars Vars, out any) error
+	Find(ctx context.Context, bindVars IVars, out any) error
 
 	// Read ...
 	Read(ctx context.Context, key string, out any) error
@@ -53,7 +50,7 @@ type IAccess interface {
 	Delete(ctx context.Context, item any) error
 
 	// Relations ...
-	Relations(ctx context.Context, id string, bindVars Vars, direction Direction, out any) (int, error)
+	Relations(ctx context.Context, id string, bindVars IVars, direction Direction, out any) (int, error)
 }
 
 type ArangoAccess struct {
@@ -148,7 +145,7 @@ func createEdgeCollection(ctx context.Context, name string, db driver.Database) 
 }
 
 // List ...
-func (e *ArangoAccess) List(ctx context.Context, bindVars Vars, out any) (int64, error) {
+func (e *ArangoAccess) List(ctx context.Context, bindVars IVars, out any) (int64, error) {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return -1, fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -174,9 +171,9 @@ func (e *ArangoAccess) List(ctx context.Context, bindVars Vars, out any) (int64,
 	}
 
 	query := fmt.Sprintf(`FOR doc IN %s %s %s RETURN doc`,
-		collectionFor(elemType.Elem()), filters(bindVars), limit(bindVars))
+		collectionFor(elemType.Elem()), bindVars.Filters(), bindVars.Limit())
 
-	cursor, err := db.Query(ctx, query, bindVars)
+	cursor, err := db.Query(ctx, query, bindVars.Values())
 	if err != nil {
 		return -1, fmt.Errorf("failed to execute query: %w", err)
 	}
@@ -239,7 +236,7 @@ func (e *ArangoAccess) ListKeys(ctx context.Context, keys []string, out any) err
 }
 
 // Find ...
-func (e *ArangoAccess) Find(ctx context.Context, bindVars Vars, out any) error {
+func (e *ArangoAccess) Find(ctx context.Context, bindVars IVars, out any) error {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer {
 		return fmt.Errorf("out must be a pointer to return the element")
@@ -256,9 +253,9 @@ func (e *ArangoAccess) Find(ctx context.Context, bindVars Vars, out any) error {
 	}
 
 	query := fmt.Sprintf(`FOR doc IN %s %s LIMIT 1 RETURN doc`,
-		collectionFor(elemType), filters(bindVars))
+		collectionFor(elemType), bindVars.Filters())
 
-	cursor, err := db.Query(ctx, query, bindVars)
+	cursor, err := db.Query(ctx, query, bindVars.Values())
 	if err != nil {
 		return fmt.Errorf("failed to execute query: %w", err)
 	}
@@ -479,7 +476,7 @@ const (
 )
 
 // Relations ...
-func (e *ArangoAccess) Relations(ctx context.Context, id string, bindVars Vars, direction Direction, out any) (int, error) {
+func (e *ArangoAccess) Relations(ctx context.Context, id string, bindVars IVars, direction Direction, out any) (int, error) {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return -1, fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -510,9 +507,9 @@ func (e *ArangoAccess) Relations(ctx context.Context, id string, bindVars Vars, 
 	}
 
 	query := fmt.Sprintf(`FOR node, edge IN 1..1 %s '%s' %s %s %s RETURN {node, edge}`,
-		string(direction), id, collectionFor(edgeField.Type), filters(bindVars), limit(bindVars))
+		string(direction), id, collectionFor(edgeField.Type), bindVars.Filters(), bindVars.Limit())
 
-	cursor, err := db.Query(ctx, query, bindVars)
+	cursor, err := db.Query(ctx, query, bindVars.Values())
 	if err != nil {
 		return -1, fmt.Errorf("failed to execute query: %w", err)
 	}
@@ -546,70 +543,9 @@ func protoEncode(item any) ([]byte, bool) {
 	return nil, false
 }
 
-// limit generates the limit clause for the query
-func limit(bindVars map[string]interface{}) string {
-	_, hasOffset := bindVars["offset"]
-	_, hasCount := bindVars["count"]
-	if hasOffset && hasCount {
-		return "LIMIT @offset, @count"
-	}
-	if hasCount {
-		return "LIMIT @count"
-	}
-	return ""
-}
-
-// filters generates the filter clause for the query
-func filters(bindVars map[string]interface{}) string {
-	var filters []string
-	for key := range bindVars {
-		if ignoreKey.Ignore(key) {
-			continue
-		}
-		if strings.Contains(key, ".") {
-			filters = append(filters, key+" == @"+removeUntilFirstDot(key))
-		} else {
-			filters = append(filters, "doc."+key+" == @"+key)
-		}
-	}
-	if len(filters) > 0 {
-		return "FILTER " + strings.Join(filters, " && ")
-	}
-	return ""
-}
-
 var (
 	CreatedTopic  Topic = "created"
 	UpdatedTopic  Topic = "updated"
 	ReplacedTopic Topic = "replaced"
 	DeletedTopic  Topic = "deleted"
 )
-
-// ignoreCollection ...
-type ignoreCollection []func(string) bool
-
-// Ignore ...
-func (col *ignoreCollection) Ignore(key string) bool {
-	for _, ignore := range *col {
-		if ignore(key) {
-			return true
-		}
-	}
-	return false
-}
-
-// ignoreKey ...
-var ignoreKey ignoreCollection = []func(string) bool{
-	func(key string) bool { return key[0] == '@' },                     // prefix
-	func(key string) bool { return len(key) == 0 },                     // unset
-	func(key string) bool { return key == "count" || key == "offset" }, // limit
-}
-
-// removeUntilFirstDot ...
-func removeUntilFirstDot(s string) string {
-	index := strings.Index(s, ".")
-	if index == -1 {
-		return s // Return the original string if there's no dot
-	}
-	return s[index+1:]
-}
