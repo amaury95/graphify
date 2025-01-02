@@ -1,0 +1,9 @@
+POST http://localhost:8080/v1/login
+
+{
+    "email": "amaury@graphify.com"
+}
+
+###
+GET http://localhost:8080/v1/test-header
+Authorization: Bearer 1234567890asdf

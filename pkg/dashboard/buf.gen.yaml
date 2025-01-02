@@ -1,0 +1,36 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/amaury95/graphify/pkg/dashboard/domain
+  disable:
+    - module: buf.build/grpc-ecosystem/grpc-gateway
+      file_option: go_package_prefix
+    - module: buf.build/googleapis/googleapis
+      file_option: go_package_prefix
+    - module: buf.build/envoyproxy/protoc-gen-validate
+      file_option: go_package_prefix
+plugins:
+  - local: protoc-gen-graphify
+    out: domain
+    opt:
+      - paths=source_relative
+      - graphql_schema=false
+      - object_schema=false
+      - unmarshal_request=false
+      - unmarshal_response=false
+  - remote: buf.build/grpc/go:v1.5.1
+    out: domain
+    opt: paths=source_relative
+  - remote: buf.build/bufbuild/validate-go:v1.1.0
+    out: domain
+    opt: paths=source_relative
+  - remote: buf.build/grpc-ecosystem/gateway:v2.25.1
+    out: domain
+    opt: paths=source_relative
+  - remote: buf.build/grpc-ecosystem/openapiv2:v2.25.1
+    out: domain
+    opt:
+      - allow_merge=true
+      - merge_file_name=specs

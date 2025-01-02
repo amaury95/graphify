@@ -1,0 +1,10 @@
+syntax = "proto3";
+package common.v1;
+
+message ErrorResponse {
+  string message = 1;
+}
+
+message BoolResponse {
+  bool success = 1;
+}

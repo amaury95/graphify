@@ -1,0 +1,105 @@
+syntax = "proto3";
+
+package dashboard.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
+
+service ResourceService {
+  // ListResources ...
+  rpc ListResources(ListResourcesRequest) returns (ListResourcesResponse) {
+    option (google.api.http) = {get: "/v1/resources/{resource}"};
+  }
+
+  // CreateResource ...
+  rpc CreateResource(CreateResourceRequest) returns (CreateResourceResponse) {
+    option (google.api.http) = {
+      post: "/v1/resources/{resource}"
+      body: "*"
+    };
+  }
+
+  // GetResource ...
+  rpc GetResource(GetResourceRequest) returns (GetResourceResponse) {
+    option (google.api.http) = {get: "/v1/resources/{resource}/{key}"};
+  }
+
+  // UpdateResource ...
+  rpc UpdateResource(UpdateResourceRequest) returns (UpdateResourceResponse) {
+    option (google.api.http) = {
+      put: "/v1/resources/{resource}/{key}"
+      body: "*"
+    };
+  }
+
+  // DeleteResource ...
+  rpc DeleteResource(DeleteResourceRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/resources/{resource}/{key}"};
+  }
+
+  // GetResourceRelation ...
+  rpc GetResourceRelation(GetResourceRelationRequest) returns (GetResourceRelationResponse) {
+    option (google.api.http) = {get: "/v1/resources/{resource}/{key}/{relation}"};
+  }
+}
+
+message ListResourcesRequest {
+  string resource = 1;
+  optional string filter = 2;
+
+  optional int64 count = 10;
+  optional int64 offset = 11;
+}
+
+message ListResourcesResponse {
+  repeated google.protobuf.Any resources = 1;
+  int64 count = 2;
+}
+
+message CreateResourceRequest {
+  string resource = 1;
+  google.protobuf.Any data = 2;
+}
+
+message CreateResourceResponse {
+  string key = 1;
+}
+
+message GetResourceRequest {
+  string resource = 1;
+  string key = 2;
+}
+
+message GetResourceResponse {
+  google.protobuf.Any resource = 1;
+}
+
+message UpdateResourceRequest {
+  string resource = 1;
+  string key = 2;
+  google.protobuf.Any data = 3;
+}
+
+message UpdateResourceResponse {
+  google.protobuf.Any resource = 1;
+}
+
+message DeleteResourceRequest {
+  string resource = 1;
+  string key = 2;
+}
+
+message GetResourceRelationRequest {
+  string resource = 1;
+  string key = 2;
+  string relation = 3;
+
+  optional int64 count = 10;
+  optional int64 offset = 11;
+}
+
+message GetResourceRelationResponse {
+  repeated google.protobuf.Any resources = 1;
+  int64 count = 2;
+}

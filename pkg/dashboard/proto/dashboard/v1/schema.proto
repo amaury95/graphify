@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package dashboard.v1;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+
+service SchemaService {
+  // GetSchema ...
+  rpc GetSchema(google.protobuf.Empty) returns (GetSchemaResponse) {
+    option (google.api.http) = {
+      get: "/v1/schema"
+    };
+  };
+}
+
+message GetSchemaResponse {
+  google.protobuf.Any data = 1;
+}

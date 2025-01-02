@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package dashboard.v1;
+
+import "account/v1/account.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+import "validate/validate.proto";
+
+// AuthenticationService ...
+service AuthenticationService {
+  // Login ...
+  rpc Login(LoginRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/login"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        // An empty security requirement object to indicate no security
+      }
+    };
+  }
+
+  // GetAccount ...
+  rpc GetAccount(google.protobuf.Empty) returns (GetAccountResponse) {
+    option (google.api.http) = {get: "/v1/account"};
+  }
+
+  // CreateAccount ...
+  rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse) {
+    option (google.api.http) = {
+      post: "/v1/account"
+      body: "*"
+    };
+  }
+
+  // UpdateAccount ...
+  rpc UpdateAccount(UpdateAccountRequest) returns (UpdateAccountResponse) {
+    option (google.api.http) = {
+      put: "/v1/account"
+      body: "*"
+    };
+  }
+
+  // DeleteAccount ...
+  rpc DeleteAccount(DeleteAccountRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/account"};
+  }
+}
+
+message LoginRequest {
+  string email = 1 [(validate.rules).string.email = true];
+  string password = 2 [(validate.rules).string.min_len = 8];
+}
+
+message GetAccountResponse {
+  account.v1.Admin admin = 1;
+}
+
+message CreateAccountRequest {
+  account.v1.Admin admin = 1;
+}
+
+message CreateAccountResponse {
+  account.v1.Admin admin = 1;
+}
+
+message UpdateAccountRequest {
+  account.v1.Admin admin = 1;
+}
+
+message UpdateAccountResponse {
+  account.v1.Admin admin = 1;
+}
+
+message DeleteAccountRequest {
+  string email = 1 [(validate.rules).string.email = true];
+}

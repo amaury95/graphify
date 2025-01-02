@@ -1,5 +1,8 @@
 syntax = "proto3";
-package admin.v1;
+
+package account.v1;
+
+import "validate/validate.proto";
 
 enum Role {
   ROLE_UNSPECIFIED = 0;
@@ -18,13 +21,13 @@ message Admin {
   /* Admin data */
 
   // key represents the unique identifier of the admin
-  string key = 1 [ json_name = "_key" ];
+  string key = 1 [json_name = "_key"];
   // first name of the admin
-  string first_name = 2;
+  string first_name = 2 [(validate.rules).string.min_len = 1];
   // last name of the admin
-  string last_name = 3;
+  string last_name = 3 [(validate.rules).string.min_len = 2];
   // unique email of the admin
-  string email = 4;
+  string email = 4 [(validate.rules).string.email = true];
   // password_hash is the hashed password of the admin
   bytes password_hash = 5;
   // avatar image associated to the avatar
