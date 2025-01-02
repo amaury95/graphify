@@ -383,7 +383,7 @@ func RegisterResourceServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/dashboard.v1.ResourceService/ListResources", runtime.WithHTTPPathPattern("/v1/resources/{resource}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/dashboard.v1.ResourceService/ListResources", runtime.WithHTTPPathPattern("/dashboard/v1/resources/{resource}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -403,7 +403,7 @@ func RegisterResourceServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/dashboard.v1.ResourceService/CreateResource", runtime.WithHTTPPathPattern("/v1/resources/{resource}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/dashboard.v1.ResourceService/CreateResource", runtime.WithHTTPPathPattern("/dashboard/v1/resources/{resource}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -423,7 +423,7 @@ func RegisterResourceServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/dashboard.v1.ResourceService/GetResource", runtime.WithHTTPPathPattern("/v1/resources/{resource}/{key}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/dashboard.v1.ResourceService/GetResource", runtime.WithHTTPPathPattern("/dashboard/v1/resources/{resource}/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -443,7 +443,7 @@ func RegisterResourceServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/dashboard.v1.ResourceService/UpdateResource", runtime.WithHTTPPathPattern("/v1/resources/{resource}/{key}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/dashboard.v1.ResourceService/UpdateResource", runtime.WithHTTPPathPattern("/dashboard/v1/resources/{resource}/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -463,7 +463,7 @@ func RegisterResourceServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/dashboard.v1.ResourceService/DeleteResource", runtime.WithHTTPPathPattern("/v1/resources/{resource}/{key}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/dashboard.v1.ResourceService/DeleteResource", runtime.WithHTTPPathPattern("/dashboard/v1/resources/{resource}/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -483,7 +483,7 @@ func RegisterResourceServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/dashboard.v1.ResourceService/GetResourceRelation", runtime.WithHTTPPathPattern("/v1/resources/{resource}/{key}/{relation}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/dashboard.v1.ResourceService/GetResourceRelation", runtime.WithHTTPPathPattern("/dashboard/v1/resources/{resource}/{key}/{relation}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -541,7 +541,7 @@ func RegisterResourceServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/dashboard.v1.ResourceService/ListResources", runtime.WithHTTPPathPattern("/v1/resources/{resource}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/dashboard.v1.ResourceService/ListResources", runtime.WithHTTPPathPattern("/dashboard/v1/resources/{resource}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -558,7 +558,7 @@ func RegisterResourceServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/dashboard.v1.ResourceService/CreateResource", runtime.WithHTTPPathPattern("/v1/resources/{resource}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/dashboard.v1.ResourceService/CreateResource", runtime.WithHTTPPathPattern("/dashboard/v1/resources/{resource}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -575,7 +575,7 @@ func RegisterResourceServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/dashboard.v1.ResourceService/GetResource", runtime.WithHTTPPathPattern("/v1/resources/{resource}/{key}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/dashboard.v1.ResourceService/GetResource", runtime.WithHTTPPathPattern("/dashboard/v1/resources/{resource}/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -592,7 +592,7 @@ func RegisterResourceServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/dashboard.v1.ResourceService/UpdateResource", runtime.WithHTTPPathPattern("/v1/resources/{resource}/{key}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/dashboard.v1.ResourceService/UpdateResource", runtime.WithHTTPPathPattern("/dashboard/v1/resources/{resource}/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -609,7 +609,7 @@ func RegisterResourceServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/dashboard.v1.ResourceService/DeleteResource", runtime.WithHTTPPathPattern("/v1/resources/{resource}/{key}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/dashboard.v1.ResourceService/DeleteResource", runtime.WithHTTPPathPattern("/dashboard/v1/resources/{resource}/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -626,7 +626,7 @@ func RegisterResourceServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/dashboard.v1.ResourceService/GetResourceRelation", runtime.WithHTTPPathPattern("/v1/resources/{resource}/{key}/{relation}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/dashboard.v1.ResourceService/GetResourceRelation", runtime.WithHTTPPathPattern("/dashboard/v1/resources/{resource}/{key}/{relation}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -643,12 +643,12 @@ func RegisterResourceServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 }
 
 var (
-	pattern_ResourceService_ListResources_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "resources", "resource"}, ""))
-	pattern_ResourceService_CreateResource_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "resources", "resource"}, ""))
-	pattern_ResourceService_GetResource_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "resources", "resource", "key"}, ""))
-	pattern_ResourceService_UpdateResource_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "resources", "resource", "key"}, ""))
-	pattern_ResourceService_DeleteResource_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "resources", "resource", "key"}, ""))
-	pattern_ResourceService_GetResourceRelation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"v1", "resources", "resource", "key", "relation"}, ""))
+	pattern_ResourceService_ListResources_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"dashboard", "v1", "resources", "resource"}, ""))
+	pattern_ResourceService_CreateResource_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"dashboard", "v1", "resources", "resource"}, ""))
+	pattern_ResourceService_GetResource_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"dashboard", "v1", "resources", "resource", "key"}, ""))
+	pattern_ResourceService_UpdateResource_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"dashboard", "v1", "resources", "resource", "key"}, ""))
+	pattern_ResourceService_DeleteResource_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"dashboard", "v1", "resources", "resource", "key"}, ""))
+	pattern_ResourceService_GetResourceRelation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"dashboard", "v1", "resources", "resource", "key", "relation"}, ""))
 )
 
 var (

@@ -66,7 +66,7 @@ func RegisterSchemaServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/dashboard.v1.SchemaService/GetSchema", runtime.WithHTTPPathPattern("/v1/schema"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/dashboard.v1.SchemaService/GetSchema", runtime.WithHTTPPathPattern("/dashboard/v1/schema"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -124,7 +124,7 @@ func RegisterSchemaServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/dashboard.v1.SchemaService/GetSchema", runtime.WithHTTPPathPattern("/v1/schema"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/dashboard.v1.SchemaService/GetSchema", runtime.WithHTTPPathPattern("/dashboard/v1/schema"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -141,7 +141,7 @@ func RegisterSchemaServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 }
 
 var (
-	pattern_SchemaService_GetSchema_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "schema"}, ""))
+	pattern_SchemaService_GetSchema_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"dashboard", "v1", "schema"}, ""))
 )
 
 var (

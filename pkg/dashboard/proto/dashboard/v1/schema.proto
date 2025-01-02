@@ -10,7 +10,7 @@ service SchemaService {
   // GetSchema ...
   rpc GetSchema(google.protobuf.Empty) returns (GetSchemaResponse) {
     option (google.api.http) = {
-      get: "/v1/schema"
+      get: "/dashboard/v1/schema"
     };
   };
 }

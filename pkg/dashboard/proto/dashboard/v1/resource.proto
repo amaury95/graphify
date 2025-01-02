@@ -9,38 +9,38 @@ import "google/protobuf/empty.proto";
 service ResourceService {
   // ListResources ...
   rpc ListResources(ListResourcesRequest) returns (ListResourcesResponse) {
-    option (google.api.http) = {get: "/v1/resources/{resource}"};
+    option (google.api.http) = {get: "/dashboard/v1/resources/{resource}"};
   }
 
   // CreateResource ...
   rpc CreateResource(CreateResourceRequest) returns (CreateResourceResponse) {
     option (google.api.http) = {
-      post: "/v1/resources/{resource}"
+      post: "/dashboard/v1/resources/{resource}"
       body: "*"
     };
   }
 
   // GetResource ...
   rpc GetResource(GetResourceRequest) returns (GetResourceResponse) {
-    option (google.api.http) = {get: "/v1/resources/{resource}/{key}"};
+    option (google.api.http) = {get: "/dashboard/v1/resources/{resource}/{key}"};
   }
 
   // UpdateResource ...
   rpc UpdateResource(UpdateResourceRequest) returns (UpdateResourceResponse) {
     option (google.api.http) = {
-      put: "/v1/resources/{resource}/{key}"
+      put: "/dashboard/v1/resources/{resource}/{key}"
       body: "*"
     };
   }
 
   // DeleteResource ...
   rpc DeleteResource(DeleteResourceRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {delete: "/v1/resources/{resource}/{key}"};
+    option (google.api.http) = {delete: "/dashboard/v1/resources/{resource}/{key}"};
   }
 
   // GetResourceRelation ...
   rpc GetResourceRelation(GetResourceRelationRequest) returns (GetResourceRelationResponse) {
-    option (google.api.http) = {get: "/v1/resources/{resource}/{key}/{relation}"};
+    option (google.api.http) = {get: "/dashboard/v1/resources/{resource}/{key}/{relation}"};
   }
 }
 

@@ -31,7 +31,7 @@
     "application/json"
   ],
   "paths": {
-    "/v1/account": {
+    "/dashboard/v1/account": {
       "get": {
         "summary": "GetAccount ...",
         "operationId": "AuthenticationService_GetAccount",
@@ -242,7 +242,7 @@
         ]
       }
     },
-    "/v1/login": {
+    "/dashboard/v1/login": {
       "post": {
         "summary": "Login ...",
         "operationId": "AuthenticationService_Login",
@@ -301,7 +301,7 @@
         "security": []
       }
     },
-    "/v1/resources/{resource}": {
+    "/dashboard/v1/resources/{resource}": {
       "get": {
         "summary": "ListResources ...",
         "operationId": "ResourceService_ListResources",
@@ -437,7 +437,7 @@
         ]
       }
     },
-    "/v1/resources/{resource}/{key}": {
+    "/dashboard/v1/resources/{resource}/{key}": {
       "get": {
         "summary": "GetResource ...",
         "operationId": "ResourceService_GetResource",
@@ -625,7 +625,7 @@
         ]
       }
     },
-    "/v1/resources/{resource}/{key}/{relation}": {
+    "/dashboard/v1/resources/{resource}/{key}/{relation}": {
       "get": {
         "summary": "GetResourceRelation ...",
         "operationId": "ResourceService_GetResourceRelation",
@@ -706,7 +706,7 @@
         ]
       }
     },
-    "/v1/schema": {
+    "/dashboard/v1/schema": {
       "get": {
         "summary": "GetSchema ...",
         "operationId": "SchemaService_GetSchema",

@@ -13,7 +13,7 @@ service AuthenticationService {
   // Login ...
   rpc Login(LoginRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      post: "/v1/login"
+      post: "/dashboard/v1/login"
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -25,13 +25,13 @@ service AuthenticationService {
 
   // GetAccount ...
   rpc GetAccount(google.protobuf.Empty) returns (GetAccountResponse) {
-    option (google.api.http) = {get: "/v1/account"};
+    option (google.api.http) = {get: "/dashboard/v1/account"};
   }
 
   // CreateAccount ...
   rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse) {
     option (google.api.http) = {
-      post: "/v1/account"
+      post: "/dashboard/v1/account"
       body: "*"
     };
   }
@@ -39,14 +39,14 @@ service AuthenticationService {
   // UpdateAccount ...
   rpc UpdateAccount(UpdateAccountRequest) returns (UpdateAccountResponse) {
     option (google.api.http) = {
-      put: "/v1/account"
+      put: "/dashboard/v1/account"
       body: "*"
     };
   }
 
   // DeleteAccount ...
   rpc DeleteAccount(DeleteAccountRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {delete: "/v1/account"};
+    option (google.api.http) = {delete: "/dashboard/v1/account"};
   }
 }
 
