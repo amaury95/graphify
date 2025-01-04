@@ -88,6 +88,8 @@ func (h *AdminHandler) Handler(ctx context.Context) http.Handler {
 	server.HandlePath("POST", "/dashboard/v1/files", h.FilesUploadHandler)
 	server.HandlePath("GET", "/dashboard/v1/files/{hash}", h.FilesDownloadHandler)
 
+	// TODO: try to use a single router
+	
 	// Router
 	router := mux.NewRouter()
 	router.PathPrefix("/dashboard/v1").
