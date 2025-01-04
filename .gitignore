@@ -27,3 +27,6 @@ nap
 # TLS certificate and key
 server.crt
 server.key
+
+# Rest api
+*.rest
