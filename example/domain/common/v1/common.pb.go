@@ -286,7 +286,8 @@ var Category_Enum = graphql.NewEnum(graphql.EnumConfig{
 /* Schema ... */
 func (*Character) Schema() map[string]interface{} {
 	return map[string]interface{}{
-		"name": "Character",
+		"name":  "Character",
+		"@type": "type.googleapis.com/common.v1.Character",
 		"fields": []interface{}{
 			map[string]interface{}{
 				"name": "name",

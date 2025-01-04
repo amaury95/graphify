@@ -2,25 +2,31 @@ package graphify
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
-	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"reflect"
-	"strconv"
+	"strings"
 	"time"
 
 	"github.com/amaury95/graphify/client"
-	adminv1 "github.com/amaury95/graphify/pkg/models/domain/admin/v1"
+	accountv1 "github.com/amaury95/graphify/pkg/dashboard/domain/account/v1"
+	dashboardv1 "github.com/amaury95/graphify/pkg/dashboard/domain/dashboard/v1"
 	"github.com/amaury95/protoc-gen-graphify/interfaces"
 	"github.com/arangodb/go-driver"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/adaptor"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/fx"
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 // AdminHandler ...
@@ -31,6 +37,10 @@ type AdminHandler struct {
 	graph    IGraph
 	storage  IFileStorage
 	observer IObserver[Topic]
+
+	dashboardv1.UnimplementedAuthenticationServiceServer
+	dashboardv1.UnimplementedResourceServiceServer
+	dashboardv1.UnimplementedSchemaServiceServer
 }
 
 // AdminHandlerConfig ...
@@ -62,133 +72,99 @@ func NewAdminHandler(ctx context.Context, config AdminHandlerConfig, params Admi
 	return handler
 }
 
-// Handler ...
-func (e *AdminHandler) Handler(ctx context.Context) http.Handler {
+func (h *AdminHandler) Handler(ctx context.Context) http.Handler {
 	// ensure email index
-	e.access.Collection(ctx, adminv1.Admin{}, func(ctx context.Context, c driver.Collection) {
+	h.access.Collection(ctx, accountv1.Admin{}, func(ctx context.Context, c driver.Collection) {
 		c.EnsureHashIndex(ctx, []string{"email"}, &driver.EnsureHashIndexOptions{Unique: true})
 	})
 
-	// create a default admin if no admin is found
-	if count, _ := e.access.List(ctx, Filter().WithCount(1), &[]*adminv1.Admin{}); count == 0 {
-		admin := adminv1.Admin{
-			Email:     "admin@example.com",
-			FirstName: "Admin",
-			LastName:  "Admin",
+	// Services
+	server := runtime.NewServeMux(runtime.WithMiddlewares(h.authorize))
+	dashboardv1.RegisterAuthenticationServiceHandlerServer(ctx, server, h)
+	dashboardv1.RegisterResourceServiceHandlerServer(ctx, server, h)
+	dashboardv1.RegisterSchemaServiceHandlerServer(ctx, server, h)
+
+	// Files
+	server.HandlePath("POST", "/dashboard/v1/files", h.FilesUploadHandler)
+	server.HandlePath("GET", "/dashboard/v1/files/{hash}", h.FilesDownloadHandler)
+
+	// Router
+	router := mux.NewRouter()
+	router.PathPrefix("/dashboard/v1").
+		Handler(server)
+
+	// React
+	build, _ := fs.Sub(client.Build, "build")
+	router.PathPrefix("/dashboard").
+		Handler(http.StripPrefix("/dashboard", http.FileServer(http.FS(build))))
+
+	return router
+}
+
+func (h *AdminHandler) authorize(hf runtime.HandlerFunc) runtime.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+		// Skip authorization for dashboard ui and /login route
+		if r.URL.Path == "/dashboard/v1/login" {
+			hf(w, r, pathParams)
+			return
 		}
-		password := generateRandomPassword()
-		fmt.Println("New admin password:", password)
 
-		e.createAdmin(ctx, &admin, password)
-	}
+		// Extract token from the Authorization header
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			http.Error(w, "Unauthorized: Missing token", http.StatusUnauthorized)
+			return
+		}
 
-	router := fiber.New(fiber.Config{
-		BodyLimit: 10 << 20,
-	})
-	if IsDevelopmentContext(ctx) {
-		router.Use(cors.New(cors.Config{
-			AllowOriginsFunc: func(string) bool { return true },
-			AllowCredentials: true,
-		}))
-	}
-	router.Use(injectContext(ctx))
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		if tokenString == "" {
+			http.Error(w, "Unauthorized: Invalid token format", http.StatusUnauthorized)
+			return
+		}
 
-	admin := router.Group("/admin")
-	admin.Get("/schema", e.adminSchemaHandler)
-	admin.Use("/dashboard", filesystem.New(filesystem.Config{
-		Root:       http.FS(client.Build),
-		PathPrefix: "build",
-		Browse:     true,
-	}))
+		// Parse the token
+		token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(*jwt.Token) (interface{}, error) {
+			return h.config.Secret, nil
+		})
+		if err != nil || !token.Valid {
+			http.Error(w, "Unauthorized: Invalid token", http.StatusUnauthorized)
+			return
+		}
 
-	auth := admin.Group("/auth")
-	auth.Post("/login", e.authLoginHandler)
-	auth.Post("/account", e.authRegisterHandler)
-	auth.Use(e.authorized)
-	auth.Post("/logout", e.authLogoutHandler)
-	auth.Get("/account", e.authAccountHandler)
+		claims, ok := token.Claims.(*jwt.RegisteredClaims)
+		if !ok {
+			http.Error(w, "Unauthorized: Invalid token claims", http.StatusUnauthorized)
+			return
+		}
 
-	files := admin.Group("/files", e.authorized)
-	files.Post("/upload", e.filesUploadHandler)
-	files.Get("/download/:name", e.filesDownloadHandler)
+		// Retrieve admin details
+		var admin accountv1.Admin
+		if err := h.access.Read(r.Context(), claims.Subject, &admin); err != nil {
+			http.Error(w, "Not Found: "+err.Error(), http.StatusNotFound)
+			return
+		}
 
-	resources := admin.Group("/:resource", e.authorized)
-	resources.Get("", e.resourcesListHandler)
-	resources.Post("", e.resourcesCreateHandler)
-	resources.Get("/:key", e.resourcesGetHandler)
-	resources.Put("/:key", e.resourcesReplaceHandler)
-	resources.Delete("/:key", e.resourcesDeleteHandler)
-	resources.Get("/:key/:relation", e.resourcesRelationHandler)
+		// Set admin context
+		ctx := ContextWithAdmin(r.Context(), &admin)
+		r = r.WithContext(ctx)
 
-	// Redirect to Dashboard on NotFound
-	admin.Get("/", func(c *fiber.Ctx) error {
-		return c.Redirect("/admin/dashboard/")
-	})
-	return adaptor.FiberApp(router)
-}
-
-func injectContext(ctx context.Context) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		c.SetUserContext(ctx)
-		return c.Next()
+		// Call the next handler with pathParams
+		hf(w, r, pathParams)
 	}
 }
 
-func (e *AdminHandler) authorized(c *fiber.Ctx) error {
-	// Read the JWT token from the HTTP-only cookie
-	cookie := c.Cookies("jwt")
-	if cookie == "" {
-		return fiber.NewError(fiber.StatusUnauthorized, "cookie not provided")
+func (h *AdminHandler) Login(ctx context.Context, req *dashboardv1.LoginRequest) (*dashboardv1.LoginResponse, error) {
+	if err := req.Validate(); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	token, err := jwt.ParseWithClaims(cookie, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return e.config.Secret, nil
-	})
-	if err != nil || !token.Valid {
-		return fiber.NewError(fiber.StatusUnauthorized)
+	var admin accountv1.Admin
+	if err := h.access.Find(ctx, Filter().WithFilter("email", req.Email), &admin); err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
-	claims, ok := token.Claims.(*jwt.RegisteredClaims)
-	if !ok {
-		return fiber.NewError(fiber.StatusUnauthorized, "invalid token claims")
-	}
-
-	var admin adminv1.Admin
-	if err := e.access.Read(c.UserContext(), claims.Subject, &admin); err != nil {
-		return fiber.NewError(fiber.StatusNotFound, err.Error())
-	}
-
-	c.SetUserContext(ContextWithAdmin(c.UserContext(), &admin))
-
-	return c.Next()
-}
-
-/* Auth Handlers */
-func (e *AdminHandler) authAccountHandler(c *fiber.Ctx) error {
-	admin, found := AdminFromContext(c.UserContext())
-	if !found {
-		return fiber.NewError(fiber.StatusUnauthorized)
-	}
-
-	return c.JSON(&admin)
-}
-
-func (e *AdminHandler) authLoginHandler(c *fiber.Ctx) error {
-	var request struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
-	if err := c.BodyParser(&request); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	}
-
-	var admin adminv1.Admin
-	if err := e.access.Find(c.UserContext(), Filter().WithFilter("email", request.Email), &admin); err != nil {
-		return fiber.NewError(fiber.StatusNotFound, err.Error())
-	}
-
-	if err := bcrypt.CompareHashAndPassword(admin.PasswordHash, []byte(request.Password)); err != nil {
-		return fiber.NewError(fiber.StatusNotFound, err.Error())
+	if err := bcrypt.CompareHashAndPassword(admin.PasswordHash, []byte(req.Password)); err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
 	expiresAt := time.Now().Add(10 * time.Hour)
@@ -198,49 +174,317 @@ func (e *AdminHandler) authLoginHandler(c *fiber.Ctx) error {
 		Subject:   admin.Key,
 	})
 
-	token, err := claims.SignedString(e.config.Secret)
+	token, err := claims.SignedString(h.config.Secret)
 	if err != nil {
-		return fiber.NewError(fiber.StatusNotFound, err.Error())
+		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
-	cookie := fiber.Cookie{
-		Name:     "jwt",
-		Value:    token,
-		Expires:  expiresAt,
-		HTTPOnly: true,
-	}
-	c.Cookie(&cookie)
-
-	return c.SendStatus(fiber.StatusOK)
+	return &dashboardv1.LoginResponse{Token: token}, nil
 }
 
-func (e *AdminHandler) authLogoutHandler(c *fiber.Ctx) error {
-	cookie := fiber.Cookie{
-		Name:     "jwt",
-		Expires:  time.Now().Add(-time.Hour),
-		HTTPOnly: true,
-	}
-	c.Cookie(&cookie)
-	return c.SendStatus(fiber.StatusOK)
+func (h *AdminHandler) GetAccount(ctx context.Context, req *emptypb.Empty) (*dashboardv1.GetAccountResponse, error) {
+	admin, _ := AdminFromContext(ctx)
+	return &dashboardv1.GetAccountResponse{Admin: admin}, nil
 }
 
-func (e *AdminHandler) authRegisterHandler(c *fiber.Ctx) error {
-	var request struct {
-		Admin    adminv1.Admin `json:"admin"`
-		Password string        `json:"password"`
-	}
-	if err := c.BodyParser(&request); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+func (h *AdminHandler) CreateAccount(ctx context.Context, req *dashboardv1.CreateAccountRequest) (*emptypb.Empty, error) {
+	if err := h.registerAdmin(ctx, req.Admin, req.Password); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to create account")
 	}
 
-	if err := e.createAdmin(c.UserContext(), &request.Admin, request.Password); err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-	}
-
-	return c.SendStatus(fiber.StatusCreated)
+	return &emptypb.Empty{}, nil
 }
 
-func (e *AdminHandler) createAdmin(ctx context.Context, admin *adminv1.Admin, password string) (err error) {
+func (h *AdminHandler) ListResources(ctx context.Context, req *dashboardv1.ListResourcesRequest) (*dashboardv1.ListResourcesResponse, error) {
+	elemType, found := h.restElem(req.Resource)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "resource not found")
+	}
+
+	bindVars := Filter()
+	if req.Offset != nil && *req.Offset > 0 {
+		bindVars = bindVars.WithOffset(*req.Offset)
+	}
+	if req.Count != nil && *req.Count > 0 {
+		bindVars = bindVars.WithCount(*req.Count)
+	}
+
+	elems := reflect.New(reflect.SliceOf(reflect.PointerTo(elemType)))
+	size, err := h.access.List(ctx, bindVars, elems.Interface())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to list resources")
+	}
+
+	var result []*anypb.Any
+	for i := 0; i < elems.Elem().Len(); i++ {
+		value, _ := anypb.New(elems.Elem().Index(i).Interface().(proto.Message))
+		result = append(result, value)
+	}
+
+	return &dashboardv1.ListResourcesResponse{Resources: result, Count: size}, nil
+}
+
+func (h *AdminHandler) GetResource(ctx context.Context, req *dashboardv1.GetResourceRequest) (*dashboardv1.GetResourceResponse, error) {
+	elemType, found := h.restElem(req.Resource)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "resource not found")
+	}
+
+	elem := reflect.New(elemType)
+	if err := h.access.Read(ctx, req.Key, elem.Interface()); err != nil {
+		return nil, status.Errorf(codes.NotFound, "resource not found")
+	}
+
+	data, err := anypb.New(elem.Interface().(proto.Message))
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to marshal resource")
+	}
+
+	return &dashboardv1.GetResourceResponse{Resource: data}, nil
+}
+
+func (h *AdminHandler) CreateResource(ctx context.Context, req *dashboardv1.CreateResourceRequest) (*dashboardv1.CreateResourceResponse, error) {
+	elemType, found := h.restElem(req.Resource)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "resource not found")
+	}
+
+	elem := reflect.New(elemType)
+	if err := req.Data.UnmarshalTo(elem.Interface().(proto.Message)); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid resource")
+	}
+
+	keys, err := h.access.Create(ctx, elem.Interface())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to create resource")
+	}
+
+	// emit event
+	admin, _ := AdminFromContext(ctx)
+	go h.observer.Emit(&Event[Topic]{
+		Topic:     AdminCreatedTopic.For(elem.Elem().Interface()),
+		Payload:   &accountv1.AdminCreatedPayload{Element: req.Data, Admin: admin, Key: keys[0]},
+		Timestamp: time.Now(),
+	})
+
+	return &dashboardv1.CreateResourceResponse{Key: keys[0]}, nil
+}
+
+func (h *AdminHandler) UpdateResource(ctx context.Context, req *dashboardv1.UpdateResourceRequest) (*dashboardv1.UpdateResourceResponse, error) {
+	elemType, found := h.restElem(req.Resource)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "resource not found")
+	}
+
+	elem := reflect.New(elemType)
+	if err := req.Data.UnmarshalTo(elem.Interface().(proto.Message)); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid resource")
+	}
+
+	if err := h.access.Replace(ctx, req.Key, elem.Interface()); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to update resource")
+	}
+
+	// emit event
+	admin, _ := AdminFromContext(ctx)
+	go h.observer.Emit(&Event[Topic]{
+		Topic:     AdminReplacedTopic.For(elem.Elem().Interface()),
+		Payload:   &accountv1.AdminReplacedPayload{Element: req.Data, Admin: admin},
+		Timestamp: time.Now(),
+	})
+
+	return &dashboardv1.UpdateResourceResponse{Resource: req.Data}, nil
+}
+
+func (h *AdminHandler) DeleteResource(ctx context.Context, req *dashboardv1.DeleteResourceRequest) (*emptypb.Empty, error) {
+	elemType, found := h.restElem(req.Resource)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "resource not found")
+	}
+
+	elem := reflect.New(elemType)
+	elem.Elem().FieldByName("Key").Set(reflect.ValueOf(req.Key))
+	if err := h.access.Delete(ctx, elem.Interface()); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to delete resource")
+	}
+
+	// emit event
+	admin, _ := AdminFromContext(ctx)
+	go h.observer.Emit(&Event[Topic]{
+		Topic:     AdminDeletedTopic.For(elem.Elem().Interface()),
+		Payload:   &accountv1.AdminDeletedPayload{Admin: admin, Key: req.Key},
+		Timestamp: time.Now(),
+	})
+
+	return &emptypb.Empty{}, nil
+}
+
+func (h *AdminHandler) GetResourceRelation(ctx context.Context, req *dashboardv1.GetResourceRelationRequest) (*dashboardv1.GetResourceRelationResponse, error) {
+	relation := h.graph.Relation(h.graph.TypeOf(req.Relation))
+	if relation == nil {
+		return nil, status.Errorf(codes.NotFound, "relation not found: %s", req.Relation)
+	}
+
+	edge, from, to := h.graph.TypeOf(req.Relation), relation.From, relation.To
+	if req.Resource != h.graph.CollectionFor(from) && req.Resource != h.graph.CollectionFor(to) {
+		return nil, status.Errorf(codes.NotFound, "relation not found")
+	}
+
+	// check if the relation is inbound or outbound
+	var (
+		resultType reflect.Type
+		direction  Direction
+	)
+
+	if req.Resource == h.graph.CollectionFor(from) {
+		resultType = reflect.StructOf([]reflect.StructField{
+			{Name: "Node", Type: to, Tag: reflect.StructTag("json:\"node\"")},
+			{Name: "Edge", Type: edge, Tag: reflect.StructTag("json:\"edge\"")},
+		})
+		direction = DirectionOutbound
+	}
+
+	if req.Resource == h.graph.CollectionFor(to) {
+		resultType = reflect.StructOf([]reflect.StructField{
+			{Name: "Node", Type: from, Tag: reflect.StructTag("json:\"node\"")},
+			{Name: "Edge", Type: edge, Tag: reflect.StructTag("json:\"edge\"")},
+		})
+		direction = DirectionInbound
+	}
+
+	elems := reflect.New(reflect.SliceOf(resultType))
+	size, err := h.access.Relations(ctx, idFor(req.Resource, req.Key), Filter(), direction, elems.Interface())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get resource relation")
+	}
+
+	var result []*anypb.Any
+	for i := 0; i < elems.Elem().Len(); i++ {
+		value, _ := anypb.New(elems.Elem().Index(i).Interface().(proto.Message))
+		result = append(result, value)
+	}
+
+	return &dashboardv1.GetResourceRelationResponse{Resources: result, Count: size}, nil
+}
+
+func (h *AdminHandler) GetSchema(ctx context.Context, req *emptypb.Empty) (*dashboardv1.GetSchemaResponse, error) {
+	// nodes
+	nodes := map[string]interface{}{}
+	for _, nodeType := range h.graph.Nodes() {
+		node := reflect.New(nodeType).Interface()
+		if spec, ok := node.(interfaces.Message); ok {
+			nodes[h.graph.CollectionFor(nodeType)] = spec.Schema()
+		}
+	}
+
+	// edges
+	edges := map[string]interface{}{}
+	for _, edgeType := range h.graph.Edges() {
+		edge := reflect.New(edgeType).Interface()
+		if spec, ok := edge.(interfaces.Message); ok {
+			edges[h.graph.CollectionFor(edgeType)] = spec.Schema()
+		}
+	}
+
+	// relations
+	relations := map[string]interface{}{}
+	for _, edge := range h.graph.Edges() {
+		relation := h.graph.Relation(edge)
+		relations[h.graph.CollectionFor(edge)] = map[string]string{
+			"_from": h.graph.CollectionFor(relation.From),
+			"_to":   h.graph.CollectionFor(relation.To),
+		}
+	}
+
+	schema := Pure(map[string]interface{}{
+		"nodes":     nodes,
+		"edges":     edges,
+		"relations": relations,
+	})
+
+	data, err := structpb.NewStruct(schema)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to marshal schema: %s", err.Error())
+	}
+
+	return &dashboardv1.GetSchemaResponse{Data: data}, nil
+}
+
+func (h *AdminHandler) FilesUploadHandler(w http.ResponseWriter, r *http.Request, _ map[string]string) {
+	// Parse the multipart form
+	err := r.ParseMultipartForm(10 << 20) // Limit file size to 10 MB
+	if err != nil {
+		http.Error(w, "Bad Request: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Get the file headers
+	files := r.MultipartForm.File["file"]
+	if len(files) == 0 {
+		http.Error(w, "Bad Request: file not provided", http.StatusBadRequest)
+		return
+	}
+
+	var hashes []string
+	for _, header := range files {
+		file, err := header.Open()
+		if err != nil {
+			http.Error(w, "Internal Server Error: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer file.Close()
+
+		data, err := io.ReadAll(file)
+		if err != nil {
+			http.Error(w, "Internal Server Error: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		hash, err := h.storage.StoreByHash(data)
+		if err != nil {
+			http.Error(w, "Internal Server Error: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		hashes = append(hashes, hash)
+	}
+
+	// Respond with the hashes as JSON
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(hashes)
+}
+
+func (h *AdminHandler) FilesDownloadHandler(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+	// Extract file hash from URL parameters
+	hash, ok := pathParams["hash"]
+	if !ok {
+		http.Error(w, "Bad Request: Missing file hash", http.StatusBadRequest)
+		return
+	}
+
+	// Read the file content
+	fileContent, err := h.storage.ReadFile(hash)
+	if err != nil {
+		http.Error(w, "Internal Server Error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Set content headers
+	fileHeader := make([]byte, 512)
+	copy(fileHeader, fileContent)
+	fileContentType := http.DetectContentType(fileHeader)
+
+	w.Header().Set("Content-Disposition", "attachment; filename="+hash)
+	w.Header().Set("Content-Type", fileContentType)
+	w.WriteHeader(http.StatusOK)
+
+	// Write the file content to the response
+	_, err = w.Write(fileContent)
+	if err != nil {
+		http.Error(w, "Internal Server Error: "+err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (e *AdminHandler) registerAdmin(ctx context.Context, admin *accountv1.Admin, password string) (err error) {
 	if admin.PasswordHash, err = bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost); err != nil {
 		return err
 	}
@@ -252,307 +496,24 @@ func (e *AdminHandler) createAdmin(ctx context.Context, admin *adminv1.Admin, pa
 	return nil
 }
 
-/* Resource Handlers */
-func (e *AdminHandler) resourcesListHandler(c *fiber.Ctx) error {
-	resource := c.Params("resource")
-
-	elemType, found := e.restElem(resource)
-	if !found {
-		return fiber.NewError(fiber.StatusNotFound)
-	}
-
-	bindVars := Filter()
-	if offset, err := strconv.ParseInt(c.Query("offset"), 10, 64); err == nil {
-		bindVars = bindVars.WithOffset(offset)
-	}
-	if count, err := strconv.ParseInt(c.Query("count"), 10, 64); err == nil {
-		bindVars = bindVars.WithCount(count)
-	}
-
-	elems := reflect.New(reflect.SliceOf(reflect.PointerTo(elemType)))
-	count, err := e.access.List(c.UserContext(), bindVars, elems.Interface())
-	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-	}
-
-	return c.JSON(PaginationResult{
-		Items: elems.Interface(),
-		Count: count,
-	})
-}
-
-func (e *AdminHandler) resourcesGetHandler(c *fiber.Ctx) error {
-	resource := c.Params("resource")
-	key := c.Params("key")
-
-	elemType, found := e.restElem(resource)
-	if !found {
-		return fiber.NewError(fiber.StatusNotFound)
-	}
-
-	elem := reflect.New(elemType)
-	if err := e.access.Read(c.UserContext(), key, elem.Interface()); err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-	}
-
-	return c.JSON(elem.Interface())
-}
-
-func (e *AdminHandler) resourcesCreateHandler(c *fiber.Ctx) error {
-	resource := c.Params("resource")
-
-	elemType, found := e.restElem(resource)
-	if !found {
-		return fiber.NewError(fiber.StatusNotFound)
-	}
-
-	elem := reflect.New(elemType)
-	if err := json.Unmarshal(c.Body(), elem.Interface()); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	}
-
-	keys, err := e.access.Create(c.UserContext(), elem.Interface())
-	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-	}
-
-	// emit event
-	if bytes, ok := protoEncode(elem.Interface()); ok {
-		admin, _ := AdminFromContext(c.UserContext())
-		go e.observer.Emit(&Event[Topic]{
-			Topic:     AdminCreatedTopic.For(elem.Elem().Interface()),
-			Payload:   &adminv1.AdminCreatedPayload{Element: bytes, Admin: admin, Key: keys[0]},
-			Timestamp: time.Now(),
-		})
-	}
-
-	c.Status(fiber.StatusCreated)
-	return c.JSON(keys)
-}
-
-func (e *AdminHandler) resourcesReplaceHandler(c *fiber.Ctx) error {
-	resource := c.Params("resource")
-	key := c.Params("key")
-
-	elemType, found := e.restElem(resource)
-	if !found {
-		return fiber.NewError(fiber.StatusNotFound)
-	}
-
-	elem := reflect.New(elemType)
-	if err := json.Unmarshal(c.Body(), elem.Interface()); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	}
-
-	if err := e.access.Replace(c.UserContext(), key, elem.Interface()); err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-	}
-
-	// emit event
-	if bytes, ok := protoEncode(elem.Interface()); ok {
-		admin, _ := AdminFromContext(c.UserContext())
-		go e.observer.Emit(&Event[Topic]{
-			Topic:     AdminReplacedTopic.For(elem.Elem().Interface()),
-			Payload:   &adminv1.AdminReplacedPayload{Element: bytes, Admin: admin},
-			Timestamp: time.Now(),
-		})
-	}
-
-	return c.SendStatus(fiber.StatusOK)
-}
-
-func (e *AdminHandler) resourcesDeleteHandler(c *fiber.Ctx) error {
-	resource := c.Params("resource")
-	key := c.Params("key")
-
-	elemType, found := e.restElem(resource)
-	if !found {
-		return fiber.NewError(fiber.StatusNotFound)
-	}
-
-	elem := reflect.New(elemType)
-	elem.Elem().FieldByName("Key").Set(reflect.ValueOf(key))
-	if err := e.access.Delete(c.UserContext(), elem.Interface()); err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-	}
-
-	// emit event
-	admin, _ := AdminFromContext(c.UserContext())
-	go e.observer.Emit(&Event[Topic]{
-		Topic:     AdminDeletedTopic.For(elem.Elem().Interface()),
-		Payload:   &adminv1.AdminDeletedPayload{Admin: admin, Key: key},
-		Timestamp: time.Now(),
-	})
-
-	return c.SendStatus(fiber.StatusOK)
-}
-
-func (e *AdminHandler) resourcesRelationHandler(c *fiber.Ctx) error {
-	resource := c.Params("resource")
-	key := c.Params("key")
-	collection := c.Params("relation")
-
-	relation := e.graph.Relation(e.graph.TypeOf(collection))
-	if relation == nil {
-		return fiber.NewError(fiber.StatusNotFound)
-	}
-
-	edge, from, to := e.graph.TypeOf(collection), relation.From, relation.To
-	if resource != e.graph.CollectionFor(from) && resource != e.graph.CollectionFor(to) {
-		return fiber.NewError(fiber.StatusNotFound)
-	}
-
-	// check if the relation is inbound or outbound
-	var (
-		resultType reflect.Type
-		direction  Direction
-	)
-
-	if resource == e.graph.CollectionFor(from) {
-		resultType = reflect.StructOf([]reflect.StructField{
-			{Name: "Node", Type: to, Tag: reflect.StructTag("json:\"node\"")},
-			{Name: "Edge", Type: edge, Tag: reflect.StructTag("json:\"edge\"")},
-		})
-		direction = DirectionOutbound
-	}
-
-	if resource == e.graph.CollectionFor(to) {
-		resultType = reflect.StructOf([]reflect.StructField{
-			{Name: "Node", Type: from, Tag: reflect.StructTag("json:\"node\"")},
-			{Name: "Edge", Type: edge, Tag: reflect.StructTag("json:\"edge\"")},
-		})
-		direction = DirectionInbound
-	}
-
-	elems := reflect.New(reflect.SliceOf(resultType))
-	if _, err := e.access.Relations(c.UserContext(), getId(resource, key), Filter(), direction, elems.Interface()); err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-	}
-
-	return c.JSON(elems.Interface())
-
-}
-
-/* Specs Handlers */
-func (e *AdminHandler) adminSchemaHandler(c *fiber.Ctx) error {
-	// nodes
-	nodes := map[string]interface{}{}
-	for _, nodeType := range e.graph.Nodes() {
-		node := reflect.New(nodeType).Interface()
-		if spec, ok := node.(interfaces.Message); ok {
-			nodes[e.graph.CollectionFor(nodeType)] = spec.Schema()
-		}
-	}
-
-	// edges
-	edges := map[string]interface{}{}
-	for _, edgeType := range e.graph.Edges() {
-		edge := reflect.New(edgeType).Interface()
-		if spec, ok := edge.(interfaces.Message); ok {
-			edges[e.graph.CollectionFor(edgeType)] = spec.Schema()
-		}
-	}
-
-	// relations
-	relations := map[string]map[string]string{}
-	for _, edge := range e.graph.Edges() {
-		relation := e.graph.Relation(edge)
-		relations[e.graph.CollectionFor(edge)] = map[string]string{
-			"_from": e.graph.CollectionFor(relation.From),
-			"_to":   e.graph.CollectionFor(relation.To),
-		}
-	}
-
-	// result
-	result := map[string]interface{}{
-		"nodes":     nodes,
-		"edges":     edges,
-		"relations": relations,
-	}
-
-	return c.JSON(result)
-}
-
-/* Files Handlers */
-func (e *AdminHandler) filesUploadHandler(c *fiber.Ctx) error {
-
-	form, err := c.MultipartForm()
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	}
-
-	headers, found := form.File["file"]
-	if !found {
-		return fiber.NewError(fiber.StatusBadRequest, "file not provided")
-	}
-
-	hashes := []string{}
-	for _, header := range headers {
-		file, err := header.Open()
-		if err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-		}
-		defer file.Close()
-		data, err := io.ReadAll(file)
-		if err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-		}
-		hash, err := e.storage.StoreByHash(data)
-		if err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-		}
-		hashes = append(hashes, hash)
-	}
-
-	return c.JSON(hashes)
-}
-
-func (e *AdminHandler) filesDownloadHandler(c *fiber.Ctx) error {
-	name := c.Params("name")
-
-	fileContent, err := e.storage.ReadFile(name)
-	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-	}
-
-	// Set the Content-Type header based on the file type or use application/octet-stream
-	fileHeader := make([]byte, 512)
-	copy(fileHeader, fileContent)
-	fileContentType := http.DetectContentType(fileHeader)
-
-	// Set the appropriate Content-Disposition header for download
-	c.Set("Content-Disposition", "attachment; filename="+name)
-
-	// Set the content type based on your file type
-	c.Set("Content-Type", fileContentType)
-
-	// Send the file content as the response
-	return c.Send(fileContent)
-}
-
-func (e *AdminHandler) restElem(coll string) (reflect.Type, bool) {
+func (e *AdminHandler) restElem(collection string) (reflect.Type, bool) {
 	exposed := map[string]reflect.Type{
-		"admins": reflect.TypeOf(adminv1.Admin{}),
+		"admins": reflect.TypeOf(accountv1.Admin{}),
 	}
 
-	if elem, found := exposed[coll]; found {
+	if elem, found := exposed[collection]; found {
 		return elem, true
 	}
 
-	if elem := e.graph.TypeOf(coll); elem != nil {
+	if elem := e.graph.TypeOf(collection); elem != nil {
 		return elem, true
 	}
 
 	return nil, false
 }
 
-func getId(resource, key string) string {
+func idFor(resource, key string) string {
 	return resource + "/" + key
-}
-
-type PaginationResult struct {
-	Items any   `json:"items"`
-	Count int64 `json:"count"`
 }
 
 var (

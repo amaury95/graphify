@@ -1239,9 +1239,5 @@ var Country_Enum = graphql.NewEnum(graphql.EnumConfig{
 })
 
 /*
-	Graphify schema module
-*/
-
-/*
 	Graphify unmarshaler
 */

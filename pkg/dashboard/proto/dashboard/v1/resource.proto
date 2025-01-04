@@ -28,7 +28,7 @@ service ResourceService {
   // UpdateResource ...
   rpc UpdateResource(UpdateResourceRequest) returns (UpdateResourceResponse) {
     option (google.api.http) = {
-      put: "/dashboard/v1/resources/{resource}/{key}"
+      patch: "/dashboard/v1/resources/{resource}/{key}"
       body: "*"
     };
   }

@@ -222,7 +222,7 @@ func (e *GraphqlHandler) listRelations(relation string, to, edge reflect.Type, d
 			Interface().(string)
 
 		out := reflect.New(reflect.SliceOf(resultType))
-		if _, err := e.access.Relations(p.Context, getId(relation, key), Filter().From(p.Args), direction, out.Interface()); err != nil {
+		if _, err := e.access.Relations(p.Context, idFor(relation, key), Filter().From(p.Args), direction, out.Interface()); err != nil {
 			return nil, err
 		}
 

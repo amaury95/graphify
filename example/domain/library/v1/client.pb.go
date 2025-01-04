@@ -268,7 +268,8 @@ var Client_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 /* Schema ... */
 func (*Client) Schema() map[string]interface{} {
 	return map[string]interface{}{
-		"name": "Client",
+		"name":  "Client",
+		"@type": "type.googleapis.com/library.v1.Client",
 		"fields": []interface{}{
 			map[string]interface{}{
 				"name": "_key",

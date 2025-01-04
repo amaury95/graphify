@@ -3,24 +3,25 @@ syntax = "proto3";
 package account.v1;
 
 import "account/v1/account.proto";
+import "google/protobuf/any.proto";
 
 message AdminCreatedPayload {
-    string key = 1;
-    bytes element = 2;
-    Admin admin = 3;
-  }
-  
-  message AdminUpdatedPayload {
-    bytes element = 1;
-    Admin admin = 2;
-  }
-  
-  message AdminReplacedPayload {
-    bytes element = 1;
-    Admin admin = 2;
-  }
-  
-  message AdminDeletedPayload {
-    string key = 1;
-    Admin admin = 2;
-  }
+  string key = 1;
+  google.protobuf.Any element = 2;
+  Admin admin = 3;
+}
+
+message AdminUpdatedPayload {
+  google.protobuf.Any element = 1;
+  Admin admin = 2;
+}
+
+message AdminReplacedPayload {
+  google.protobuf.Any element = 1;
+  Admin admin = 2;
+}
+
+message AdminDeletedPayload {
+  string key = 1;
+  Admin admin = 2;
+}

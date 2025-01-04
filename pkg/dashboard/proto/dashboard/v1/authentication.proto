@@ -11,7 +11,7 @@ import "validate/validate.proto";
 // AuthenticationService ...
 service AuthenticationService {
   // Login ...
-  rpc Login(LoginRequest) returns (google.protobuf.Empty) {
+  rpc Login(LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
       post: "/dashboard/v1/login"
       body: "*"
@@ -29,24 +29,11 @@ service AuthenticationService {
   }
 
   // CreateAccount ...
-  rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse) {
+  rpc CreateAccount(CreateAccountRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       post: "/dashboard/v1/account"
       body: "*"
     };
-  }
-
-  // UpdateAccount ...
-  rpc UpdateAccount(UpdateAccountRequest) returns (UpdateAccountResponse) {
-    option (google.api.http) = {
-      put: "/dashboard/v1/account"
-      body: "*"
-    };
-  }
-
-  // DeleteAccount ...
-  rpc DeleteAccount(DeleteAccountRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {delete: "/dashboard/v1/account"};
   }
 }
 
@@ -55,26 +42,15 @@ message LoginRequest {
   string password = 2 [(validate.rules).string.min_len = 8];
 }
 
+message LoginResponse {
+  string token = 1;
+}
+
 message GetAccountResponse {
   account.v1.Admin admin = 1;
 }
 
 message CreateAccountRequest {
   account.v1.Admin admin = 1;
-}
-
-message CreateAccountResponse {
-  account.v1.Admin admin = 1;
-}
-
-message UpdateAccountRequest {
-  account.v1.Admin admin = 1;
-}
-
-message UpdateAccountResponse {
-  account.v1.Admin admin = 1;
-}
-
-message DeleteAccountRequest {
-  string email = 1 [(validate.rules).string.email = true];
+  string password = 2 [(validate.rules).string.min_len = 8];
 }

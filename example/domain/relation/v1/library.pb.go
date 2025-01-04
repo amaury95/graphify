@@ -268,7 +268,8 @@ var Borrow_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 /* Schema ... */
 func (*Borrow) Schema() map[string]interface{} {
 	return map[string]interface{}{
-		"name": "Borrow",
+		"name":  "Borrow",
+		"@type": "type.googleapis.com/relation.v1.Borrow",
 		"fields": []interface{}{
 			map[string]interface{}{
 				"name": "_key",

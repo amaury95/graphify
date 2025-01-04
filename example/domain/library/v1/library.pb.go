@@ -360,7 +360,8 @@ var Library_Location_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 /* Schema ... */
 func (*Library) Schema() map[string]interface{} {
 	return map[string]interface{}{
-		"name": "Library",
+		"name":  "Library",
+		"@type": "type.googleapis.com/library.v1.Library",
 		"fields": []interface{}{
 			map[string]interface{}{
 				"name": "_key",
@@ -384,7 +385,8 @@ func (*Library) Schema() map[string]interface{} {
 /* Schema ... */
 func (*Library_Location) Schema() map[string]interface{} {
 	return map[string]interface{}{
-		"name": "Library_Location",
+		"name":  "Library_Location",
+		"@type": "type.googleapis.com/library.v1.Library.Location",
 		"fields": []interface{}{
 			map[string]interface{}{
 				"name": "lat",

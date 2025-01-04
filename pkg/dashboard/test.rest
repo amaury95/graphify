@@ -1,9 +1,141 @@
-POST http://localhost:8080/v1/login
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMTE1IiwiZXhwIjoxNzM1OTg2NDk0fQ.TN8IiT0z4Y6XMhprWn51Ujo7qxkT1eWNpF5tMMLyQoE
+
+POST http://localhost:9090/dashboard/v1/login
 
 {
-    "email": "amaury@graphify.com"
+    "email": "admin@example.com",
+    "password": "5NYDwMlWLnv10WnM"
 }
 
 ###
-GET http://localhost:8080/v1/test-header
-Authorization: Bearer 1234567890asdf
+
+GET http://localhost:9090/dashboard/v1/account
+Authorization: Bearer {{token}}
+
+###
+
+GET http://localhost:9090/dashboard/v1/schema
+Authorization: Bearer {{token}}
+
+###
+
+GET http://localhost:9090/dashboard/v1/files/0f1968cd506d22dbf831bc17b5416f4c628417974a10ffe702c434b476021545
+Authorization: Bearer {{token}}
+
+###
+
+GET http://localhost:9090/dashboard/v1/resources/books
+Authorization: Bearer {{token}}
+###
+
+GET http://localhost:9090/dashboard/v1/resources/books/83655
+Authorization: Bearer {{token}}
+
+###
+
+GET http://localhost:9090/dashboard/v1/resources/books/83655/borrows
+Authorization: Bearer {{token}}
+
+###
+
+DELETE http://localhost:9090/dashboard/v1/resources/books/83655
+Authorization: Bearer {{token}}
+
+###
+
+POST http://localhost:9090/dashboard/v1/resources/books
+Authorization: Bearer {{token}}
+
+{
+    "data": {
+      "@type": "type.googleapis.com/library.v1.Book",
+      "title": "New Book",
+      "author": "Author",
+      "novel": {
+        "genre": "Fiction",
+        "publicationYear": 1995
+      },
+      "mainReview": {
+        "message": "Best book ever",
+        "name": "Reviewer"
+      },
+      "reviews": [
+        {
+          "message": "Not as good",
+          "name": "Reviewer 2"
+        }
+      ],
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "bookPrice": {},
+      "chapters": {},
+      "characters": {
+        "Char1": {
+          "name": "Rick",
+          "role": "Role1"
+        },
+        "Char2": {
+          "name": "Mort",
+          "role": "Role2"
+        }
+      },
+      "portrait": "0f1968cd506d22dbf831bc17b5416f4c628417974a10ffe702c434b476021545",
+      "gallery": [
+        "048d83240f3800c60e8e34067dd38b3ff4446ec76228f3dad580fa659b92dafb",
+        "41a66d32c4e67956954702aedf584fdc6a23e75836be9f75e0b0fed8e691d0e6"
+      ],
+      "category": "CATEGORY_DRAMA",
+      "admin": true
+    }
+}
+###
+
+PUT  http://localhost:9090/dashboard/v1/resources/books/83655
+Authorization: Bearer {{token}}
+
+{
+    "data": {
+      "@type": "type.googleapis.com/library.v1.Book",
+      "title": "New Book Updated",
+      "author": "Author",
+      "novel": {
+        "genre": "Fiction",
+        "publicationYear": 1995
+      },
+      "mainReview": {
+        "message": "Best book ever",
+        "name": "Reviewer"
+      },
+      "reviews": [
+        {
+          "message": "Not as good",
+          "name": "Reviewer 2"
+        }
+      ],
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "bookPrice": {},
+      "chapters": {},
+      "characters": {
+        "Char1": {
+          "name": "Rick",
+          "role": "Role1"
+        },
+        "Char2": {
+          "name": "Mort",
+          "role": "Role2"
+        }
+      },
+      "portrait": "0f1968cd506d22dbf831bc17b5416f4c628417974a10ffe702c434b476021545",
+      "gallery": [
+        "048d83240f3800c60e8e34067dd38b3ff4446ec76228f3dad580fa659b92dafb",
+        "41a66d32c4e67956954702aedf584fdc6a23e75836be9f75e0b0fed8e691d0e6"
+      ],
+      "category": "CATEGORY_DRAMA",
+      "admin": true
+    }
+}

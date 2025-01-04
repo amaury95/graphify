@@ -1,13 +1,21 @@
 syntax = "proto3";
 package observer.v1;
 
+import "google/protobuf/any.proto";
+
 message CreatedPayload {
   string key = 1;
-  bytes element = 2;
+  google.protobuf.Any element = 2;
 }
 
-message UpdatedPayload { bytes element = 1; }
+message UpdatedPayload {
+  google.protobuf.Any element = 1;
+}
 
-message ReplacedPayload { bytes element = 1; }
+message ReplacedPayload {
+  google.protobuf.Any element = 1;
+}
 
-message DeletedPayload { string key = 1; }
+message DeletedPayload {
+  string key = 1;
+}

@@ -1731,7 +1731,8 @@ var DeleteBookRequest_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 /* Schema ... */
 func (*Book) Schema() map[string]interface{} {
 	return map[string]interface{}{
-		"name": "Book",
+		"name":  "Book",
+		"@type": "type.googleapis.com/library.v1.Book",
 		"fields": []interface{}{
 			map[string]interface{}{
 				"name": "_key",
@@ -1856,7 +1857,8 @@ func (*Book) Schema() map[string]interface{} {
 /* Schema ... */
 func (*Book_Novel) Schema() map[string]interface{} {
 	return map[string]interface{}{
-		"name": "Book_Novel",
+		"name":  "Book_Novel",
+		"@type": "type.googleapis.com/library.v1.Book.Novel",
 		"fields": []interface{}{
 			map[string]interface{}{
 				"name": "genre",
@@ -1874,7 +1876,8 @@ func (*Book_Novel) Schema() map[string]interface{} {
 /* Schema ... */
 func (*Book_ShortStory) Schema() map[string]interface{} {
 	return map[string]interface{}{
-		"name": "Book_ShortStory",
+		"name":  "Book_ShortStory",
+		"@type": "type.googleapis.com/library.v1.Book.ShortStory",
 		"fields": []interface{}{
 			map[string]interface{}{
 				"name": "lengthPages",
@@ -1893,7 +1896,8 @@ func (*Book_ShortStory) Schema() map[string]interface{} {
 /* Schema ... */
 func (*Book_Academic) Schema() map[string]interface{} {
 	return map[string]interface{}{
-		"name": "Book_Academic",
+		"name":  "Book_Academic",
+		"@type": "type.googleapis.com/library.v1.Book.Academic",
 		"fields": []interface{}{
 			map[string]interface{}{
 				"name": "subject",
@@ -1911,7 +1915,8 @@ func (*Book_Academic) Schema() map[string]interface{} {
 /* Schema ... */
 func (*Book_Poetry) Schema() map[string]interface{} {
 	return map[string]interface{}{
-		"name": "Book_Poetry",
+		"name":  "Book_Poetry",
+		"@type": "type.googleapis.com/library.v1.Book.Poetry",
 		"fields": []interface{}{
 			map[string]interface{}{
 				"name": "style",
@@ -1930,7 +1935,8 @@ func (*Book_Poetry) Schema() map[string]interface{} {
 /* Schema ... */
 func (*Book_Biography) Schema() map[string]interface{} {
 	return map[string]interface{}{
-		"name": "Book_Biography",
+		"name":  "Book_Biography",
+		"@type": "type.googleapis.com/library.v1.Book.Biography",
 		"fields": []interface{}{
 			map[string]interface{}{
 				"name": "subjectPerson",
@@ -1948,7 +1954,8 @@ func (*Book_Biography) Schema() map[string]interface{} {
 /* Schema ... */
 func (*Book_Review) Schema() map[string]interface{} {
 	return map[string]interface{}{
-		"name": "Book_Review",
+		"name":  "Book_Review",
+		"@type": "type.googleapis.com/library.v1.Book.Review",
 		"fields": []interface{}{
 			map[string]interface{}{
 				"name": "message",
@@ -1956,36 +1963,6 @@ func (*Book_Review) Schema() map[string]interface{} {
 			},
 			map[string]interface{}{
 				"name": "name",
-				"type": "string",
-			},
-		},
-		"oneofs": map[string]interface{}{},
-	}
-}
-
-/* Schema ... */
-func (*ListBooksResponse) Schema() map[string]interface{} {
-	return map[string]interface{}{
-		"name": "ListBooksResponse",
-		"fields": []interface{}{
-			map[string]interface{}{
-				"name":   "books",
-				"kind":   "list",
-				"type":   "message",
-				"schema": new(Book).Schema(),
-			},
-		},
-		"oneofs": map[string]interface{}{},
-	}
-}
-
-/* Schema ... */
-func (*DeleteBookRequest) Schema() map[string]interface{} {
-	return map[string]interface{}{
-		"name": "DeleteBookRequest",
-		"fields": []interface{}{
-			map[string]interface{}{
-				"name": "key",
 				"type": "string",
 			},
 		},
@@ -2265,46 +2242,5 @@ func (o *Book_Review) UnmarshalMap(values map[string]interface{}) {
 	}
 	if val, ok := values["name"].(string); ok {
 		o.UserName = val
-	}
-}
-
-/* UnmarshalJSON ...*/
-func (o *ListBooksResponse) UnmarshalJSON(b []byte) error {
-	if values, err := utils.MapFromBytes(b); err != nil {
-		return err
-	} else {
-		o.UnmarshalMap(values)
-	}
-	return nil
-}
-
-/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
-func (o *ListBooksResponse) UnmarshalMap(values map[string]interface{}) {
-	if list, ok := values["books"].([]interface{}); ok {
-		utils.MakeSlice(&o.Books, len(list))
-		for index, item := range list {
-			if val, ok := item.(map[string]interface{}); ok {
-				field := new(Book)
-				field.UnmarshalMap(val)
-				o.Books[index] = field
-			}
-		}
-	}
-}
-
-/* UnmarshalJSON ...*/
-func (o *DeleteBookRequest) UnmarshalJSON(b []byte) error {
-	if values, err := utils.MapFromBytes(b); err != nil {
-		return err
-	} else {
-		o.UnmarshalMap(values)
-	}
-	return nil
-}
-
-/* UnmarshalMap populates struct fields from a map, handling decoding for special fields. */
-func (o *DeleteBookRequest) UnmarshalMap(values map[string]interface{}) {
-	if val, ok := values["key"].(string); ok {
-		o.Key = val
 	}
 }

@@ -1,6 +1,7 @@
 package graphify
 
 import (
+	"encoding/json"
 	"reflect"
 	"runtime"
 	"strings"
@@ -54,7 +55,7 @@ func funcName(v reflect.Value) string {
 // Include Alpha Upper (A-Z): true
 // Include Alpha Lower (a-z): true
 // Include Number (0-9): true
-func generateRandomPassword() string {
+func GenerateRandomPassword() string {
 	const (
 		length        = 16
 		upperLetters  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -74,4 +75,12 @@ func generateRandomPassword() string {
 	password[rand.Intn(length)] = numbers[rand.Intn(len(numbers))]
 
 	return string(password)
+}
+
+// Pure converts a value to a pure JSON value
+func Pure[T any](v T) T {
+	bytes, _ := json.Marshal(v)
+	var result T
+	json.Unmarshal(bytes, &result)
+	return result
 }

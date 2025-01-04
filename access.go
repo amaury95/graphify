@@ -10,8 +10,8 @@ import (
 	observerv1 "github.com/amaury95/graphify/pkg/models/domain/observer/v1"
 	"github.com/amaury95/protoc-gen-graphify/interfaces"
 	"github.com/arangodb/go-driver"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 // CollectionCallback ...
@@ -50,7 +50,7 @@ type IAccess interface {
 	Delete(ctx context.Context, item any) error
 
 	// Relations ...
-	Relations(ctx context.Context, id string, bindVars IVars, direction Direction, out any) (int, error)
+	Relations(ctx context.Context, id string, bindVars IVars, direction Direction, out any) (int64, error)
 }
 
 type ArangoAccess struct {
@@ -323,7 +323,7 @@ func (e *ArangoAccess) createDocuments(ctx context.Context, items any) (result [
 		return nil, fmt.Errorf("failed to load collection: %w", err)
 	}
 
-	meta, errors, err := col.CreateDocuments(ctx, items)
+	meta, errors, err := col.CreateDocuments(driver.WithWaitForSync(ctx), items)
 	if err != nil {
 		return nil, fmt.Errorf("failed to insert document: %w", err)
 	}
@@ -338,10 +338,10 @@ func (e *ArangoAccess) createDocuments(ctx context.Context, items any) (result [
 
 		// emit events
 		item := itemsVal.Index(index).Interface()
-		if bytes, ok := protoEncode(item); ok {
+		if element, err := anypb.New(item.(protoreflect.ProtoMessage)); err == nil {
 			go e.observer.Emit(&Event[Topic]{
 				Topic:     CreatedTopic.For(item),
-				Payload:   &observerv1.CreatedPayload{Key: meta.Key, Element: bytes},
+				Payload:   &observerv1.CreatedPayload{Key: meta.Key, Element: element},
 				Timestamp: time.Now(),
 			})
 		}
@@ -358,16 +358,16 @@ func (e *ArangoAccess) createDocument(ctx context.Context, item any) ([]string, 
 		return nil, fmt.Errorf("failed to load collection: %w", err)
 	}
 
-	meta, err := col.CreateDocument(ctx, item)
+	meta, err := col.CreateDocument(driver.WithWaitForSync(ctx), item)
 	if err != nil {
 		return nil, fmt.Errorf("failed to insert document: %w", err)
 	}
 
 	// emit event
-	if bytes, ok := protoEncode(item); ok {
+	if element, err := anypb.New(item.(protoreflect.ProtoMessage)); err == nil {
 		go e.observer.Emit(&Event[Topic]{
 			Topic:     CreatedTopic.For(item),
-			Payload:   &observerv1.CreatedPayload{Key: meta.Key, Element: bytes},
+			Payload:   &observerv1.CreatedPayload{Key: meta.Key, Element: element},
 			Timestamp: time.Now(),
 		})
 	}
@@ -387,15 +387,15 @@ func (e *ArangoAccess) Update(ctx context.Context, key string, item any) error {
 		return fmt.Errorf("failed to load collection: %w", err)
 	}
 
-	if _, err := col.UpdateDocument(ctx, key, item); err != nil {
+	if _, err := col.UpdateDocument(driver.WithWaitForSync(ctx), key, item); err != nil {
 		return fmt.Errorf("failed to update the document")
 	}
 
 	// emit event
-	if bytes, ok := protoEncode(item); ok {
+	if element, err := anypb.New(item.(protoreflect.ProtoMessage)); err == nil {
 		go e.observer.Emit(&Event[Topic]{
 			Topic:     UpdatedTopic.For(item),
-			Payload:   &observerv1.UpdatedPayload{Element: bytes},
+			Payload:   &observerv1.UpdatedPayload{Element: element},
 			Timestamp: time.Now(),
 		})
 	}
@@ -415,15 +415,15 @@ func (e *ArangoAccess) Replace(ctx context.Context, key string, item any) error 
 		return fmt.Errorf("failed to load collection: %w", err)
 	}
 
-	if _, err := col.ReplaceDocument(ctx, key, item); err != nil {
+	if _, err := col.ReplaceDocument(driver.WithWaitForSync(ctx), key, item); err != nil {
 		return fmt.Errorf("failed to replace the document")
 	}
 
 	// emit event
-	if bytes, ok := protoEncode(item); ok {
+	if element, err := anypb.New(item.(protoreflect.ProtoMessage)); err == nil {
 		go e.observer.Emit(&Event[Topic]{
 			Topic:     ReplacedTopic.For(item),
-			Payload:   &observerv1.ReplacedPayload{Element: bytes},
+			Payload:   &observerv1.ReplacedPayload{Element: element},
 			Timestamp: time.Now(),
 		})
 	}
@@ -476,7 +476,7 @@ const (
 )
 
 // Relations ...
-func (e *ArangoAccess) Relations(ctx context.Context, id string, bindVars IVars, direction Direction, out any) (int, error) {
+func (e *ArangoAccess) Relations(ctx context.Context, id string, bindVars IVars, direction Direction, out any) (int64, error) {
 	outType := reflect.TypeOf(out)
 	if outType.Kind() != reflect.Pointer && outType.Elem().Kind() != reflect.Slice {
 		return -1, fmt.Errorf("out must be a pointer to a slice to return the elements")
@@ -530,17 +530,6 @@ func (e *ArangoAccess) Relations(ctx context.Context, id string, bindVars IVars,
 	outValue := reflect.ValueOf(out).Elem()
 	outValue.Set(result)
 	return 0, nil // TODO: finish return total count
-}
-
-// protoEncode ...
-func protoEncode(item any) ([]byte, bool) {
-	message := reflect.New(reflect.TypeOf(item))
-	message.Elem().Set(reflect.ValueOf(item))
-	if elem, ok := message.Interface().(protoreflect.ProtoMessage); ok {
-		elemBytes, _ := proto.Marshal(elem)
-		return elemBytes, ok
-	}
-	return nil, false
 }
 
 var (

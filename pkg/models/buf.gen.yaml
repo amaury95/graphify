@@ -7,4 +7,6 @@ managed:
 plugins:
   - local: protoc-gen-graphify
     out: domain
-    opt: paths=source_relative
+    opt:
+      - paths=source_relative
+      - object_schema=false

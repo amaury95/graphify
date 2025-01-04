@@ -336,44 +336,6 @@ var Key_Input = graphql.NewInputObject(graphql.InputObjectConfig{
 })
 
 /*
-	Graphify schema module
-*/
-
-/* Schema ... */
-func (*Pagination) Schema() map[string]interface{} {
-	return map[string]interface{}{
-		"name": "Pagination",
-		"fields": []interface{}{
-			map[string]interface{}{
-				"name":     "count",
-				"optional": true,
-				"type":     "int64",
-			},
-			map[string]interface{}{
-				"name":     "offset",
-				"optional": true,
-				"type":     "int64",
-			},
-		},
-		"oneofs": map[string]interface{}{},
-	}
-}
-
-/* Schema ... */
-func (*Key) Schema() map[string]interface{} {
-	return map[string]interface{}{
-		"name": "Key",
-		"fields": []interface{}{
-			map[string]interface{}{
-				"name": "_key",
-				"type": "string",
-			},
-		},
-		"oneofs": map[string]interface{}{},
-	}
-}
-
-/*
 	Graphify unmarshaler
 */
 

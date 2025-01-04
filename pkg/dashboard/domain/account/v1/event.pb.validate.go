@@ -59,7 +59,34 @@ func (m *AdminCreatedPayload) validate(all bool) error {
 
 	// no validation rules for Key
 
-	// no validation rules for Element
+	if all {
+		switch v := interface{}(m.GetElement()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AdminCreatedPayloadValidationError{
+					field:  "Element",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AdminCreatedPayloadValidationError{
+					field:  "Element",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetElement()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AdminCreatedPayloadValidationError{
+				field:  "Element",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if all {
 		switch v := interface{}(m.GetAdmin()).(type) {
@@ -192,7 +219,34 @@ func (m *AdminUpdatedPayload) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Element
+	if all {
+		switch v := interface{}(m.GetElement()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AdminUpdatedPayloadValidationError{
+					field:  "Element",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AdminUpdatedPayloadValidationError{
+					field:  "Element",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetElement()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AdminUpdatedPayloadValidationError{
+				field:  "Element",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if all {
 		switch v := interface{}(m.GetAdmin()).(type) {
@@ -325,7 +379,34 @@ func (m *AdminReplacedPayload) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Element
+	if all {
+		switch v := interface{}(m.GetElement()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AdminReplacedPayloadValidationError{
+					field:  "Element",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AdminReplacedPayloadValidationError{
+					field:  "Element",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetElement()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AdminReplacedPayloadValidationError{
+				field:  "Element",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if all {
 		switch v := interface{}(m.GetAdmin()).(type) {

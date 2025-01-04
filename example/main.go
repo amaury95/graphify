@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
 
 	"github.com/amaury95/graphify"
 	libraryv1 "github.com/amaury95/graphify/example/domain/library/v1"
@@ -18,14 +17,13 @@ import (
 
 	config "github.com/arangodb/go-driver/http"
 	"go.uber.org/fx"
-	"google.golang.org/protobuf/proto"
 )
 
 func main() {
-	dbUrl := flag.String("db", os.Getenv("DB_URL"), "Database URL")
-	dbUser := flag.String("user", os.Getenv("DB_USER"), "Database user")
-	dbPass := flag.String("pass", os.Getenv("DB_PASS"), "Database password")
-	useTLS := flag.Bool("tls", os.Getenv("USE_TLS") == "true", "Use TLS")
+	dbUrl := flag.String("db", `http://localhost:8529`, "Database URL")
+	dbUser := flag.String("user", "graphify", "Database user")
+	dbPass := flag.String("pass", "password", "Database password")
+	useTLS := flag.Bool("tls", false, "Use TLS")
 	flag.Parse()
 
 	fx.New(
@@ -109,7 +107,7 @@ func main() {
 		fx.Provide(func(ctx context.Context, admin *graphify.AdminHandler, graphql *graphify.GraphqlHandler, handlers *handlers) *mux.Router {
 			router := mux.NewRouter()
 
-			router.PathPrefix("/admin").
+			router.PathPrefix("/dashboard").
 				Handler(admin.Handler(ctx))
 
 			router.PathPrefix("/graphql").Handler(
@@ -176,7 +174,7 @@ func logCreatedBook(e *graphify.Event[graphify.Topic]) error {
 		return fmt.Errorf("payload is not CreatedPayload")
 	}
 	var book libraryv1.Book
-	if err := proto.Unmarshal(payload.Element, &book); err != nil {
+	if err := payload.Element.UnmarshalTo(&book); err != nil {
 		return err
 	}
 	fmt.Printf("Created book: %s with key: %s", book.Title, payload.Key)

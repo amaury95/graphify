@@ -18,8 +18,6 @@ plugins:
       - paths=source_relative
       - graphql_schema=false
       - object_schema=false
-      - unmarshal_request=false
-      - unmarshal_response=false
   - remote: buf.build/grpc/go:v1.5.1
     out: domain
     opt: paths=source_relative

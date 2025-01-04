@@ -3,20 +3,20 @@ package graphify
 import (
 	"context"
 
-	adminv1 "github.com/amaury95/graphify/pkg/models/domain/admin/v1"
+	"github.com/amaury95/graphify/pkg/dashboard/domain/account/v1"
 )
 
 /* Admin */
 type adminKey struct{}
 
 // ContextWithAdmin ...
-func ContextWithAdmin(parent context.Context, admin *adminv1.Admin) context.Context {
+func ContextWithAdmin(parent context.Context, admin *accountv1.Admin) context.Context {
 	return context.WithValue(parent, adminKey{}, admin)
 }
 
 // AdminFromContext ...
-func AdminFromContext(ctx context.Context) (value *adminv1.Admin, found bool) {
-	value, found = ctx.Value(adminKey{}).(*adminv1.Admin)
+func AdminFromContext(ctx context.Context) (value *accountv1.Admin, found bool) {
+	value, found = ctx.Value(adminKey{}).(*accountv1.Admin)
 	return
 }
 
