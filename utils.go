@@ -12,6 +12,9 @@ import (
 )
 
 /* NODE HELPERS */
+func idFor(resource, key string) string {
+	return resource + "/" + key
+}
 
 // collectionFor ...
 func collectionFor(t reflect.Type) string {

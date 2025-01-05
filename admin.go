@@ -89,7 +89,7 @@ func (h *AdminHandler) Handler(ctx context.Context) http.Handler {
 	server.HandlePath("GET", "/dashboard/v1/files/{hash}", h.FilesDownloadHandler)
 
 	// TODO: try to use a single router
-	
+
 	// Router
 	router := mux.NewRouter()
 	router.PathPrefix("/dashboard/v1").
@@ -198,7 +198,7 @@ func (h *AdminHandler) CreateAccount(ctx context.Context, req *dashboardv1.Creat
 }
 
 func (h *AdminHandler) ListResources(ctx context.Context, req *dashboardv1.ListResourcesRequest) (*dashboardv1.ListResourcesResponse, error) {
-	elemType, found := h.restElem(req.Resource)
+	elemType, found := h.typeOf(req.Resource)
 	if !found {
 		return nil, status.Errorf(codes.NotFound, "resource not found")
 	}
@@ -227,7 +227,7 @@ func (h *AdminHandler) ListResources(ctx context.Context, req *dashboardv1.ListR
 }
 
 func (h *AdminHandler) GetResource(ctx context.Context, req *dashboardv1.GetResourceRequest) (*dashboardv1.GetResourceResponse, error) {
-	elemType, found := h.restElem(req.Resource)
+	elemType, found := h.typeOf(req.Resource)
 	if !found {
 		return nil, status.Errorf(codes.NotFound, "resource not found")
 	}
@@ -246,7 +246,7 @@ func (h *AdminHandler) GetResource(ctx context.Context, req *dashboardv1.GetReso
 }
 
 func (h *AdminHandler) CreateResource(ctx context.Context, req *dashboardv1.CreateResourceRequest) (*dashboardv1.CreateResourceResponse, error) {
-	elemType, found := h.restElem(req.Resource)
+	elemType, found := h.typeOf(req.Resource)
 	if !found {
 		return nil, status.Errorf(codes.NotFound, "resource not found")
 	}
@@ -273,7 +273,7 @@ func (h *AdminHandler) CreateResource(ctx context.Context, req *dashboardv1.Crea
 }
 
 func (h *AdminHandler) UpdateResource(ctx context.Context, req *dashboardv1.UpdateResourceRequest) (*dashboardv1.UpdateResourceResponse, error) {
-	elemType, found := h.restElem(req.Resource)
+	elemType, found := h.typeOf(req.Resource)
 	if !found {
 		return nil, status.Errorf(codes.NotFound, "resource not found")
 	}
@@ -299,7 +299,7 @@ func (h *AdminHandler) UpdateResource(ctx context.Context, req *dashboardv1.Upda
 }
 
 func (h *AdminHandler) DeleteResource(ctx context.Context, req *dashboardv1.DeleteResourceRequest) (*emptypb.Empty, error) {
-	elemType, found := h.restElem(req.Resource)
+	elemType, found := h.typeOf(req.Resource)
 	if !found {
 		return nil, status.Errorf(codes.NotFound, "resource not found")
 	}
@@ -498,24 +498,20 @@ func (e *AdminHandler) registerAdmin(ctx context.Context, admin *accountv1.Admin
 	return nil
 }
 
-func (e *AdminHandler) restElem(collection string) (reflect.Type, bool) {
+func (e *AdminHandler) typeOf(name string) (reflect.Type, bool) {
 	exposed := map[string]reflect.Type{
 		"admins": reflect.TypeOf(accountv1.Admin{}),
 	}
 
-	if elem, found := exposed[collection]; found {
+	if elem, found := exposed[name]; found {
 		return elem, true
 	}
 
-	if elem := e.graph.TypeOf(collection); elem != nil {
+	if elem := e.graph.TypeOf(name); elem != nil {
 		return elem, true
 	}
 
 	return nil, false
-}
-
-func idFor(resource, key string) string {
-	return resource + "/" + key
 }
 
 var (

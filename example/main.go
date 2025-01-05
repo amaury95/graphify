@@ -14,6 +14,7 @@ import (
 	observerv1 "github.com/amaury95/graphify/pkg/models/domain/observer/v1"
 	"github.com/arangodb/go-driver"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 
 	config "github.com/arangodb/go-driver/http"
 	"go.uber.org/fx"
@@ -123,9 +124,16 @@ func main() {
 
 		/* run http server */
 		fx.Invoke(func(ctx context.Context, lc fx.Lifecycle, router *mux.Router) *http.Server {
+			// Use cors middleware
+			c := cors.New(cors.Options{
+				AllowOriginFunc:  func(origin string) bool { return true },
+				AllowedHeaders:   []string{"*"},
+				AllowCredentials: true,
+			})
+
 			srv := &http.Server{
 				Addr:        ":9090",
-				Handler:     router,
+				Handler:     c.Handler(router),
 				BaseContext: func(net.Listener) context.Context { return ctx }, // Inject app context to requests
 			}
 
@@ -136,8 +144,8 @@ func main() {
 						return err
 					}
 
-					if *useTLS {
-						// Load TLS certificate and key
+					if *useTLS { // Use TLS
+						
 						cert, err := tls.LoadX509KeyPair("server.crt", "server.key")
 						if err != nil {
 							return fmt.Errorf("error loading TLS cert: %v", err)
@@ -150,7 +158,7 @@ func main() {
 
 						fmt.Println("Starting HTTPS server at", srv.Addr)
 						go srv.ServeTLS(ln, "", "") // Empty strings since we configured TLS above
-					} else {
+					} else { // Use HTTP
 						fmt.Println("Starting HTTP server at", srv.Addr)
 						go srv.Serve(ln)
 					}

@@ -14,6 +14,7 @@ require (
 	github.com/graphql-go/graphql v0.8.1
 	github.com/graphql-go/handler v0.2.3
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.25.1
+	github.com/rs/cors v1.11.1
 	github.com/samber/lo v1.44.0
 	github.com/stoewer/go-strcase v1.3.0
 	go.uber.org/fx v1.22.1
