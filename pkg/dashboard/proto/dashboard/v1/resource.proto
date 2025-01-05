@@ -3,7 +3,7 @@ syntax = "proto3";
 package dashboard.v1;
 
 import "google/api/annotations.proto";
-import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
 
 service ResourceService {
@@ -53,13 +53,13 @@ message ListResourcesRequest {
 }
 
 message ListResourcesResponse {
-  repeated google.protobuf.Any resources = 1;
+  repeated google.protobuf.Struct resources = 1;
   int64 count = 2;
 }
 
 message CreateResourceRequest {
   string resource = 1;
-  google.protobuf.Any data = 2;
+  google.protobuf.Struct data = 2;
 }
 
 message CreateResourceResponse {
@@ -72,17 +72,17 @@ message GetResourceRequest {
 }
 
 message GetResourceResponse {
-  google.protobuf.Any resource = 1;
+  google.protobuf.Struct resource = 1;
 }
 
 message UpdateResourceRequest {
   string resource = 1;
   string key = 2;
-  google.protobuf.Any data = 3;
+  google.protobuf.Struct data = 3;
 }
 
 message UpdateResourceResponse {
-  google.protobuf.Any resource = 1;
+  google.protobuf.Struct resource = 1;
 }
 
 message DeleteResourceRequest {
@@ -100,6 +100,6 @@ message GetResourceRelationRequest {
 }
 
 message GetResourceRelationResponse {
-  repeated google.protobuf.Any resources = 1;
+  repeated google.protobuf.Struct resources = 1;
   int64 count = 2;
 }

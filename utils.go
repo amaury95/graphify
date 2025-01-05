@@ -87,3 +87,10 @@ func Pure[T any](v T) T {
 	json.Unmarshal(bytes, &result)
 	return result
 }
+
+func Map(v any) map[string]any {
+	bytes, _ := json.Marshal(v)
+	var result map[string]any
+	json.Unmarshal(bytes, &result)
+	return result
+}

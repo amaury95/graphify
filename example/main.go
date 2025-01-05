@@ -127,6 +127,7 @@ func main() {
 			// Use cors middleware
 			c := cors.New(cors.Options{
 				AllowOriginFunc:  func(origin string) bool { return true },
+				AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 				AllowedHeaders:   []string{"*"},
 				AllowCredentials: true,
 			})
@@ -145,7 +146,7 @@ func main() {
 					}
 
 					if *useTLS { // Use TLS
-						
+
 						cert, err := tls.LoadX509KeyPair("server.crt", "server.key")
 						if err != nil {
 							return fmt.Errorf("error loading TLS cert: %v", err)

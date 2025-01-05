@@ -217,9 +217,9 @@ func (h *AdminHandler) ListResources(ctx context.Context, req *dashboardv1.ListR
 		return nil, status.Errorf(codes.Internal, "failed to list resources")
 	}
 
-	var result []*anypb.Any
+	var result []*structpb.Struct
 	for i := 0; i < elems.Elem().Len(); i++ {
-		value, _ := anypb.New(elems.Elem().Index(i).Interface().(proto.Message))
+		value, _ := structpb.NewStruct(Map(elems.Elem().Index(i).Interface()))
 		result = append(result, value)
 	}
 
@@ -237,7 +237,7 @@ func (h *AdminHandler) GetResource(ctx context.Context, req *dashboardv1.GetReso
 		return nil, status.Errorf(codes.NotFound, "resource not found")
 	}
 
-	data, err := anypb.New(elem.Interface().(proto.Message))
+	data, err := structpb.NewStruct(Map(elem.Interface()))
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to marshal resource")
 	}
@@ -252,8 +252,8 @@ func (h *AdminHandler) CreateResource(ctx context.Context, req *dashboardv1.Crea
 	}
 
 	elem := reflect.New(elemType)
-	if err := req.Data.UnmarshalTo(elem.Interface().(proto.Message)); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid resource")
+	if obj, ok := elem.Interface().(interfaces.Unmarshaler); ok {
+		obj.UnmarshalMap(req.Data.AsMap())
 	}
 
 	keys, err := h.access.Create(ctx, elem.Interface())
@@ -262,12 +262,15 @@ func (h *AdminHandler) CreateResource(ctx context.Context, req *dashboardv1.Crea
 	}
 
 	// emit event
-	admin, _ := AdminFromContext(ctx)
-	go h.observer.Emit(&Event[Topic]{
-		Topic:     AdminCreatedTopic.For(elem.Elem().Interface()),
-		Payload:   &accountv1.AdminCreatedPayload{Element: req.Data, Admin: admin, Key: keys[0]},
-		Timestamp: time.Now(),
-	})
+	if message, ok := elem.Interface().(proto.Message); ok {
+		admin, _ := AdminFromContext(ctx)
+		data, _ := anypb.New(message)
+		go h.observer.Emit(&Event[Topic]{
+			Topic:     AdminCreatedTopic.For(elem.Elem().Interface()),
+			Payload:   &accountv1.AdminCreatedPayload{Element: data, Admin: admin, Key: keys[0]},
+			Timestamp: time.Now(),
+		})
+	}
 
 	return &dashboardv1.CreateResourceResponse{Key: keys[0]}, nil
 }
@@ -279,8 +282,8 @@ func (h *AdminHandler) UpdateResource(ctx context.Context, req *dashboardv1.Upda
 	}
 
 	elem := reflect.New(elemType)
-	if err := req.Data.UnmarshalTo(elem.Interface().(proto.Message)); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid resource")
+	if obj, ok := elem.Interface().(interfaces.Unmarshaler); ok {
+		obj.UnmarshalMap(req.Data.AsMap())
 	}
 
 	if err := h.access.Replace(ctx, req.Key, elem.Interface()); err != nil {
@@ -288,12 +291,15 @@ func (h *AdminHandler) UpdateResource(ctx context.Context, req *dashboardv1.Upda
 	}
 
 	// emit event
-	admin, _ := AdminFromContext(ctx)
-	go h.observer.Emit(&Event[Topic]{
-		Topic:     AdminReplacedTopic.For(elem.Elem().Interface()),
-		Payload:   &accountv1.AdminReplacedPayload{Element: req.Data, Admin: admin},
-		Timestamp: time.Now(),
-	})
+	if message, ok := elem.Interface().(proto.Message); ok {
+		data, _ := anypb.New(message)
+		admin, _ := AdminFromContext(ctx)
+		go h.observer.Emit(&Event[Topic]{
+			Topic:     AdminReplacedTopic.For(elem.Elem().Interface()),
+			Payload:   &accountv1.AdminReplacedPayload{Element: data, Admin: admin},
+			Timestamp: time.Now(),
+		})
+	}
 
 	return &dashboardv1.UpdateResourceResponse{Resource: req.Data}, nil
 }
@@ -360,9 +366,9 @@ func (h *AdminHandler) GetResourceRelation(ctx context.Context, req *dashboardv1
 		return nil, status.Errorf(codes.Internal, "failed to get resource relation")
 	}
 
-	var result []*anypb.Any
+	var result []*structpb.Struct
 	for i := 0; i < elems.Elem().Len(); i++ {
-		value, _ := anypb.New(elems.Elem().Index(i).Interface().(proto.Message))
+		value, _ := structpb.NewStruct(Map(elems.Elem().Index(i).Interface()))
 		result = append(result, value)
 	}
 
