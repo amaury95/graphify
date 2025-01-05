@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"net/http"
 	"reflect"
+	"regexp"
 	"strings"
 	"time"
 
@@ -105,8 +106,9 @@ func (h *AdminHandler) Handler(ctx context.Context) http.Handler {
 
 func (h *AdminHandler) authorize(hf runtime.HandlerFunc) runtime.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
-		// Skip authorization for dashboard ui and /login route
-		if r.URL.Path == "/dashboard/v1/login" {
+		// Skip authorization for dashboard/v1/login and dashboard/v1/files/{hash} routes
+		skip := regexp.MustCompile(`^/dashboard/v1/(login|files/.*)$`)
+		if skip.MatchString(r.URL.Path) {
 			hf(w, r, pathParams)
 			return
 		}
@@ -217,11 +219,10 @@ func (h *AdminHandler) ListResources(ctx context.Context, req *dashboardv1.ListR
 		return nil, status.Errorf(codes.Internal, "failed to list resources")
 	}
 
-	var result []*structpb.Struct
-	for i := 0; i < elems.Elem().Len(); i++ {
-		value, _ := structpb.NewStruct(Map(elems.Elem().Index(i).Interface()))
-		result = append(result, value)
-	}
+	result := Convert(elems.Elem().Len(), func(i int) *structpb.Struct {
+		value, _ := structpb.NewStruct(ToMap(elems.Elem().Index(i).Interface()))
+		return value
+	})
 
 	return &dashboardv1.ListResourcesResponse{Resources: result, Count: size}, nil
 }
@@ -237,7 +238,7 @@ func (h *AdminHandler) GetResource(ctx context.Context, req *dashboardv1.GetReso
 		return nil, status.Errorf(codes.NotFound, "resource not found")
 	}
 
-	data, err := structpb.NewStruct(Map(elem.Interface()))
+	data, err := structpb.NewStruct(ToMap(elem.Interface()))
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to marshal resource")
 	}
@@ -366,11 +367,10 @@ func (h *AdminHandler) GetResourceRelation(ctx context.Context, req *dashboardv1
 		return nil, status.Errorf(codes.Internal, "failed to get resource relation")
 	}
 
-	var result []*structpb.Struct
-	for i := 0; i < elems.Elem().Len(); i++ {
-		value, _ := structpb.NewStruct(Map(elems.Elem().Index(i).Interface()))
-		result = append(result, value)
-	}
+	result := Convert(elems.Elem().Len(), func(i int) *structpb.Struct {
+		value, _ := structpb.NewStruct(ToMap(elems.Elem().Index(i).Interface()))
+		return value
+	})
 
 	return &dashboardv1.GetResourceRelationResponse{Resources: result, Count: size}, nil
 }

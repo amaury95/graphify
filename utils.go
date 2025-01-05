@@ -81,16 +81,24 @@ func GenerateRandomPassword() string {
 }
 
 // Pure converts a value to a pure JSON value
-func Pure[T any](v T) T {
+func Pure[T any](v T) (result T) {
 	bytes, _ := json.Marshal(v)
-	var result T
 	json.Unmarshal(bytes, &result)
-	return result
+	return
 }
 
-func Map(v any) map[string]any {
+// ToMap converts a value to a map[string]any
+func ToMap(v any) (result map[string]any) {
 	bytes, _ := json.Marshal(v)
-	var result map[string]any
 	json.Unmarshal(bytes, &result)
-	return result
+	return
+}
+
+// Convert converts a slice of values to a slice of values using a function
+func Convert[T any](size int, fn func(int) T) (result []T) {
+	result = make([]T, size)
+	for i := 0; i < size; i++ {
+		result[i] = fn(i)
+	}
+	return
 }
