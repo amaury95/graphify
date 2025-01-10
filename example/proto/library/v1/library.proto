@@ -1,6 +1,8 @@
 syntax = "proto3";
 package library.v1;
 
+import "common/v1/countries.proto";
+
 message Library {
   message Location {
     float lat = 1;
@@ -9,4 +11,5 @@ message Library {
   string key = 1 [ json_name = "_key" ];
   string name = 2;
   Location location = 3;
+  common.v1.Country country = 4;
 }
