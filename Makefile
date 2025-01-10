@@ -24,6 +24,3 @@ minor:
 # Major changes: Breaks the API
 major:
 	@make release version=${GIT_NEXT_MAJOR}
-
-swagger:
-	@npx serve pkg/dashboard/domain -l 9095
