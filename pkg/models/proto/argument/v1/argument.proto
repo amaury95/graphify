@@ -10,4 +10,4 @@ message Pagination {
 
 message Key { string key = 1 [ json_name = "_key" ]; }
 
-message Keys { repeated Key keys = 1; }
+message Keys { repeated string keys = 1; }
