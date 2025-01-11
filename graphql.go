@@ -110,8 +110,8 @@ func NewGraphqlHandler(access IAccess, graph IGraph) *GraphqlHandler {
 	return &GraphqlHandler{access: access, graph: graph}
 }
 
-// Handler ...
-func (e *GraphqlHandler) Handler(ctx context.Context, handlers ...interface{}) *handler.Handler {
+// Handle ...
+func (e *GraphqlHandler) Handle(ctx context.Context, handlers ...interface{}) *handler.Handler {
 	var queries = graphql.NewObject(graphql.ObjectConfig{
 		Name:   "Query",
 		Fields: graphql.Fields{},

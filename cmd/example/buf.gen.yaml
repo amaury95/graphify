@@ -3,7 +3,7 @@ managed:
   enabled: true
   override:
     - file_option: go_package_prefix
-      value: github.com/amaury95/graphify/example/domain
+      value: github.com/amaury95/graphify/cmd/example/domain
   disable:
     - module: buf.build/amaury/graphify
       file_option: go_package_prefix

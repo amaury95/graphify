@@ -9,8 +9,8 @@ import (
 	"net/http"
 
 	"github.com/amaury95/graphify"
-	libraryv1 "github.com/amaury95/graphify/example/domain/library/v1"
-	relationv1 "github.com/amaury95/graphify/example/domain/relation/v1"
+	libraryv1 "github.com/amaury95/graphify/cmd/example/domain/library/v1"
+	relationv1 "github.com/amaury95/graphify/cmd/example/domain/relation/v1"
 	observerv1 "github.com/amaury95/graphify/pkg/models/domain/observer/v1"
 	"github.com/arangodb/go-driver"
 	"github.com/gorilla/mux"
@@ -112,7 +112,7 @@ func main() {
 				Handler(admin.Handler(ctx))
 
 			router.PathPrefix("/graphql").Handler(
-				graphql.Handler(ctx,
+				graphql.Handle(ctx,
 					// graphify.ExposeNodes(libraryv1.Book{}, libraryv1.Library{}),
 					graphify.ExposeNodes(),
 					graphify.Query(handlers.fitzgeraldBooks),
