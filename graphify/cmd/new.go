@@ -116,7 +116,7 @@ managed:
   enabled: true
   override:
     - file_option: go_package_prefix
-      value: {{.module_path}}
+      value: {{.module_path}}/domain
 plugins:
   - local: protoc-gen-graphify
     out: domain
@@ -173,12 +173,14 @@ import (
 )
 
 func main() {
-	dbUrl := flag.String("url", "http://localhost:8529", "Database URL")
-	dbName := flag.String("db", "example", "Database name")
-	dbUser := flag.String("user", "graphify", "Database user")
-	dbPass := flag.String("pass", "password", "Database password")
-	secret := flag.String("secret", "secret", "Passwords secret")
-	port := flag.String("port", ":9091", "Port to listen on")
+	var (
+		dbUrl  = flag.String("url", "http://localhost:8529", "Database URL")
+		dbName = flag.String("db", "example", "Database name")
+		dbUser = flag.String("user", "graphify", "Database user")
+		dbPass = flag.String("pass", "password", "Database password")
+		secret = flag.String("secret", "secret", "Passwords secret")
+		port   = flag.String("port", ":9091", "Port to listen on")
+	)
 
 	flag.Parse()
 
