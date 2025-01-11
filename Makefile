@@ -26,4 +26,4 @@ major:
 	@make release version=${GIT_NEXT_MAJOR}
 
 install:
-	@go install github.com/amaury95/graphify/cmd/graphify@${GIT_VERSION}
+	@go install github.com/amaury95/graphify/graphify@${GIT_VERSION}
