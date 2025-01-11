@@ -185,7 +185,7 @@ import (
 	"github.com/arangodb/go-driver"
 	config "github.com/arangodb/go-driver/http"
 	"github.com/gorilla/mux"
-	
+
 	modelsv1 "{{.module_path}}/domain/models/v1"
 )
 
