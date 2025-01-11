@@ -43,7 +43,7 @@ func createProjectStructure(name string, go_mod_path string) {
 	projectRoot := filepath.Join(currentDir, name)
 	os.MkdirAll(projectRoot, 0755)
 
-	progress := NewProgress(4)
+	progress := NewProgress(8)
 
 	// Create project structure
 	progress.Print("Creating project structure...")
@@ -51,6 +51,7 @@ func createProjectStructure(name string, go_mod_path string) {
 		example_proto_file,
 		buf_gen_yaml_file,
 		buf_yaml_file,
+		gitignore_file,
 		main_file,
 	} {
 		filePath := filepath.Join(projectRoot, file.RelativePath)
@@ -81,6 +82,21 @@ func createProjectStructure(name string, go_mod_path string) {
 	progress.Print("Tidying go module...")
 	go_mod_tidy_cmd := exec.Command("go", "mod", "tidy")
 	go_mod_tidy_cmd.Run()
+
+	// Initialize git
+	progress.Print("Initializing git...")
+	git_init_cmd := exec.Command("git", "init")
+	git_init_cmd.Run()
+
+	// Add all files to git
+	progress.Print("Adding all files to git...")
+	git_add_cmd := exec.Command("git", "add", ".")
+	git_add_cmd.Run()
+
+	// Commit
+	progress.Print("Committing...")
+	git_commit_cmd := exec.Command("git", "commit", "-m", "Initial commit")
+	git_commit_cmd.Run()
 
 	progress.Done("Project created at " + projectRoot)
 }
@@ -158,18 +174,19 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"go.uber.org/fx"
 	"net"
 	"net/http"
 
-	modelsv1 "{{.module_path}}/domain/models/v1"
 	"github.com/amaury95/graphify"
 	argumentv1 "github.com/amaury95/graphify/pkg/models/domain/argument/v1"
 	observerv1 "github.com/amaury95/graphify/pkg/models/domain/observer/v1"
-	"github.com/arangodb/go-driver"
-	"github.com/gorilla/mux"
 
+	"github.com/arangodb/go-driver"
 	config "github.com/arangodb/go-driver/http"
-	"go.uber.org/fx"
+	"github.com/gorilla/mux"
+	
+	modelsv1 "{{.module_path}}/domain/models/v1"
 )
 
 func main() {
@@ -351,6 +368,44 @@ func (a *App) createExample(ctx context.Context, req *modelsv1.Example) (*argume
 
 	return &argumentv1.Keys{Keys: keys}, nil
 }
+`,
+}
+
+var gitignore_file = file{
+	RelativePath: "",
+	FileName:     ".gitignore",
+	Content: `
+# If you prefer the allow list template instead of the deny list, see community template:
+# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
+#
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with "go test -c"
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# Go workspace file
+go.work
+
+# Uploads folder
+uploads
+
+# TLS certificate and key
+server.crt
+server.key
+
+# Rest api
+*.rest
 `,
 }
 
