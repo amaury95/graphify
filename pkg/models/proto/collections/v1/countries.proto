@@ -1,6 +1,8 @@
 syntax = "proto3";
 package collections.v1;
 
+option go_package = "github.com/amaury95/graphify/pkg/models/domain/collections/v1";
+
 enum Country {
   COUNTRY_UNSPECIFIED = 0;
   //   A

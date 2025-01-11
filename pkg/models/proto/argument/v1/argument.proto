@@ -1,6 +1,8 @@
 syntax = "proto3";
 package argument.v1;
 
+option go_package = "github.com/amaury95/graphify/pkg/models/domain/argument/v1";
+
 message Pagination {
   optional int64 count = 1;
   optional int64 offset = 2;
