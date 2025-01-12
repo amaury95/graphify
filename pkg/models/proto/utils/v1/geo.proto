@@ -1,0 +1,11 @@
+syntax = "proto3";
+package utils.v1;
+
+import "validate/validate.proto";
+
+option go_package = "github.com/amaury95/graphify/pkg/models/domain/utils/v1";
+
+message Location {
+    float latitude = 1 [(validate.rules).float.gte = -90, (validate.rules).float.lte = 90];
+    float longitude = 2 [(validate.rules).float.gte = -180, (validate.rules).float.lte = 180];
+}

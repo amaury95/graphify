@@ -4,9 +4,11 @@ managed:
   override:
     - file_option: go_package_prefix
       value: github.com/amaury95/graphify/pkg/models/domain
+  disable:
+    - module: buf.build/envoyproxy/protoc-gen-validate
+      file_option: go_package_prefix
 plugins:
   - local: protoc-gen-graphify
     out: domain
     opt:
       - paths=source_relative
-      - object_schema=false

@@ -1,11 +1,13 @@
 syntax = "proto3";
 package argument.v1;
 
+import "validate/validate.proto";
+
 option go_package = "github.com/amaury95/graphify/pkg/models/domain/argument/v1";
 
 message Pagination {
-  optional int64 count = 1;
-  optional int64 offset = 2;
+  optional int64 count = 1 [ (validate.rules).int64.gt = 0 ];
+  optional int64 offset = 2 [ (validate.rules).int64.gte = 0 ];
 }
 
 message Key { string key = 1 [ json_name = "_key" ]; }

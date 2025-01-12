@@ -365,5 +365,9 @@ func file_observer_v1_events_proto_init() {
 */
 
 /*
+	Graphify schema module
+*/
+
+/*
 	Graphify unmarshaler
 */
